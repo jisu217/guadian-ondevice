@@ -13,10 +13,10 @@ Local Verdict Store
   ↓ miss
 Rule Engine
   ↓ uncertain
-Local Reasoning
-  ├─ On-device Model
-  └─ Local RAG
-  ↓ low confidence
+On-device Model
+  ↓ low confidence / unknown
+Local RAG
+  ↓ still low confidence
 Remote Fallback
   ↓
 Persist Verdict
@@ -33,8 +33,10 @@ LocalRiskStore
   ↓ miss
 RuleBasedJudge
   ↓ uncertain
-LocalReasoningJudge
-  ↓ low confidence
+OnDeviceModelJudge
+  ↓ low confidence / unknown
+LocalRagJudge
+  ↓ still low confidence
 RemoteJudge
   ↓
 Persist Verdict
@@ -48,10 +50,10 @@ Shield UI
 | :-- | :-- |
 | LocalRiskStore | URL 또는 도메인 단위의 판정 결과를 조회하고 저장 |
 | RuleBasedJudge | APK, 공식 도메인, 사칭 가능성, 의심 URL 패턴 등 명시적 신호를 판정 |
-| LocalReasoningJudge | 로컬 모델과 로컬 지식 검색을 순서대로 실행하는 추론 계층 |
+| LocalReasoningJudge | OnDeviceModelJudge를 먼저 실행하고, 불확실한 경우 LocalRagJudge로 넘기는 로컬 추론 계층 |
 | OnDeviceModelJudge | 룰로 판단하기 어려운 URL을 경량 모델로 분류하는 계층. 현재는 모델 런타임 연결 전 상태 |
 | LocalKnowledgeRetriever | 로컬 정책 스니펫과 위험 패턴을 검색해 판정 근거 후보를 반환 |
-| LocalRagJudge | 검색된 로컬 근거를 Verdict 흐름에 연결 |
+| LocalRagJudge | 모델 판정이 불확실할 때 로컬 근거를 검색해 Verdict 흐름에 연결 |
 | RemoteJudge | 로컬 판정이 불확실한 경우 원격 API로 보조 판정 |
 | HybridJudge | 각 판정 계층을 순서대로 실행하고 최종 Verdict를 결정 |
 
@@ -92,6 +94,7 @@ Claude API key는 Android 모듈에 포함하지 않고 서버 환경변수로�
 | :-- | :-- |
 | Cached verdict exists | 저장된 Verdict를 즉시 반환 |
 | Clear local signal exists | RuleBasedJudge 결과를 반환 |
-| Local signal is uncertain | LocalReasoningJudge에서 온디바이스 모델과 로컬 지식 검색으로 보강 |
+| Local signal is uncertain | OnDeviceModelJudge로 로컬 추론 수행 |
+| On-device confidence is low | LocalRagJudge로 로컬 근거 검색 |
 | Confidence is still low | 원격 fallback 사용 |
 | Remote fallback fails | UNKNOWN 반환 |
