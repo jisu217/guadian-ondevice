@@ -13,9 +13,9 @@ Local Verdict Store
   ↓ miss
 Rule Engine
   ↓ uncertain
-On-device Model
+On-device Model / Local RAG
   ↓ low confidence
-Local Knowledge Retriever / Remote Fallback
+Remote Fallback
   ↓
 Persist Verdict
   ↓
@@ -45,9 +45,22 @@ Shield UI
 | LocalRiskStore | URL 또는 도메인 단위의 판정 결과를 조회하고 저장 |
 | RuleBasedJudge | APK, 공식 도메인, 사칭 가능성, 의심 URL 패턴 등 명시적 신호를 판정 |
 | OnDeviceModelJudge | 룰로 판단하기 어려운 URL을 경량 모델로 분류 |
-| LocalKnowledgeRetriever | 로컬 정책 문서와 위험 패턴 문서를 검색해 판정 근거 보강 |
+| LocalKnowledgeRetriever | 로컬 정책 스니펫과 위험 패턴을 검색해 판정 근거 후보를 반환 |
+| LocalRagJudge | 검색된 로컬 근거를 Verdict 흐름에 연결 |
 | RemoteJudge | 로컬 판정이 불확실한 경우 원격 API로 보조 판정 |
 | HybridJudge | 각 판정 계층을 순서대로 실행하고 최종 Verdict를 결정 |
+
+## Remote Fallback Server
+
+`server/`는 `RemoteJudge`가 호출하는 `/judge` API의 최소 구현이다.
+
+| Component | Role |
+| :-- | :-- |
+| `server/main.py` | `/health`, `/judge` FastAPI 엔드포인트 |
+| `server/judge_service.py` | 로컬 서버 precheck, Claude 호출, Verdict 변환 |
+| `server/.env.example` | `ANTHROPIC_API_KEY`, 모델명 등 서버 환경변수 예시 |
+
+Claude API key는 Android 모듈에 포함하지 않고 서버 환경변수로만 관리한다.
 
 ## Design Principles
 

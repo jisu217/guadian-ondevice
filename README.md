@@ -84,6 +84,7 @@ guadian-ondevice/
       OnDeviceModelJudge.kt
 
     rag/
+      LocalRagJudge.kt
       LocalKnowledgeRetriever.kt
 
   docs/
@@ -93,9 +94,19 @@ guadian-ondevice/
   android/app/src/test/kotlin/
     com/guardian/ondevice/judge/
       HybridJudgeTest.kt
+      RemoteJudgeTest.kt
       RuleBasedJudgeTest.kt
     com/guardian/ondevice/store/
       LocalRiskStoreTest.kt
+    com/guardian/ondevice/rag/
+      LocalKnowledgeRetrieverTest.kt
+      LocalRagJudgeTest.kt
+
+  server/
+    main.py
+    judge_service.py
+    requirements.txt
+    .env.example
 
   reference/
     Judge.kt
@@ -122,6 +133,16 @@ guadian-ondevice/
 
 ```bash
 ./gradlew test
+python3 -m unittest discover server
+```
+
+## Remote Fallback Server
+
+```bash
+cd server
+cp .env.example .env
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
 ## References
