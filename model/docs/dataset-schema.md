@@ -12,7 +12,7 @@ Each row represents one URL sample.
 | :-- | :-- | :-- |
 | `url` | yes | URL or landing page address to classify |
 | `label` | yes | Risk label: `LOW`, `MEDIUM`, `HIGH`, or `UNKNOWN` |
-| `source` | yes | Dataset source, such as `reference`, `synthetic`, `manual-review`, or `public-feed` |
+| `source` | yes | Dataset source, such as `synthetic`, `reference-derived`, `public-benign`, or `public-feed` |
 | `reason` | yes | Short labeling rationale |
 | `category` | no | Risk category, such as `official-domain`, `apk-download`, `brand-impersonation`, `suspicious-pattern`, or `no-signal` |
 | `brand` | no | Related brand or service name when impersonation is relevant |
@@ -68,7 +68,7 @@ Avoid placing near-duplicate URLs from the same campaign across different splits
 
 ## Example Rows
 
-These are illustrative examples, not a training dataset. The repository also includes [`sample_urls.csv`](../data/sample_urls.csv) as a small synthetic fixture for pipeline tests.
+These are illustrative examples, not a training dataset. The repository also includes [`sample_urls.csv`](../data/sample_urls.csv) as a mixed seed fixture for pipeline tests.
 
 ```csv
 url,label,source,reason,category,brand,reviewed_by,created_at

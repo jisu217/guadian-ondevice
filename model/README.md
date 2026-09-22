@@ -27,7 +27,7 @@ Prepare URL dataset
 
 `artifacts/` should contain only generated model outputs that are safe to commit. Large datasets, raw logs, API keys, and private samples should stay outside the repository.
 
-Start with [`docs/dataset-schema.md`](./docs/dataset-schema.md) before collecting or generating samples. [`data/sample_urls.csv`](./data/sample_urls.csv) is a small synthetic fixture for pipeline tests, not a production training dataset. Then use [`docs/feature-spec.md`](./docs/feature-spec.md) to keep Python training and Android runtime feature extraction aligned.
+Start with [`docs/dataset-schema.md`](./docs/dataset-schema.md) and [`docs/data-collection-plan.md`](./docs/data-collection-plan.md) before collecting or generating samples. [`data/sample_urls.csv`](./data/sample_urls.csv) is a mixed seed fixture for pipeline tests, not a production training dataset. Then use [`docs/feature-spec.md`](./docs/feature-spec.md) to keep Python training and Android runtime feature extraction aligned.
 
 Run model workspace tests with:
 

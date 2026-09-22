@@ -29,7 +29,35 @@ FREE_TOKENS = {"free", "gift", "prize", "win", "winner"}
 SHORTENER_HOSTS = {"bit.ly", "tinyurl.com", "t.co", "short.test"}
 SHORTENER_TOKENS = {"short", "go", "r", "l"}
 BRAND_KEYWORDS = {"bank", "kakao", "naver", "google", "samsung", "sk", "toss"}
-OFFICIAL_DOMAINS = {"example.com", "support.example.com"}
+OFFICIAL_DOMAINS = {
+    "example.com",
+    "support.example.com",
+    "docs.example.com",
+    "news.example.com",
+    "www.google.com",
+    "www.apple.com",
+    "www.samsung.com",
+    "www.microsoft.com",
+    "www.cloudflare.com",
+    "www.wikipedia.org",
+    "github.com",
+    "docs.github.com",
+    "www.kakaocorp.com",
+    "www.naver.com",
+    "www.toss.im",
+    "www.iana.org",
+    "developer.android.com",
+    "kotlinlang.org",
+    "www.python.org",
+    "safe-reference.test",
+    "trusted-service.test",
+    "verified-support.test",
+    "official-store.test",
+    "customer-center.test",
+    "docs.safe-example.test",
+    "news.safe-example.test",
+    "status.safe-example.test",
+}
 SUSPICIOUS_TLDS = {"zip", "top", "xyz", "click", "test"}
 
 

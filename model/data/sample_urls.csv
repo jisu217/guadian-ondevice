@@ -30,3 +30,92 @@ https://redirect-holder.test/out?target=redacted,UNKNOWN,synthetic,redirect-look
 https://mobile-guide.test/setup,UNKNOWN,synthetic,generic mobile guide URL without risk evidence,no-signal,,manual-review,2026-09-22
 https://survey-form.test/start,UNKNOWN,synthetic,survey start page without sensitive data request evidence,no-signal,,manual-review,2026-09-22
 https://unknown-service.test/notice,UNKNOWN,synthetic,unknown service notice with no deterministic signal,no-signal,,manual-review,2026-09-22
+https://www.google.com,LOW,public-benign,public official search service domain,official-domain,google,manual-review,2026-09-22
+https://www.apple.com,LOW,public-benign,public official technology company domain,official-domain,apple,manual-review,2026-09-22
+https://www.samsung.com,LOW,public-benign,public official electronics company domain,official-domain,samsung,manual-review,2026-09-22
+https://www.microsoft.com,LOW,public-benign,public official software company domain,official-domain,microsoft,manual-review,2026-09-22
+https://www.cloudflare.com,LOW,public-benign,public official infrastructure company domain,official-domain,cloudflare,manual-review,2026-09-22
+https://www.wikipedia.org,LOW,public-benign,public knowledge site with no risk signal,official-domain,wikipedia,manual-review,2026-09-22
+https://github.com,LOW,public-benign,public official developer platform domain,official-domain,github,manual-review,2026-09-22
+https://docs.github.com,LOW,public-benign,public documentation page on official domain,official-domain,github,manual-review,2026-09-22
+https://www.kakaocorp.com,LOW,public-benign,public official company domain,official-domain,kakao,manual-review,2026-09-22
+https://www.naver.com,LOW,public-benign,public official portal domain,official-domain,naver,manual-review,2026-09-22
+https://www.toss.im,LOW,public-benign,public official service domain,official-domain,toss,manual-review,2026-09-22
+https://www.iana.org/domains/reserved,LOW,public-benign,public reserved domain documentation,official-domain,iana,manual-review,2026-09-22
+https://developer.android.com,LOW,public-benign,public official Android developer documentation,official-domain,android,manual-review,2026-09-22
+https://kotlinlang.org/docs/home.html,LOW,public-benign,public official Kotlin documentation,official-domain,kotlin,manual-review,2026-09-22
+https://www.python.org/doc,LOW,public-benign,public official Python documentation,official-domain,python,manual-review,2026-09-22
+https://safe-reference.test/help,LOW,synthetic,synthetic trusted help page without risk signal,official-domain,,manual-review,2026-09-22
+https://trusted-service.test/notice,LOW,synthetic,synthetic trusted notice page without risk signal,official-domain,,manual-review,2026-09-22
+https://verified-support.test/faq,LOW,synthetic,synthetic verified support page,official-domain,,manual-review,2026-09-22
+https://official-store.test/app,LOW,synthetic,synthetic official app landing page without direct apk download,official-domain,,manual-review,2026-09-22
+https://customer-center.test/security-guide,LOW,synthetic,synthetic security guide page on trusted service,official-domain,,manual-review,2026-09-22
+https://docs.safe-example.test/install-guide,LOW,synthetic,synthetic documentation page without executable download,official-domain,,manual-review,2026-09-22
+https://news.safe-example.test/mobile-policy,LOW,synthetic,synthetic informational article without user action lure,official-domain,,manual-review,2026-09-22
+https://status.safe-example.test/incidents,LOW,synthetic,synthetic status page without risky prompt,official-domain,,manual-review,2026-09-22
+https://reward-claim-center.test/apply,MEDIUM,synthetic,reward claim page on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://event-coupon-box.test/receive,MEDIUM,synthetic,event coupon receive flow on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://free-point-gift.test/member,MEDIUM,synthetic,free point gift lure without brand claim,suspicious-pattern,,manual-review,2026-09-22
+https://limited-promo.test/today-only,MEDIUM,synthetic,limited promotion urgency lure,suspicious-pattern,,manual-review,2026-09-22
+https://winner-notice.test/prize,MEDIUM,synthetic,winner notice prize lure on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://coupon-apply.test/login,MEDIUM,synthetic,coupon flow with login token but no brand claim,suspicious-pattern,,manual-review,2026-09-22
+https://event-page.test/auth,MEDIUM,synthetic,event page with authentication token on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://giftbox-promo.test/open,MEDIUM,synthetic,gift box promotion lure,suspicious-pattern,,manual-review,2026-09-22
+https://member-benefit.test/free,MEDIUM,synthetic,member benefit free lure,suspicious-pattern,,manual-review,2026-09-22
+https://short-link.test/go/promo,MEDIUM,synthetic,short redirect style promotion path,suspicious-pattern,,manual-review,2026-09-22
+https://go-event.test/r/42,MEDIUM,synthetic,short event redirect style URL,suspicious-pattern,,manual-review,2026-09-22
+https://mobile-coupon.test/apply?ref=redacted,MEDIUM,synthetic,mobile coupon with redacted tracking parameter,suspicious-pattern,,manual-review,2026-09-22
+https://today-reward.test/check?campaign=redacted,MEDIUM,synthetic,reward campaign with redacted tracking parameter,suspicious-pattern,,manual-review,2026-09-22
+https://lucky-draw.test/event,MEDIUM,synthetic,lucky draw event lure on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://bonus-credit.test/register,MEDIUM,synthetic,bonus credit registration lure,suspicious-pattern,,manual-review,2026-09-22
+https://membership-upgrade.test/promo,MEDIUM,synthetic,membership upgrade promotion on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://voucher-event.test/claim,MEDIUM,synthetic,voucher claim event lure,suspicious-pattern,,manual-review,2026-09-22
+https://survey-reward.test/start,MEDIUM,synthetic,survey reward flow requiring caution,suspicious-pattern,,manual-review,2026-09-22
+https://app-benefit.test/event/free,MEDIUM,synthetic,app benefit event with free token,suspicious-pattern,,manual-review,2026-09-22
+https://notice-coupon.test/confirm,MEDIUM,synthetic,coupon confirmation flow on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://one-time-benefit.test/reward,MEDIUM,synthetic,one time benefit reward lure,suspicious-pattern,,manual-review,2026-09-22
+https://promo-center.test/win,MEDIUM,synthetic,promotion win token on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://secure-kakao-login.test/account,HIGH,reference-derived,kakao brand login on non-official host,brand-impersonation,kakao,manual-review,2026-09-22
+https://naver-security-check.test/verify,HIGH,reference-derived,naver brand verification on non-official host,brand-impersonation,naver,manual-review,2026-09-22
+https://google-account-prize.test/auth,HIGH,reference-derived,google brand auth combined with prize lure,brand-impersonation,google,manual-review,2026-09-22
+https://apple-id-confirm.test/signin,HIGH,reference-derived,apple id signin lure on non-official host,brand-impersonation,apple,manual-review,2026-09-22
+https://samsung-members-reward.test/login,HIGH,reference-derived,samsung brand reward login lure,brand-impersonation,samsung,manual-review,2026-09-22
+https://toss-card-security.test/verify,HIGH,reference-derived,toss payment brand verification lure,brand-impersonation,toss,manual-review,2026-09-22
+https://bank-auth-center.test/login,HIGH,reference-derived,bank authentication lure on non-official host,brand-impersonation,bank,manual-review,2026-09-22
+https://secure-pay-update.test/card,HIGH,reference-derived,payment card update lure,suspicious-pattern,,manual-review,2026-09-22
+https://apk-fast-install.test/download/app.apk,HIGH,reference-derived,external apk download with install lure,apk-download,,rule-policy,2026-09-22
+https://mobile-vaccine-update.test/install.apk,HIGH,reference-derived,security update apk install lure,apk-download,,rule-policy,2026-09-22
+https://viewer-plugin.test/download/plugin.apk,HIGH,reference-derived,plugin apk download outside trusted store,apk-download,,rule-policy,2026-09-22
+https://coupon-app-install.test/event/app.apk,HIGH,reference-derived,event flow leads to apk install,apk-download,,rule-policy,2026-09-22
+https://delivery-track-app.test/download,HIGH,reference-derived,delivery tracking app install lure outside store,apk-download,,manual-review,2026-09-22
+https://loan-approval-login.test/account,HIGH,reference-derived,financial approval login lure,suspicious-pattern,bank,manual-review,2026-09-22
+https://refund-center-auth.test/payment,HIGH,reference-derived,refund authentication and payment lure,suspicious-pattern,,manual-review,2026-09-22
+https://identity-check-form.test/verify,HIGH,reference-derived,identity verification lure requesting sensitive information,suspicious-pattern,,manual-review,2026-09-22
+https://parcel-fee-payment.test/card,HIGH,reference-derived,parcel fee payment lure,suspicious-pattern,,manual-review,2026-09-22
+https://cloud-storage-login.test/password,HIGH,reference-derived,password login lure on unfamiliar host,suspicious-pattern,,manual-review,2026-09-22
+https://urgent-account-lock.test/signin,HIGH,reference-derived,urgent account lock signin lure,suspicious-pattern,,manual-review,2026-09-22
+https://official-looking-bank.test/secure,HIGH,reference-derived,bank-like host without official domain,brand-impersonation,bank,manual-review,2026-09-22
+https://reward-bank-card.test/claim,HIGH,reference-derived,bank and card reward claim lure,brand-impersonation,bank,manual-review,2026-09-22
+https://plain-content.test/article/alpha,UNKNOWN,synthetic,generic article with insufficient context,no-signal,,manual-review,2026-09-22
+https://user-forum.test/topic/mobile,UNKNOWN,synthetic,generic forum topic without clear risk signal,no-signal,,manual-review,2026-09-22
+https://landing-info.test/about,UNKNOWN,synthetic,generic landing information page,no-signal,,manual-review,2026-09-22
+https://files-index.test/list,UNKNOWN,synthetic,file index page without executable evidence,no-signal,,manual-review,2026-09-22
+https://web-notice.test/update,UNKNOWN,synthetic,notice page with vague update text but no install request,no-signal,,manual-review,2026-09-22
+https://redirect-info.test/out?target=redacted,UNKNOWN,synthetic,redacted redirect target prevents confident judgment,no-signal,,manual-review,2026-09-22
+https://mobile-content.test/view/9081,UNKNOWN,synthetic,mobile content page with numeric path but no risk evidence,no-signal,,manual-review,2026-09-22
+https://campaign-page.test/detail,UNKNOWN,synthetic,campaign page without reward or credential signal,no-signal,,manual-review,2026-09-22
+https://unknown-host.test/home,UNKNOWN,synthetic,unknown host homepage without deterministic signal,no-signal,,manual-review,2026-09-22
+https://service-notice.test/read,UNKNOWN,synthetic,generic service notice without risky action,no-signal,,manual-review,2026-09-22
+https://article-share.test/post/security,UNKNOWN,synthetic,shared article path with no direct risky prompt,no-signal,,manual-review,2026-09-22
+https://document-viewer.test/readme,UNKNOWN,synthetic,document viewer page without download evidence,no-signal,,manual-review,2026-09-22
+https://event-summary.test/report,UNKNOWN,synthetic,event summary page without claim or login prompt,no-signal,,manual-review,2026-09-22
+https://app-guide.test/tutorial,UNKNOWN,synthetic,app guide tutorial without install request,no-signal,,manual-review,2026-09-22
+https://content-hub.test/mobile/story,UNKNOWN,synthetic,content hub story with no risk signal,no-signal,,manual-review,2026-09-22
+https://safe-or-risky.test/check,UNKNOWN,synthetic,ambiguous check page lacking evidence,no-signal,,manual-review,2026-09-22
+https://neutral-landing.test/welcome,UNKNOWN,synthetic,neutral landing page with insufficient context,no-signal,,manual-review,2026-09-22
+https://product-info.test/mobile,UNKNOWN,synthetic,product information page without purchase or credential prompt,no-signal,,manual-review,2026-09-22
+https://external-page.test/ref?source=redacted,UNKNOWN,synthetic,external referral with redacted source and no content evidence,no-signal,,manual-review,2026-09-22
+https://general-update.test/news,UNKNOWN,synthetic,general update news page with no install signal,no-signal,,manual-review,2026-09-22
+https://public-board.test/notice/2026,UNKNOWN,synthetic,public board notice with no user action lure,no-signal,,manual-review,2026-09-22
+https://generic-service.test/path,UNKNOWN,synthetic,generic service path without enough evidence,no-signal,,manual-review,2026-09-22
+https://open-info.test/mobile/page,UNKNOWN,synthetic,open information page without enough risk evidence,no-signal,,manual-review,2026-09-22
