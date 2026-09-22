@@ -20,7 +20,7 @@ class HybridJudgeTest {
         val hybridJudge = HybridJudge(
             store = store,
             ruleBasedJudge = fixedJudge("rule", Risk.HIGH, Confidence.CERTAIN),
-            modelJudge = fixedJudge("model", Risk.HIGH, Confidence.CERTAIN),
+            localReasoningJudge = fixedJudge("local-reasoning", Risk.HIGH, Confidence.CERTAIN),
             remoteJudge = fixedJudge("remote", Risk.HIGH, Confidence.CERTAIN),
         )
 
@@ -35,7 +35,7 @@ class HybridJudgeTest {
         val hybridJudge = HybridJudge(
             store = LocalRiskStore(),
             ruleBasedJudge = fixedJudge("rule-engine", Risk.UNKNOWN, Confidence.UNCERTAIN),
-            modelJudge = fixedJudge("on-device-model", Risk.UNKNOWN, Confidence.UNCERTAIN),
+            localReasoningJudge = fixedJudge("local-reasoning", Risk.UNKNOWN, Confidence.UNCERTAIN),
             remoteJudge = fixedJudge("remote", Risk.MEDIUM, Confidence.CERTAIN),
         )
 
@@ -51,7 +51,7 @@ class HybridJudgeTest {
         val hybridJudge = HybridJudge(
             store = store,
             ruleBasedJudge = fixedJudge("rule-engine", Risk.UNKNOWN, Confidence.UNCERTAIN),
-            modelJudge = fixedJudge("on-device-model", Risk.UNKNOWN, Confidence.UNCERTAIN),
+            localReasoningJudge = fixedJudge("local-reasoning", Risk.UNKNOWN, Confidence.UNCERTAIN),
             remoteJudge = fixedJudge("remote", Risk.UNKNOWN, Confidence.UNCERTAIN),
         )
 

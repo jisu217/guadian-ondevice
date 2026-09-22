@@ -5,7 +5,7 @@ import com.guardian.ondevice.store.LocalRiskStore
 class HybridJudge(
     private val store: LocalRiskStore,
     private val ruleBasedJudge: Judge,
-    private val modelJudge: Judge,
+    private val localReasoningJudge: Judge,
     private val remoteJudge: Judge,
 ) : Judge {
 
@@ -22,10 +22,10 @@ class HybridJudge(
                 return@judge
             }
 
-            modelJudge.judge(url) { modelVerdict ->
-                if (modelVerdict.confidence == Confidence.CERTAIN) {
-                    saveIfReusable(url, modelVerdict)
-                    done(modelVerdict)
+            localReasoningJudge.judge(url) { localReasoningVerdict ->
+                if (localReasoningVerdict.confidence == Confidence.CERTAIN) {
+                    saveIfReusable(url, localReasoningVerdict)
+                    done(localReasoningVerdict)
                     return@judge
                 }
 
