@@ -68,7 +68,7 @@ Avoid placing near-duplicate URLs from the same campaign across different splits
 
 ## Example Rows
 
-These are illustrative examples, not a training dataset.
+These are illustrative examples, not a training dataset. The repository also includes [`sample_urls.csv`](../data/sample_urls.csv) as a small synthetic fixture for pipeline tests.
 
 ```csv
 url,label,source,reason,category,brand,reviewed_by,created_at
