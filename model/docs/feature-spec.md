@@ -1,6 +1,6 @@
 # URL Feature Specification
 
-This document defines the first baseline feature set for the on-device URL risk classifier.
+This document defines the first baseline feature set for the lightweight on-device URL risk classifier.
 
 The feature set should stay small, deterministic, and easy to reproduce in both Python training code and Android runtime code.
 
@@ -15,7 +15,7 @@ The feature set should stay small, deterministic, and easy to reproduce in both 
 
 ## Input
 
-The model receives a single URL string.
+The classifier receives a single URL string.
 
 Before feature extraction:
 

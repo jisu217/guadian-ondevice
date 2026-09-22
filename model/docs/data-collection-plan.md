@@ -12,7 +12,7 @@ This document defines how URL samples should be expanded beyond the seed fixture
 | `reference-derived` | Synthetic URLs derived from GUADIAN risk categories |
 | `public-benign` | Public official or benign URLs for LOW samples |
 
-The seed fixture is useful for pipeline validation, not for real-world performance claims.
+The seed fixture is useful for pipeline validation and first classifier experiments, not for real-world performance claims.
 
 ## Expansion Targets
 
