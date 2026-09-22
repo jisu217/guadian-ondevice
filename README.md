@@ -95,6 +95,14 @@ guadian-ondevice/
     architecture.md
     rule-policy.md
 
+  model/
+    README.md
+    data/
+    training/
+    evaluation/
+    export/
+    artifacts/
+
   android/app/src/test/kotlin/
     com/guardian/ondevice/judge/
       HybridJudgeTest.kt
@@ -133,6 +141,7 @@ guadian-ondevice/
 | :-- | :-- |
 | [`docs/architecture.md`](./docs/architecture.md) | 온디바이스 우선 하이브리드 판정 계층, 흐름, fallback 규칙 |
 | [`docs/rule-policy.md`](./docs/rule-policy.md) | 룰 기반 판정 출력, 카테고리, 설계 기준 |
+| [`model/README.md`](./model/README.md) | 온디바이스 모델 학습, 평가, 변환, 산출물 관리 공간 |
 
 ## Test
 
