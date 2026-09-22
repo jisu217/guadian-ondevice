@@ -6,6 +6,7 @@ The Android module owns runtime inference. This workspace owns model preparation
 
 ```text
 model/
+  docs/        Dataset and feature design documents
   data/        Dataset notes and local dataset placeholders
   training/    Training scripts and experiment code
   evaluation/  Evaluation scripts, metrics, and test cases
@@ -26,4 +27,16 @@ Prepare URL dataset
 
 `artifacts/` should contain only generated model outputs that are safe to commit. Large datasets, raw logs, API keys, and private samples should stay outside the repository.
 
-Start with [`data/dataset-schema.md`](./data/dataset-schema.md) before collecting or generating samples.
+Start with [`docs/dataset-schema.md`](./docs/dataset-schema.md) before collecting or generating samples. [`data/sample_urls.csv`](./data/sample_urls.csv) is a small synthetic fixture for pipeline tests, not a production training dataset. Then use [`docs/feature-spec.md`](./docs/feature-spec.md) to keep Python training and Android runtime feature extraction aligned.
+
+Run model workspace tests with:
+
+```bash
+python3 -m unittest discover model/training
+```
+
+Run the baseline evaluator with:
+
+```bash
+python3 model/training/train_baseline.py
+```
