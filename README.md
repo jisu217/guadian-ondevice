@@ -15,7 +15,7 @@ GUADIAN On-device Judge는 광고 기반 위험 흐름을 기기 내부에서 �
 
 이 프로젝트는 모든 판정을 원격 API에 맡기거나, 반대로 모든 판정을 기기 내부에서만 처리하는 구조를 목표로 하지 않는다.
 
-핵심 방향은 **Local Verdict Store, Rule Engine, On-device Model/Local RAG를 우선 사용하고 Remote Fallback을 보조 계층으로 두는 온디바이스 우선 하이브리드 방식**이다.
+핵심 방향은 **Local Verdict Store, Rule Engine, Local Reasoning(On-device Model + Local RAG)을 우선 사용하고 Remote Fallback을 보조 계층으로 두는 온디바이스 우선 하이브리드 방식**이다.
 
 | 원칙 | 설명 |
 | :-- | :-- |
@@ -36,7 +36,9 @@ Local Verdict Store
   ↓ miss
 Rule Engine
   ↓ uncertain
-On-device Model / Local RAG
+Local Reasoning
+  ├─ On-device Model
+  └─ Local RAG
   ↓ low confidence
 Remote Fallback
   ↓
@@ -47,7 +49,7 @@ Verdict
 | :-- | :-- |
 | Local Verdict Store | Cache |
 | Rule Engine | Heuristics |
-| On-device Model / Local RAG | Reasoning |
+| Local Reasoning | On-device inference + local evidence |
 | Remote Fallback | Escalation |
 
 ---
@@ -67,6 +69,7 @@ guadian-ondevice/
       Judge.kt
       Verdict.kt
       HybridJudge.kt
+      LocalReasoningJudge.kt
       RuleBasedJudge.kt
       RemoteJudge.kt
 
@@ -94,6 +97,7 @@ guadian-ondevice/
   android/app/src/test/kotlin/
     com/guardian/ondevice/judge/
       HybridJudgeTest.kt
+      LocalReasoningJudgeTest.kt
       RemoteJudgeTest.kt
       RuleBasedJudgeTest.kt
     com/guardian/ondevice/store/
@@ -144,6 +148,8 @@ cp .env.example .env
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
+
+`OnDeviceModelJudge`는 온디바이스 모델 런타임을 연결할 자리이며, 현재는 모델 파일이 없을 때 `UNKNOWN`을 반환한다. 실제 모델이 준비되면 이 계층에 TFLite 또는 ONNX 기반 URL 위험 분류기를 연결한다.
 
 ## References
 
