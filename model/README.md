@@ -25,3 +25,5 @@ Prepare URL dataset
 ```
 
 `artifacts/` should contain only generated model outputs that are safe to commit. Large datasets, raw logs, API keys, and private samples should stay outside the repository.
+
+Start with [`data/dataset-schema.md`](./data/dataset-schema.md) before collecting or generating samples.
