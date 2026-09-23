@@ -105,6 +105,32 @@ def accuracy(predictions: list[ModelPrediction]) -> float:
     return correct / len(predictions)
 
 
+def precision_recall_by_label(predictions) -> dict[str, dict[str, float]]:
+    metrics = {}
+    for label in LABELS:
+        true_positive = sum(1 for prediction in predictions if prediction.actual == label and prediction.predicted == label)
+        predicted_positive = sum(1 for prediction in predictions if prediction.predicted == label)
+        actual_positive = sum(1 for prediction in predictions if prediction.actual == label)
+
+        metrics[label] = {
+            "precision": _safe_divide(true_positive, predicted_positive),
+            "recall": _safe_divide(true_positive, actual_positive),
+            "support": float(actual_positive),
+        }
+
+    return metrics
+
+
+def confusion_matrix(predictions) -> dict[str, dict[str, int]]:
+    return {
+        actual: {
+            predicted: sum(1 for item in predictions if item.actual == actual and item.predicted == predicted)
+            for predicted in LABELS
+        }
+        for actual in LABELS
+    }
+
+
 def render_report(
     train_rows: list[dict[str, str]],
     test_rows: list[dict[str, str]],
@@ -115,6 +141,9 @@ def render_report(
     predicted_counts = Counter(prediction.predicted for prediction in predictions)
     model_acc = accuracy(predictions)
     baseline_acc = baseline_accuracy(baseline_predictions)
+    model_metrics = precision_recall_by_label(predictions)
+    baseline_metrics = precision_recall_by_label(baseline_predictions)
+    matrix = confusion_matrix(predictions)
 
     lines = [
         "# Trained Model Evaluation",
@@ -133,6 +162,40 @@ def render_report(
 
     for label in LABELS:
         lines.append(f"| {label} | {actual_counts[label]} | {predicted_counts[label]} |")
+
+    lines.extend(
+        [
+            "",
+            "## Precision And Recall",
+            "",
+            "| Label | Precision | Recall | Support | Baseline Precision | Baseline Recall |",
+            "| :-- | --: | --: | --: | --: | --: |",
+        ]
+    )
+
+    for label in LABELS:
+        current = model_metrics[label]
+        baseline = baseline_metrics[label]
+        lines.append(
+            f"| {label} | {current['precision']:.2%} | {current['recall']:.2%} | "
+            f"{int(current['support'])} | {baseline['precision']:.2%} | {baseline['recall']:.2%} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Confusion Matrix",
+            "",
+            "| Actual \\ Predicted | LOW | MEDIUM | HIGH | UNKNOWN |",
+            "| :-- | --: | --: | --: | --: |",
+        ]
+    )
+
+    for actual in LABELS:
+        row = matrix[actual]
+        lines.append(
+            f"| {actual} | {row['LOW']} | {row['MEDIUM']} | {row['HIGH']} | {row['UNKNOWN']} |"
+        )
 
     lines.extend(
         [
@@ -183,6 +246,12 @@ def _mean(vectors: list[list[float]]) -> list[float]:
 
 def _euclidean_distance(left: list[float], right: list[float]) -> float:
     return math.sqrt(sum((a - b) ** 2 for a, b in zip(left, right)))
+
+
+def _safe_divide(numerator: int, denominator: int) -> float:
+    if denominator == 0:
+        return 0.0
+    return numerator / denominator
 
 
 def main() -> None:

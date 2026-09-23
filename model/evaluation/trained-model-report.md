@@ -15,6 +15,24 @@ Baseline accuracy on same test split: 83.33%
 | HIGH | 6 | 5 |
 | UNKNOWN | 6 | 5 |
 
+## Precision And Recall
+
+| Label | Precision | Recall | Support | Baseline Precision | Baseline Recall |
+| :-- | --: | --: | --: | --: | --: |
+| LOW | 100.00% | 100.00% | 6 | 100.00% | 100.00% |
+| MEDIUM | 75.00% | 100.00% | 6 | 66.67% | 66.67% |
+| HIGH | 100.00% | 83.33% | 6 | 71.43% | 83.33% |
+| UNKNOWN | 100.00% | 83.33% | 6 | 100.00% | 83.33% |
+
+## Confusion Matrix
+
+| Actual \ Predicted | LOW | MEDIUM | HIGH | UNKNOWN |
+| :-- | --: | --: | --: | --: |
+| LOW | 6 | 0 | 0 | 0 |
+| MEDIUM | 0 | 6 | 0 | 0 |
+| HIGH | 0 | 1 | 5 | 0 |
+| UNKNOWN | 0 | 1 | 0 | 5 |
+
 ## Predictions
 
 | Actual | Predicted | Distance | URL |

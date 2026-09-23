@@ -1,6 +1,16 @@
 import unittest
 
-from train_model import accuracy, evaluate_model, load_rows, predict, stratified_split, train_centroid_model
+from train_model import (
+    accuracy,
+    confusion_matrix,
+    evaluate_model,
+    load_rows,
+    precision_recall_by_label,
+    predict,
+    render_report,
+    stratified_split,
+    train_centroid_model,
+)
 
 
 class TrainModelTest(unittest.TestCase):
@@ -33,6 +43,28 @@ class TrainModelTest(unittest.TestCase):
 
         self.assertEqual(len(predictions), len(test_rows))
         self.assertGreaterEqual(accuracy(predictions), 0.25)
+
+    def test_computes_precision_recall_and_confusion_matrix(self):
+        train_rows, test_rows = stratified_split(load_rows())
+        model = train_centroid_model(train_rows)
+        predictions = evaluate_model(model, test_rows)
+
+        metrics = precision_recall_by_label(predictions)
+        matrix = confusion_matrix(predictions)
+
+        self.assertEqual(set(metrics), {"LOW", "MEDIUM", "HIGH", "UNKNOWN"})
+        self.assertEqual(set(matrix), {"LOW", "MEDIUM", "HIGH", "UNKNOWN"})
+        self.assertEqual(sum(sum(row.values()) for row in matrix.values()), len(predictions))
+
+    def test_report_includes_precision_recall_and_confusion_matrix(self):
+        train_rows, test_rows = stratified_split(load_rows())
+        model = train_centroid_model(train_rows)
+        predictions = evaluate_model(model, test_rows)
+
+        report = render_report(train_rows, test_rows, predictions, predictions)
+
+        self.assertIn("## Precision And Recall", report)
+        self.assertIn("## Confusion Matrix", report)
 
 
 if __name__ == "__main__":
