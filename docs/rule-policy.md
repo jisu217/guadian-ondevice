@@ -6,13 +6,11 @@
 
 ## Output Contract
 
-| Field | Description |
-| :-- | :-- |
-| `risk` | `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN` |
-| `reason` | 판정 사유 |
-| `advice` | 사용자 권장 행동 |
-| `source` | 판정 출처 |
-| `confidence` | `CERTAIN` 또는 `UNCERTAIN` |
+- `risk` — `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN`
+- `reason` — 판정 사유
+- `advice` — 사용자 권장 행동
+- `source` — 판정 출처
+- `confidence` — `CERTAIN` 또는 `UNCERTAIN`
 
 ## Categories
 
@@ -35,9 +33,7 @@
 
 ## Design Notes
 
-| Guideline | Reason |
-| :-- | :-- |
-| Prefer explicit signals | 오탐을 줄이고 설명 가능성 유지 |
-| Keep rules cheap | 온디바이스 선행 계층이므로 빠르게 실행 |
-| Return `UNKNOWN` when uncertain | 불확실한 입력은 모델/RAG/fallback으로 넘김 |
-| Keep rules testable | 입력 URL과 기대 verdict로 검증 가능 |
+- **Prefer explicit signals** — 오탐을 줄이고 설명 가능성 유지
+- **Keep rules cheap** — 온디바이스 선행 계층이므로 빠르게 실행
+- **Return `UNKNOWN` when uncertain** — 불확실한 입력은 모델/RAG/fallback으로 넘김
+- **Keep rules testable** — 입력 URL과 기대 verdict로 검증 가능

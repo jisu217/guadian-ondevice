@@ -47,30 +47,16 @@ HybridJudge
 
 ## Verdict
 
-| State | Meaning |
-| :-- | :-- |
-| `LOW` | 정상 이동 가능 |
-| `MEDIUM` | 사용자 재확인이 필요한 의심 흐름 |
-| `HIGH` | 차단 또는 강한 경고가 필요한 위험 흐름 |
-| `UNKNOWN` | 판정 근거 부족 또는 fallback 실패 |
+- `LOW` — 정상 이동 가능
+- `MEDIUM` — 사용자 재확인이 필요한 의심 흐름
+- `HIGH` — 차단 또는 강한 경고가 필요한 위험 흐름
+- `UNKNOWN` — 판정 근거 부족 또는 fallback 실패
 
 ## Fallback Rules
 
-| Condition | Action |
-| :-- | :-- |
-| Cached verdict exists | `LocalRiskStore` verdict 반환 |
-| Clear rule signal exists | `RuleBasedJudge` verdict 반환 |
-| Rule is uncertain | `OnDeviceModelJudge` 실행 |
-| Model is uncertain | `LocalRagJudge` 실행 |
-| Local RAG is uncertain | `RemoteJudge` 실행 |
-| Remote fails | `UNKNOWN` 반환 |
-
-## Server Boundary
-
-`server/`는 Android 모듈에 API key를 포함하지 않기 위한 remote fallback 경계다.
-
-| Component | Role |
-| :-- | :-- |
-| `server/main.py` | `/health`, `/judge` FastAPI 엔드포인트 |
-| `server/judge_service.py` | precheck, Claude 호출, Verdict 변환 |
-| `server/.env.example` | 로컬 환경변수 예시 |
+1. Cached verdict exists → `LocalRiskStore` verdict 반환
+2. Clear rule signal exists → `RuleBasedJudge` verdict 반환
+3. Rule is uncertain → `OnDeviceModelJudge` 실행
+4. Model is uncertain → `LocalRagJudge` 실행
+5. Local RAG is uncertain → `RemoteJudge` 실행
+6. Remote fails → `UNKNOWN` 반환
