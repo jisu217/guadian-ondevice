@@ -54,8 +54,6 @@ Verdict
 - [ ] Azure 실제 배포
 - [ ] TFLite/ONNX 전환
 
-상세 상태는 [`docs/status.md`](./docs/status.md)에서 관리한다.
-
 ## Repository Structure
 
 ```text
@@ -69,7 +67,7 @@ guadian-ondevice/
 
   server/      FastAPI remote fallback server
   model/       training, evaluation, artifacts
-  docs/        architecture, rule policy, status
+  docs/        architecture
   reference/   GUADIAN 원본 프로젝트 기반 참조 자료
 ```
 
@@ -113,9 +111,8 @@ cd server
 
 ## Documentation
 
-- [`docs/architecture.md`](./docs/architecture.md) — 온디바이스 우선 하이브리드 판정 계층과 fallback 규칙
-- [`docs/rule-policy.md`](./docs/rule-policy.md) — 룰 기반 판정 출력, 카테고리, 설계 기준
-- [`docs/status.md`](./docs/status.md) — 현재 구현 완료 범위와 남은 작업
+- [`docs/architecture.md`](./docs/architecture.md) — 온디바이스 우선 하이브리드 판정 구조
+- [`docs/interview-brief.md`](./docs/interview-brief.md) — 면접용 프로젝트 설명 요약
 - [`model/README.md`](./model/README.md) — 모델 학습, 평가, 변환, 산출물 관리
 - [`server/README.md`](./server/README.md) — Remote Fallback 서버 실행, 환경변수, Azure 준비
 - [`reference/README.md`](./reference/README.md) — GUADIAN 원본 프로젝트 기반 참조 파일과 원본 경로 매핑
