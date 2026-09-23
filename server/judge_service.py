@@ -26,13 +26,16 @@ class Verdict:
         return out
 
 
+_UNSET = object()
+
+
 class JudgeService:
     def __init__(
         self,
-        api_key: str | None = None,
+        api_key: str | None | object = _UNSET,
         model: str | None = None,
     ) -> None:
-        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
+        self.api_key = os.getenv("ANTHROPIC_API_KEY") if api_key is _UNSET else api_key
         self.model = model or os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-latest")
 
     def judge(self, url: str) -> Verdict:
