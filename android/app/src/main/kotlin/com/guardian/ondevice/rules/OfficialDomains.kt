@@ -9,6 +9,13 @@ class OfficialDomains {
         "shinhan" to setOf("shinhan.com", "shinhancard.com"),
     )
 
+    // Matching on the raw brand key (e.g. "kb") would false-positive on unrelated hosts
+    // like "bankbook.com". Registrable labels (kbstar, kbcard, kbfg, ...) are long enough
+    // to be a meaningful signal on their own.
+    private val mentionLabelsByBrand: Map<String, Set<String>> = domainsByBrand.mapValues { (_, domains) ->
+        domains.map { registrableLabel(it) }.toSet()
+    }
+
     fun brandForOfficialHost(host: String): String? {
         return domainsByBrand.entries.firstOrNull { (_, domains) ->
             domains.any { host == it || host.endsWith(".$it") }
@@ -16,8 +23,14 @@ class OfficialDomains {
     }
 
     fun brandMentionedInHost(host: String): String? {
-        return domainsByBrand.keys.firstOrNull { brand ->
-            host.contains(brand)
-        }
+        val normalized = host.lowercase()
+        return mentionLabelsByBrand.entries.firstOrNull { (_, labels) ->
+            labels.any { normalized.contains(it) }
+        }?.key
+    }
+
+    private fun registrableLabel(domain: String): String {
+        val parts = domain.split(".")
+        return if (parts.size >= 2) parts[parts.size - 2] else domain
     }
 }

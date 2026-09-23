@@ -60,6 +60,22 @@ class RuleBasedJudgeTest {
         assertEquals("rule-engine", verdict.source)
     }
 
+    @Test
+    fun `unrelated host containing a short brand code is not impersonation`() {
+        val verdict = judgeNow("https://bankbook.com/about")
+
+        assertEquals(Risk.UNKNOWN, verdict.risk)
+        assertEquals("rule-engine", verdict.source)
+    }
+
+    @Test
+    fun `suspicious keyword in the host only is not flagged`() {
+        val verdict = judgeNow("https://myaccount.google.com/security")
+
+        assertEquals(Risk.UNKNOWN, verdict.risk)
+        assertEquals("rule-engine", verdict.source)
+    }
+
     private fun judgeNow(url: String): Verdict {
         lateinit var verdict: Verdict
         judge.judge(url) { verdict = it }
