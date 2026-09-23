@@ -1,3 +1,6 @@
+> **문서 출처:** SKT FLY AI 부트캠프 GUADIAN 원본 프로젝트 기반 참조 자료입니다.
+> **GUADIAN 원본 경로:** `docs/risk-grade-validation.md`
+
 ## 위험 등급 검증 방식과 정확도 지표
 
 GuADian의 위험 등급 판정은 `server/eval_set.json`에 고정된 라벨 데이터를 기준으로 검증합니다. 각 URL에 사람이 먼저 기대 등급을 부여하고, `server/eval.py`가 실제 서버의 `/judge` 응답과 비교해 정확도, 오탐, 약한 판정, 실패, 소요 시간을 집계합니다.

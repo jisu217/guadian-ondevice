@@ -1,3 +1,6 @@
+> **문서 출처:** SKT FLY AI 부트캠프 GUADIAN 원본 프로젝트 기반 참조 자료입니다.
+> **GUADIAN 원본 경로:** `docs/judge.md`
+
 ## GuADian 광고 판정 기준
 
 서버가 광고 도착지를 `LOW`/`MEDIUM`/`HIGH`/`UNKNOWN`으로 가르는 기준 · 오탐/미탐 방지 장치 · 판정 내역 확인 방법
@@ -162,4 +165,3 @@
 남은 미스 8건의 성격: fetch 요동 4 (temu·findjob·truthaboutweight·taboola) · 언론사↔콘텐츠팜 혼동 2 (fnnews·연합뉴스TV — 표에 언론사 도메인 추가로 개선 가능) · 표 밖 로그인 저위험 누수 1 (프롬프트로 불가 확인 — 페이지 신호에 표 등재 여부 필드 필요) · 죽어가는 eval 케이스 1 (noonoo — 교체 대상). 살아있는 웹의 요동 탓에 현실적 상한은 40~42/45
 
 ---
-
