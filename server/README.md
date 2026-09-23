@@ -6,14 +6,12 @@
 
 ## Files
 
-| File | Role |
-| :-- | :-- |
-| `main.py` | FastAPI app, `/health`, `/judge` |
-| `judge_service.py` | precheck, Claude call, response parsing |
-| `requirements.txt` | Python dependencies |
-| `.env.example` | local environment template |
-| `test_main.py` | endpoint tests |
-| `test_judge_service.py` | service tests |
+- `main.py` — FastAPI app, `/health`, `/judge`
+- `judge_service.py` — precheck, Claude call, response parsing
+- `requirements.txt` — Python dependencies
+- `.env.example` — local environment template
+- `test_main.py` — endpoint tests
+- `test_judge_service.py` — service tests
 
 ## Environment
 
@@ -36,10 +34,8 @@ cd server
 
 ## Checks
 
-| Check | Command |
-| :-- | :-- |
-| Health | `curl http://127.0.0.1:8000/health` |
-| Tests | `../.venv/bin/python -m unittest discover .` |
+- Health — `curl http://127.0.0.1:8000/health`
+- Tests — `../.venv/bin/python -m unittest discover .`
 
 Judge request:
 
@@ -61,10 +57,8 @@ curl -X POST http://127.0.0.1:8000/judge \
 
 Azure에서는 `.env` 파일을 업로드하지 않는다. App Service 환경변수에 값을 등록한다.
 
-| Setting | Value |
-| :-- | :-- |
-| `ANTHROPIC_API_KEY` | 실제 API key |
-| `ANTHROPIC_MODEL` | 사용할 Claude 모델명 |
+- `ANTHROPIC_API_KEY` — 실제 API key
+- `ANTHROPIC_MODEL` — 사용할 Claude 모델명
 
 권장 시작 명령:
 
