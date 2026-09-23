@@ -24,14 +24,15 @@ class LocalRagJudge(
         }
 
         val evidence = snippets.joinToString { it.id }
+        val primary = snippets.first()
         done(
             Verdict(
-                risk = Risk.UNKNOWN,
+                risk = primary.risk,
                 reason = "Local knowledge matched: $evidence.",
-                advice = "Use this evidence to support model or remote fallback judgment.",
+                advice = primary.advice,
                 source = "local-rag",
-                confidence = Confidence.UNCERTAIN,
-                type = snippets.first().id,
+                confidence = primary.confidence,
+                type = primary.id,
             )
         )
     }
