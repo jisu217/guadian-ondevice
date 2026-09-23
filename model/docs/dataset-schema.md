@@ -25,33 +25,27 @@ url,label,source,reason,category,brand,reviewed_by,created_at
 
 ## Labels
 
-| Label | Meaning |
-| :-- | :-- |
-| `LOW` | 공식/신뢰 도메인 또는 명확한 위험 신호 없음 |
-| `MEDIUM` | 의심스럽지만 사용자 확인으로 처리 가능한 흐름 |
-| `HIGH` | APK, 사칭, credential/payment lure 등 강한 위험 신호 |
-| `UNKNOWN` | 판정 근거 부족 또는 의도적으로 보류한 샘플 |
+- `LOW` — 공식/신뢰 도메인 또는 명확한 위험 신호 없음
+- `MEDIUM` — 의심스럽지만 사용자 확인으로 처리 가능한 흐름
+- `HIGH` — APK, 사칭, credential/payment lure 등 강한 위험 신호
+- `UNKNOWN` — 판정 근거 부족 또는 의도적으로 보류한 샘플
 
 ## Labeling Rules
 
-| Signal | Suggested Label |
-| :-- | :-- |
-| Official domain or allowlisted host | `LOW` |
-| APK download outside trusted app stores | `HIGH` |
-| Brand keyword on non-official domain | `MEDIUM` or `HIGH` |
-| Reward/event/login lure on unfamiliar host | `MEDIUM` |
-| Sensitive personal or payment information request | `HIGH` |
-| Shortened or redirected URL without evidence | `MEDIUM` or `UNKNOWN` |
-| No clear signal | `UNKNOWN` |
+- Official domain or allowlisted host → `LOW`
+- APK download outside trusted app stores → `HIGH`
+- Brand keyword on non-official domain → `MEDIUM` or `HIGH`
+- Reward/event/login lure on unfamiliar host → `MEDIUM`
+- Sensitive personal or payment information request → `HIGH`
+- Shortened or redirected URL without evidence → `MEDIUM` or `UNKNOWN`
+- No clear signal → `UNKNOWN`
 
 ## Safety Rules
 
-| Rule | Reason |
-| :-- | :-- |
-| Do not commit raw user activity | 개인정보 보호 |
-| Redact tokens and identifiers | session/API key 유출 방지 |
-| Prefer synthetic or reviewed samples | 라벨 품질 유지 |
-| Keep sensitive datasets outside repo | 저장소 안전성 유지 |
+- **Do not commit raw user activity** — 개인정보 보호
+- **Redact tokens and identifiers** — session/API key 유출 방지
+- **Prefer synthetic or reviewed samples** — 라벨 품질 유지
+- **Keep sensitive datasets outside repo** — 저장소 안전성 유지
 
 ## Example
 
