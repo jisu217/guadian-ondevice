@@ -1,33 +1,22 @@
 # GUADIAN On-device Judge
 
-![Status](https://img.shields.io/badge/status-in%20progress-D4A017?style=flat-square&logo=githubactions&logoColor=white)
-![Android](https://img.shields.io/badge/Android-module-3DDC84?style=flat-square&logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-judge%20module-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
-![Hybrid](https://img.shields.io/badge/strategy-on--device--first%20hybrid-4B5563?style=flat-square&logo=databricks&logoColor=white)
+> A hybrid risk judgment pipeline that evaluates ad-driven URLs locally first.
 
-> **문서 출처:** GUADIAN은 SKT FLY AI 부트캠프에서 개발한 악성 광고 기반 디지털 피해 예방 서비스이며, 본 저장소는 기존 GUADIAN 프로젝트의 판정 관련 코드와 문서를 참고해 온디바이스 우선 하이브리드 구조로 재설계하는 연구용 프로젝트다.
+본 저장소는 SKT FLY AI 부트캠프에서 개발한 GUADIAN 원본 프로젝트의 판정 구조를 기반으로, 온디바이스 우선 하이브리드 판정 파이프라인을 재설계한 연구용 프로젝트다.
 
-GUADIAN On-device Judge는 광고 기반 위험 흐름을 기기 내부에서 먼저 감지하고, 로컬 판단이 불확실한 경우에만 원격 fallback을 사용하는 위험 판정 구조를 설계한다.
+## Overview
 
----
-
-## Project Direction
-
-이 프로젝트는 모든 판정을 원격 API에 맡기거나, 반대로 모든 판정을 기기 내부에서만 처리하는 구조를 목표로 하지 않는다.
-
-핵심 방향은 **Local Verdict Store, Rule Engine, On-device Model, Local RAG를 순서대로 사용하고 Remote Fallback을 보조 계층으로 두는 온디바이스 우선 하이브리드 방식**이다.
+URL 위험 판정을 기기 내부에서 먼저 수행하고, 불확실한 경우에만 remote fallback을 사용한다.
 
 | 원칙 | 설명 |
 | :-- | :-- |
-| Local-first | 저장된 판정 결과와 명확한 위험 신호를 기기 내부에서 우선 처리 |
-| Low latency | 네트워크 요청 없이 반환 가능한 케이스의 응답 시간 단축 |
-| Privacy-aware | 원격으로 전송되는 URL과 도착지 정보의 범위 최소화 |
-| Explainable | 위험 사유와 사용자 권장 행동을 함께 반환 |
-| Fallback-aware | 로컬 판정이 불확실한 경우에만 remote fallback 사용 |
+| Local-first | 캐시, 룰, 모델, RAG를 로컬에서 우선 실행 |
+| Low latency | 네트워크 없이 확정 가능한 케이스를 빠르게 반환 |
+| Privacy-aware | 원격으로 전송되는 URL 범위 최소화 |
+| Explainable | `reason`, `advice`, `source`를 포함한 Verdict 반환 |
+| Fallback-aware | 로컬 판정이 불확실할 때만 remote fallback 호출 |
 
----
-
-## Judgment Flow
+## Judgment Pipeline
 
 ```text
 URL Input
@@ -45,133 +34,105 @@ Remote Fallback
 Verdict
 ```
 
-| 단계 | 핵심 |
-| :-- | :-- |
-| Local Verdict Store | Cache |
-| Rule Engine | Heuristics |
-| On-device Model | Local inference |
-| Local RAG | Local evidence retrieval |
-| Remote Fallback | Escalation |
+| 단계 | 구현 | 역할 |
+| :-- | :-- | :-- |
+| Local Verdict Store | `LocalRiskStore` | 도메인 단위 캐시 |
+| Rule Engine | `RuleBasedJudge`, `rules/` | 명시적 위험 신호 판정 |
+| On-device Model | `OnDeviceModelJudge` | nearest-centroid MVP 모델 추론 |
+| Local RAG | `LocalRagJudge` | 로컬 정책 근거 기반 판정 |
+| Remote Fallback | `RemoteJudge`, `server/` | FastAPI 기반 원격 보조 판정 |
 
----
+`HybridJudge`가 전체 순서를 제어하고, `LocalReasoningJudge`가 `OnDeviceModelJudge -> LocalRagJudge` 순서의 로컬 추론 계층을 실행한다.
+
+## Current Status
+
+| 영역 | 상태 |
+| :-- | :-- |
+| Local Verdict Store | 완료 |
+| Rule Engine | 완료 |
+| On-device Model | MVP 완료 |
+| Local RAG | MVP 완료 |
+| Remote Fallback Server | 완료 |
+| HybridJudge pipeline test | 완료 |
+| Android UI/Shield 연결 | 미완료 |
+| Azure 실제 배포 | 미완료 |
+| TFLite/ONNX 전환 | 미완료 |
+
+상세 상태는 [`docs/status.md`](./docs/status.md)에서 관리한다.
 
 ## Repository Structure
 
+| 경로 | 역할 |
+| :-- | :-- |
+| `android/` | Kotlin 기반 온디바이스 판정 모듈 |
+| `server/` | 원격 fallback용 FastAPI 서버 |
+| `model/` | URL 위험 모델의 데이터, 학습, 평가, 산출물 관리 |
+| `docs/` | 현재 프로젝트의 아키텍처, 정책, 상태 문서 |
+| `reference/` | GUADIAN 원본 프로젝트 기반 참조 자료 |
+| `gradle/`, `gradlew`, `build.gradle.kts` | Kotlin/Gradle 빌드와 테스트 설정 |
+
 ```text
 guadian-ondevice/
-  gradlew
-  gradlew.bat
-  settings.gradle.kts
-  build.gradle.kts
-  gradle/wrapper/
-
   android/app/src/main/kotlin/com/guardian/ondevice/
-    judge/
-      Judge.kt
-      Verdict.kt
-      HybridJudge.kt
-      LocalReasoningJudge.kt
-      RuleBasedJudge.kt
-      RemoteJudge.kt
+    judge/     HybridJudge, RuleBasedJudge, RemoteJudge, Verdict
+    rules/     APK, 사칭, 의심 URL 등 룰
+    store/     LocalRiskStore
+    model/     OnDeviceModelJudge, UrlFeatureExtractor
+    rag/       LocalRagJudge, LocalKnowledgeRetriever
 
-    rules/
-      RiskRule.kt
-      ApkRule.kt
-      BrandImpersonationRule.kt
-      SuspiciousUrlRule.kt
-      OfficialDomains.kt
-
-    store/
-      LocalRiskStore.kt
-
-    model/
-      OnDeviceModelJudge.kt
-
-    rag/
-      LocalRagJudge.kt
-      LocalKnowledgeRetriever.kt
-
-  docs/
-    architecture.md
-    rule-policy.md
-
-  model/
-    README.md
-    data/
-    training/
-    evaluation/
-    export/
-    artifacts/
-
-  android/app/src/test/kotlin/
-    com/guardian/ondevice/judge/
-      HybridJudgeTest.kt
-      LocalReasoningJudgeTest.kt
-      RemoteJudgeTest.kt
-      RuleBasedJudgeTest.kt
-    com/guardian/ondevice/store/
-      LocalRiskStoreTest.kt
-    com/guardian/ondevice/rag/
-      LocalKnowledgeRetrieverTest.kt
-      LocalRagJudgeTest.kt
-
-  server/
-    main.py
-    judge_service.py
-    requirements.txt
-    .env.example
-
-  reference/
-    Judge.kt
-    HttpJudge.kt
-    WebNode.kt
-    judge_agent.py
-    docs/
-      history.md
-      judge.md
-      risk-grade-rationale.md
-      risk-grade-validation.md
+  server/      FastAPI remote fallback server
+  model/       training, evaluation, artifacts
+  docs/        architecture, rule policy, status
+  reference/   GUADIAN 원본 프로젝트 기반 참조 자료
 ```
 
----
+## Model
 
-## Documentation
+```text
+model/artifacts/url_risk_centroid_model.json
+  -> Kotlin nearest-centroid runtime in OnDeviceModelJudge
+  -> UrlFeatureExtractor feature vector
+  -> LOW / MEDIUM / HIGH / UNKNOWN Verdict
+```
 
-| 문서 | 내용 |
+현재는 직접 만든 nearest-centroid 모델을 Kotlin 런타임에 연결한 MVP 단계다. 추후 assets JSON, TFLite, ONNX 중 하나로 교체할 수 있다.
+
+## Remote Fallback Server
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r server/requirements.txt
+cp server/.env.example server/.env
+cd server
+../.venv/bin/uvicorn main:app --reload
+```
+
+환경변수:
+
+| 이름 | 설명 |
 | :-- | :-- |
-| [`docs/architecture.md`](./docs/architecture.md) | 온디바이스 우선 하이브리드 판정 계층, 흐름, fallback 규칙 |
-| [`docs/rule-policy.md`](./docs/rule-policy.md) | 룰 기반 판정 출력, 카테고리, 설계 기준 |
-| [`model/README.md`](./model/README.md) | 온디바이스 모델 학습, 평가, 변환, 산출물 관리 공간 |
+| `ANTHROPIC_API_KEY` | Claude remote fallback 호출용 API key |
+| `ANTHROPIC_MODEL` | Claude 모델명. 기본값은 `claude-3-5-haiku-latest` |
+
+로컬 실행, 테스트, Azure 준비는 [`server/README.md`](./server/README.md)를 기준으로 한다.
 
 ## Test
 
 ```bash
 ./gradlew test
-python3 -m unittest discover server
-```
-
-## Remote Fallback Server
-
-```bash
 cd server
-cp .env.example .env
-pip install -r requirements.txt
-uvicorn main:app --reload
+../.venv/bin/python -m unittest discover .
 ```
 
-`LocalReasoningJudge`는 `OnDeviceModelJudge`를 먼저 실행하고, 모델 판정이 불확실한 경우 `LocalRagJudge`로 로컬 근거를 검색한다. `OnDeviceModelJudge`는 온디바이스 모델 런타임을 연결할 자리이며, 현재는 모델 파일이 없을 때 `UNKNOWN`을 반환한다. 실제 모델이 준비되면 이 계층에 TFLite 또는 ONNX 기반 URL 위험 분류기를 연결한다.
+`HybridJudgeTest`는 Local Store, Rule Engine, On-device Model, Local RAG, Remote Fallback이 정해진 순서로 연결되는지 검증한다.
 
-## References
+## Documentation
 
-`reference/` 디렉터리는 온디바이스 판정 구조를 설계하기 위한 참고 자료를 포함한다.
-
-| 파일 | 용도 |
+| 문서 | 내용 |
 | :-- | :-- |
-| `reference/Judge.kt` | Risk, Verdict, Judge 인터페이스 참고 |
-| `reference/HttpJudge.kt` | 원격 판정 API 호출 구조 참고 |
-| `reference/WebNode.kt` | URL, host, site 추출 로직 참고 |
-| `reference/judge_agent.py` | 브랜드/공식 도메인, 위험 신호 참고 |
-| `reference/docs/history.md` | 기존 개발 이력 참고 |
-| `reference/docs/judge.md` | 판정 기준 문서 |
-| `reference/docs/risk-grade-rationale.md` | 위험 등급 근거와 정책 기준 |
-| `reference/docs/risk-grade-validation.md` | 위험 등급 검증 방식 참고 |
+| [`docs/architecture.md`](./docs/architecture.md) | 온디바이스 우선 하이브리드 판정 계층과 fallback 규칙 |
+| [`docs/rule-policy.md`](./docs/rule-policy.md) | 룰 기반 판정 출력, 카테고리, 설계 기준 |
+| [`docs/status.md`](./docs/status.md) | 현재 구현 완료 범위와 남은 작업 |
+| [`model/README.md`](./model/README.md) | 모델 학습, 평가, 변환, 산출물 관리 |
+| [`server/README.md`](./server/README.md) | Remote Fallback 서버 실행, 환경변수, Azure 준비 |
+| [`reference/README.md`](./reference/README.md) | GUADIAN 원본 프로젝트 기반 참조 파일과 원본 경로 매핑 |
