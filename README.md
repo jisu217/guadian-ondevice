@@ -8,13 +8,11 @@
 
 URL 위험 판정을 기기 내부에서 먼저 수행하고, 불확실한 경우에만 remote fallback을 사용한다.
 
-| 원칙 | 설명 |
-| :-- | :-- |
-| Local-first | 캐시, 룰, 모델, RAG를 로컬에서 우선 실행 |
-| Low latency | 네트워크 없이 확정 가능한 케이스를 빠르게 반환 |
-| Privacy-aware | 원격으로 전송되는 URL 범위 최소화 |
-| Explainable | `reason`, `advice`, `source`를 포함한 Verdict 반환 |
-| Fallback-aware | 로컬 판정이 불확실할 때만 remote fallback 호출 |
+- **Local-first** — 캐시, 룰, 모델, RAG를 로컬에서 우선 실행
+- **Low latency** — 네트워크 없이 확정 가능한 케이스를 빠르게 반환
+- **Privacy-aware** — 원격으로 전송되는 URL 범위 최소화
+- **Explainable** — `reason`, `advice`, `source`를 포함한 Verdict 반환
+- **Fallback-aware** — 로컬 판정이 불확실할 때만 remote fallback 호출
 
 ## Judgment Pipeline
 
@@ -46,30 +44,19 @@ Verdict
 
 ## Current Status
 
-| 영역 | 상태 |
-| :-- | :-- |
-| Local Verdict Store | 완료 |
-| Rule Engine | 완료 |
-| On-device Model | MVP 완료 |
-| Local RAG | MVP 완료 |
-| Remote Fallback Server | 완료 |
-| HybridJudge pipeline test | 완료 |
-| Android UI/Shield 연결 | 미완료 |
-| Azure 실제 배포 | 미완료 |
-| TFLite/ONNX 전환 | 미완료 |
+- [x] Local Verdict Store
+- [x] Rule Engine
+- [x] On-device Model (MVP)
+- [x] Local RAG (MVP)
+- [x] Remote Fallback Server
+- [x] HybridJudge pipeline test
+- [ ] Android UI/Shield 연결
+- [ ] Azure 실제 배포
+- [ ] TFLite/ONNX 전환
 
 상세 상태는 [`docs/status.md`](./docs/status.md)에서 관리한다.
 
 ## Repository Structure
-
-| 경로 | 역할 |
-| :-- | :-- |
-| `android/` | Kotlin 기반 온디바이스 판정 모듈 |
-| `server/` | 원격 fallback용 FastAPI 서버 |
-| `model/` | URL 위험 모델의 데이터, 학습, 평가, 산출물 관리 |
-| `docs/` | 현재 프로젝트의 아키텍처, 정책, 상태 문서 |
-| `reference/` | GUADIAN 원본 프로젝트 기반 참조 자료 |
-| `gradle/`, `gradlew`, `build.gradle.kts` | Kotlin/Gradle 빌드와 테스트 설정 |
 
 ```text
 guadian-ondevice/
@@ -109,10 +96,8 @@ cd server
 
 환경변수:
 
-| 이름 | 설명 |
-| :-- | :-- |
-| `ANTHROPIC_API_KEY` | Claude remote fallback 호출용 API key |
-| `ANTHROPIC_MODEL` | Claude 모델명. 기본값은 `claude-3-5-haiku-latest` |
+- `ANTHROPIC_API_KEY` — Claude remote fallback 호출용 API key
+- `ANTHROPIC_MODEL` — Claude 모델명. 기본값은 `claude-3-5-haiku-latest`
 
 로컬 실행, 테스트, Azure 준비는 [`server/README.md`](./server/README.md)를 기준으로 한다.
 
@@ -128,11 +113,9 @@ cd server
 
 ## Documentation
 
-| 문서 | 내용 |
-| :-- | :-- |
-| [`docs/architecture.md`](./docs/architecture.md) | 온디바이스 우선 하이브리드 판정 계층과 fallback 규칙 |
-| [`docs/rule-policy.md`](./docs/rule-policy.md) | 룰 기반 판정 출력, 카테고리, 설계 기준 |
-| [`docs/status.md`](./docs/status.md) | 현재 구현 완료 범위와 남은 작업 |
-| [`model/README.md`](./model/README.md) | 모델 학습, 평가, 변환, 산출물 관리 |
-| [`server/README.md`](./server/README.md) | Remote Fallback 서버 실행, 환경변수, Azure 준비 |
-| [`reference/README.md`](./reference/README.md) | GUADIAN 원본 프로젝트 기반 참조 파일과 원본 경로 매핑 |
+- [`docs/architecture.md`](./docs/architecture.md) — 온디바이스 우선 하이브리드 판정 계층과 fallback 규칙
+- [`docs/rule-policy.md`](./docs/rule-policy.md) — 룰 기반 판정 출력, 카테고리, 설계 기준
+- [`docs/status.md`](./docs/status.md) — 현재 구현 완료 범위와 남은 작업
+- [`model/README.md`](./model/README.md) — 모델 학습, 평가, 변환, 산출물 관리
+- [`server/README.md`](./server/README.md) — Remote Fallback 서버 실행, 환경변수, Azure 준비
+- [`reference/README.md`](./reference/README.md) — GUADIAN 원본 프로젝트 기반 참조 파일과 원본 경로 매핑
