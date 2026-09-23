@@ -1,53 +1,40 @@
-# URL Feature Specification
+# Feature Specification
 
-This document defines the first baseline feature set for the lightweight on-device URL risk classifier.
+> Deterministic URL features shared by Python training and Android runtime.
 
-The feature set should stay small, deterministic, and easy to reproduce in both Python training code and Android runtime code.
+feature set은 작고, 빠르고, 재현 가능해야 한다. 네트워크 요청이나 서버 전용 context는 사용하지 않는다.
 
-## Goals
+## Runtime Contract
 
-| Goal | Description |
+| Contract | Requirement |
 | :-- | :-- |
-| Lightweight | Features must be cheap enough to compute on device |
-| Deterministic | The same URL should produce the same feature values in training and Android |
-| Explainable | Features should map to understandable URL risk signals |
-| Portable | Avoid features that require network requests or server-only context |
+| Feature order | Python과 Android가 동일해야 함 |
+| Scaling | 학습 산출물의 min/max 기준 사용 |
+| Token lists | training/runtime 간 동기화 |
+| Missing values | 기본값은 `0.0` |
+| URL parsing | scheme이 없으면 parsing용으로 `https://` 추가 |
 
-## Input
-
-The classifier receives a single URL string.
-
-Before feature extraction:
-
-1. Trim whitespace.
-2. Add `https://` only when parsing requires a scheme.
-3. Lowercase the host.
-4. Preserve path and query text for token-based features.
-5. Do not make network requests or follow redirects.
-
-## Baseline Features
+## Features
 
 | Feature | Type | Description |
 | :-- | :-- | :-- |
-| `url_length` | numeric | Total URL length |
-| `host_length` | numeric | Host length |
-| `path_length` | numeric | Path length |
-| `query_length` | numeric | Query string length |
-| `digit_ratio` | numeric | Ratio of digits in the full URL |
-| `special_char_ratio` | numeric | Ratio of non-alphanumeric characters in the full URL |
-| `subdomain_count` | numeric | Number of host labels before the registrable domain approximation |
-| `has_apk` | binary | URL contains APK-related token or `.apk` suffix |
-| `has_login` | binary | URL contains login/auth/account token |
-| `has_event` | binary | URL contains event/promo/reward token |
-| `has_free` | binary | URL contains free/gift/prize token |
-| `has_shortener_token` | binary | Host or path looks like a shortened redirect URL |
-| `brand_keyword_present` | binary | Known brand keyword appears in host/path |
-| `official_domain_match` | binary | Host matches a known official domain |
-| `suspicious_tld` | binary | Host uses an uncommon or high-risk TLD from the local policy list |
+| `url_length` | numeric | 전체 URL 길이 |
+| `host_length` | numeric | host 길이 |
+| `path_length` | numeric | path 길이 |
+| `query_length` | numeric | query 길이 |
+| `digit_ratio` | numeric | 전체 URL 중 숫자 비율 |
+| `special_char_ratio` | numeric | 전체 URL 중 non-alphanumeric 비율 |
+| `subdomain_count` | numeric | registrable domain 앞 label 수 근사 |
+| `has_apk` | binary | APK token 또는 `.apk` suffix |
+| `has_login` | binary | login/auth/account token |
+| `has_event` | binary | event/promo/reward token |
+| `has_free` | binary | free/gift/prize token |
+| `has_shortener_token` | binary | 단축 URL/redirect 형태 |
+| `brand_keyword_present` | binary | known brand keyword 포함 |
+| `official_domain_match` | binary | known official domain 매칭 |
+| `suspicious_tld` | binary | local policy의 의심 TLD |
 
 ## Derived Signals
-
-The model can learn from raw features, but these signals are useful for debugging and rule comparison.
 
 | Signal | Source Features |
 | :-- | :-- |
@@ -56,26 +43,22 @@ The model can learn from raw features, but these signals are useful for debuggin
 | Reward or urgency lure | `has_event`, `has_free`, `url_length` |
 | Obfuscated URL | `digit_ratio`, `special_char_ratio`, `query_length` |
 
-## Label Interaction
-
-The model should not replace deterministic rules. Training should focus on URLs that are not already obvious from the rule engine.
+## Layer Boundary
 
 | Case | Preferred Layer |
 | :-- | :-- |
-| Official domain allowlist match | Rule Engine |
+| Official domain allowlist | Rule Engine |
 | Clear APK download | Rule Engine |
-| Obvious brand impersonation | Rule Engine or model validation sample |
-| Ambiguous promotion or landing URL | On-device Model |
-| No meaningful feature signal | Local RAG or Remote Fallback |
+| Brand impersonation | Rule Engine or model validation |
+| Ambiguous promotion URL | On-device Model |
+| No meaningful signal | Local RAG or Remote Fallback |
 
-## Runtime Contract
+## Update Rule
 
-The Python training extractor and Android extractor must keep the same:
+feature set을 바꾸면 아래를 함께 수정한다.
 
-- feature order
-- numeric scaling
-- token lists
-- missing-value defaults
-- URL normalization behavior
-
-When the feature set changes, update this document before updating training or Android code.
+| File | Role |
+| :-- | :-- |
+| `model/training/url_features.py` | Python training extractor |
+| `android/.../UrlFeatureExtractor.kt` | Android runtime extractor |
+| `model/artifacts/url_risk_centroid_model.json` | trained model artifact |

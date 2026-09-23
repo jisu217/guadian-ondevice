@@ -1,59 +1,63 @@
 # Model Workspace
 
-`model/` is the workspace for building a lightweight URL risk classifier that will later run inside the Android module.
+> Lightweight URL risk model workspace for Android on-device inference.
 
-The Android module owns runtime inference. This workspace owns model preparation, training, evaluation, and export.
+`model/`은 URL 위험 분류 모델의 데이터, feature, 학습, 평가, 산출물을 관리한다. Android 런타임 추론은 `android/` 모듈이 담당한다.
+
+## Structure
+
+| Path | Role |
+| :-- | :-- |
+| `data/` | 학습/테스트용 URL fixture |
+| `docs/` | 데이터 스키마, 수집 계획, feature 설계 |
+| `training/` | feature 추출, baseline, 학습 스크립트 |
+| `evaluation/` | baseline/model 평가 리포트 |
+| `export/` | 모바일 런타임 변환 결과를 둘 자리 |
+| `artifacts/` | 생성된 모델 산출물 |
+
+## Current MVP
 
 ```text
-model/
-  docs/        Dataset and feature design documents
-  data/        Dataset notes and local dataset placeholders
-  training/    Training scripts and experiment code
-  evaluation/  Evaluation scripts, metrics, and test cases
-  export/      Conversion scripts for mobile runtime formats
-  artifacts/   Generated model artifacts such as prototype JSON models or mobile exports
+model/artifacts/url_risk_centroid_model.json
+  -> nearest-centroid parameters embedded in OnDeviceModelJudge
+  -> UrlFeatureExtractor builds the runtime feature vector
+  -> OnDeviceModelJudge returns LOW/MEDIUM/HIGH when confident, otherwise UNKNOWN
 ```
 
-Expected flow:
+현재 모델은 fine-tuned LLM이 아니라 URL feature 기반 nearest-centroid classifier다.
+
+## Workflow
 
 ```text
-Prepare URL dataset
-  -> train lightweight URL risk classifier
-  -> evaluate precision, recall, latency, and model size
+Prepare dataset
+  -> extract deterministic URL features
+  -> train lightweight classifier
+  -> evaluate accuracy and errors
   -> export mobile-ready artifact
-  -> copy selected artifact into android/app/src/main/assets/
-  -> connect it from OnDeviceModelJudge
+  -> connect from OnDeviceModelJudge
 ```
 
-`artifacts/` should contain only generated model outputs that are safe to commit. The current artifact is a small prototype classifier trained from URL features, not a fine-tuned LLM. Large datasets, raw logs, API keys, and private samples should stay outside the repository.
+## Commands
 
-Start with [`docs/dataset-schema.md`](./docs/dataset-schema.md) and [`docs/data-collection-plan.md`](./docs/data-collection-plan.md) before collecting or generating samples. [`data/sample_urls.csv`](./data/sample_urls.csv) is a mixed seed fixture for pipeline tests, not a production training dataset. Then use [`docs/feature-spec.md`](./docs/feature-spec.md) to keep Python training and Android runtime feature extraction aligned.
+| Task | Command |
+| :-- | :-- |
+| Training tests | `python3 -m unittest discover model/training` |
+| Baseline report | `python3 model/training/train_baseline.py` |
+| Train model | `python3 model/training/train_model.py` |
 
-Run model workspace tests with:
+## Data Policy
 
-```bash
-python3 -m unittest discover model/training
-```
+| Rule | Reason |
+| :-- | :-- |
+| Commit only sanitized fixtures | 저장소 공개/공유 안전성 |
+| Do not commit raw logs or private URLs | 사용자 프라이버시 보호 |
+| Redact tokens and identifiers | API key, session, 개인정보 누출 방지 |
+| Keep large datasets outside repo | 저장소 경량화 |
 
-Run the baseline evaluator with:
+## Next
 
-```bash
-python3 model/training/train_baseline.py
-```
-
-Run the first trained model experiment with:
-
-```bash
-python3 model/training/train_model.py
-```
-
-Current model direction:
-
-```text
-URL dataset
-  -> deterministic URL features
-  -> lightweight classifier
-  -> Android on-device inference
-```
-
-This workspace does not assume Qwen, LLM fine-tuning, or a remote model runtime.
+| Work | Goal |
+| :-- | :-- |
+| Dataset expansion | 실제 일반화 성능 개선 |
+| Asset-loaded JSON | Kotlin 코드 내장 값을 파일 로딩으로 분리 |
+| TFLite/ONNX export | 표준 온디바이스 ML 런타임으로 전환 |

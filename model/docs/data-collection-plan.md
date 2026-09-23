@@ -1,41 +1,41 @@
 # Data Collection Plan
 
-This document defines how URL samples should be expanded beyond the seed fixture.
+> Expansion plan for safe, reviewed URL risk samples.
+
+`model/data/sample_urls.csv`는 commit 가능한 seed fixture다. 실제 성능 주장을 위한 production dataset이 아니라 feature, training, pipeline 검증용이다.
 
 ## Current Seed Mix
 
-`model/data/sample_urls.csv` is intentionally safe to commit. It mixes:
-
 | Source | Purpose |
 | :-- | :-- |
-| `synthetic` | Controlled examples for feature and pipeline testing |
-| `reference-derived` | Synthetic URLs derived from GUADIAN risk categories |
-| `public-benign` | Public official or benign URLs for LOW samples |
-
-The seed fixture is useful for pipeline validation and first classifier experiments, not for real-world performance claims.
+| `synthetic` | 통제된 feature/pipeline 테스트 |
+| `reference-derived` | GUADIAN 위험 카테고리 기반 재구성 샘플 |
+| `public-benign` | LOW 라벨용 공개 공식/정상 URL |
 
 ## Expansion Targets
 
 | Stage | Target | Purpose |
 | :-- | :-- | :-- |
-| Seed | 120 samples, 30 per label | First balanced training experiment |
-| Prototype | 400 samples, 100 per label | Compare trained model against baseline |
-| Realistic | 1000+ reviewed samples | Evaluate generalization and edge cases |
+| Seed | 120 samples, 30 per label | 첫 balanced training 실험 |
+| Prototype | 400 samples, 100 per label | baseline과 trained model 비교 |
+| Realistic | 1000+ reviewed samples | 일반화 성능과 edge case 평가 |
 
 ## Collection Rules
 
-- Keep committed data sanitized and reviewable.
-- Do not commit raw browsing history, production logs, user identifiers, access tokens, or private URLs.
-- Use `reference-derived` for URLs reconstructed from policy categories, not copied from real incidents.
-- Use `public-benign` only for official or clearly benign public URLs.
-- Treat public threat feeds as external inputs: verify license, do not browse URLs, and avoid committing raw active malicious URLs.
+| Rule | Description |
+| :-- | :-- |
+| Keep data sanitized | 저장소에 안전하게 commit 가능해야 함 |
+| No raw user data | browsing history, production logs, private URLs 금지 |
+| Redact identifiers | token, session, phone, account 정보 제거 |
+| Verify public feeds | license와 안전성을 확인하고 raw active malicious URL commit 금지 |
+| Add useful variety | 중복보다 새로운 패턴과 label balance 우선 |
 
 ## Review Checklist
 
-Before adding rows:
-
-- The label is one of `LOW`, `MEDIUM`, `HIGH`, or `UNKNOWN`.
-- `source`, `reason`, and `category` are filled.
-- The URL is not a duplicate or near-duplicate of an existing row.
-- Query parameters are redacted if they could contain identifiers.
-- The sample adds a new pattern or improves label balance.
+| Check | Required |
+| :-- | :-- |
+| Label is valid | `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN` |
+| Metadata is filled | `source`, `reason`, `category` |
+| No duplicate pattern | 기존 row와 near-duplicate 아님 |
+| Query is sanitized | identifier 가능성 있으면 redacted |
+| Adds value | 새 패턴 또는 label balance 개선 |

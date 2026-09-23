@@ -1,74 +1,59 @@
-# URL Risk Dataset Schema
+# Dataset Schema
 
-This document defines the dataset format for training and evaluating the on-device URL risk classifier.
+> CSV schema for URL risk model training and evaluation.
 
-The dataset should describe URL risk without storing private user activity, access tokens, phone numbers, personal identifiers, or raw production logs.
+데이터셋은 URL 위험 라벨을 학습하기 위한 최소 정보만 저장한다. raw browsing history, token, 개인정보, production log는 저장하지 않는다.
 
 ## Record Format
 
-Each row represents one URL sample.
-
 | Field | Required | Description |
 | :-- | :-- | :-- |
-| `url` | yes | URL or landing page address to classify |
-| `label` | yes | Risk label: `LOW`, `MEDIUM`, `HIGH`, or `UNKNOWN` |
-| `source` | yes | Dataset source, such as `synthetic`, `reference-derived`, `public-benign`, or `public-feed` |
-| `reason` | yes | Short labeling rationale |
-| `category` | no | Risk category, such as `official-domain`, `apk-download`, `brand-impersonation`, `suspicious-pattern`, or `no-signal` |
-| `brand` | no | Related brand or service name when impersonation is relevant |
-| `reviewed_by` | no | Reviewer identifier or `rule-policy` when labeled from deterministic rules |
-| `created_at` | no | Date when the sample was added, formatted as `YYYY-MM-DD` |
+| `url` | yes | 분류 대상 URL |
+| `label` | yes | `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN` |
+| `source` | yes | `synthetic`, `reference-derived`, `public-benign`, `public-feed` |
+| `reason` | yes | 라벨링 근거 |
+| `category` | no | `official-domain`, `apk-download`, `brand-impersonation`, `suspicious-pattern`, `no-signal` |
+| `brand` | no | 사칭 판단에 관련된 브랜드명 |
+| `reviewed_by` | no | 검토자 또는 `rule-policy` |
+| `created_at` | no | `YYYY-MM-DD` |
 
-Recommended CSV header:
+Header:
 
 ```csv
 url,label,source,reason,category,brand,reviewed_by,created_at
 ```
 
-## Label Definitions
+## Labels
 
 | Label | Meaning |
 | :-- | :-- |
-| `LOW` | Official or trusted destination with no clear risky signal |
-| `MEDIUM` | Suspicious or ambiguous destination that should require user confirmation |
-| `HIGH` | Strong risk signal such as external APK download, clear impersonation, or credential/payment lure |
-| `UNKNOWN` | Insufficient evidence or intentionally unlabeled sample |
+| `LOW` | 공식/신뢰 도메인 또는 명확한 위험 신호 없음 |
+| `MEDIUM` | 의심스럽지만 사용자 확인으로 처리 가능한 흐름 |
+| `HIGH` | APK, 사칭, credential/payment lure 등 강한 위험 신호 |
+| `UNKNOWN` | 판정 근거 부족 또는 의도적으로 보류한 샘플 |
 
-## Labeling Guidelines
+## Labeling Rules
 
 | Signal | Suggested Label |
 | :-- | :-- |
 | Official domain or allowlisted host | `LOW` |
 | APK download outside trusted app stores | `HIGH` |
-| Brand keyword on a non-official domain | `MEDIUM` or `HIGH` |
-| Login, reward, event, or urgent action lure on an unfamiliar host | `MEDIUM` |
-| Request for sensitive personal or payment information | `HIGH` |
-| Shortened, redirected, or heavily parameterized URL without enough evidence | `MEDIUM` or `UNKNOWN` |
+| Brand keyword on non-official domain | `MEDIUM` or `HIGH` |
+| Reward/event/login lure on unfamiliar host | `MEDIUM` |
+| Sensitive personal or payment information request | `HIGH` |
+| Shortened or redirected URL without evidence | `MEDIUM` or `UNKNOWN` |
 | No clear signal | `UNKNOWN` |
 
-## Dataset Split
+## Safety Rules
 
-Use stable splits so model changes can be compared fairly.
+| Rule | Reason |
+| :-- | :-- |
+| Do not commit raw user activity | 개인정보 보호 |
+| Redact tokens and identifiers | session/API key 유출 방지 |
+| Prefer synthetic or reviewed samples | 라벨 품질 유지 |
+| Keep sensitive datasets outside repo | 저장소 안전성 유지 |
 
-| Split | Purpose | Suggested Ratio |
-| :-- | :-- | :-- |
-| `train` | Model fitting | 70% |
-| `validation` | Feature/model selection | 15% |
-| `test` | Final evaluation only | 15% |
-
-Avoid placing near-duplicate URLs from the same campaign across different splits. Duplicates can make evaluation look better than the actual generalization quality.
-
-## Privacy And Safety Rules
-
-- Do not commit raw browsing history, production logs, API keys, session tokens, phone numbers, resident registration numbers, card numbers, or user-entered form values.
-- Prefer synthetic, manually reviewed, or public-source samples.
-- Redact query parameters when they contain identifiers or tokens.
-- Store large or sensitive datasets outside the repository.
-- Commit only small schema examples or sanitized fixtures.
-
-## Example Rows
-
-These are illustrative examples, not a training dataset. The repository also includes [`sample_urls.csv`](../data/sample_urls.csv) as a mixed seed fixture for pipeline tests.
+## Example
 
 ```csv
 url,label,source,reason,category,brand,reviewed_by,created_at
