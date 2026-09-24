@@ -42,6 +42,32 @@ class UrlFeatureExtractorTest {
     }
 
     @Test
+    fun `extracts redirect and ad network features`() {
+        val features = extractor.extract(
+            "https://googleads.g.doubleclick.net/pcs/click?" +
+                "adurl=https%3A%2F%2Fexample.com%2Flanding&gclid=abc123&utm_source=display"
+        ).values
+
+        assertEquals(3.0, features.getValue("query_param_count"))
+        assertEquals(1.0, features.getValue("utm_param_count"))
+        assertEquals(2.0, features.getValue("tracking_param_count"))
+        assertEquals(1.0, features.getValue("has_nested_url"))
+        assertEquals(1.0, features.getValue("has_encoded_url"))
+        assertEquals(1.0, features.getValue("has_ad_click_host"))
+    }
+
+    @Test
+    fun `extracts base64-like redirect token`() {
+        val features = extractor.extract(
+            "https://s.adscope.co.kr/adt_connect.php?" +
+                "u=aHR0cDovL3Nha3VuemEuY29tL25ld3NtL2luZGV4X2JuLmh0bWw&v=&d="
+        ).values
+
+        assertEquals(1.0, features.getValue("has_ad_click_host"))
+        assertEquals(1.0, features.getValue("has_base64_like_token"))
+    }
+
+    @Test
     fun `matches python feature parity fixture`() {
         val rows = readFeatureParityRows()
 
