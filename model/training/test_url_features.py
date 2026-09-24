@@ -31,6 +31,18 @@ class UrlFeatureTest(unittest.TestCase):
         self.assertEqual(len(vector), len(FEATURE_NAMES))
         self.assertTrue(all(isinstance(value, float) for value in vector))
 
+    def test_feature_parity_fixture_matches_python_extractor(self):
+        fixture_path = Path(__file__).parents[1] / "data" / "feature_parity_cases.csv"
+        with fixture_path.open(newline="") as handle:
+            rows = list(csv.DictReader(handle))
+
+        self.assertGreater(len(rows), 0)
+        self.assertEqual([name for name in rows[0] if name != "url"], FEATURE_NAMES)
+
+        for row in rows:
+            expected = [float(row[name]) for name in FEATURE_NAMES]
+            self.assertEqual(feature_vector(row["url"]), expected)
+
     def test_sample_dataset_urls_are_extractable(self):
         sample_path = Path(__file__).parents[1] / "data" / "sample_urls.csv"
         with sample_path.open(newline="") as handle:

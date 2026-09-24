@@ -1,5 +1,6 @@
 package com.guardian.ondevice.model
 
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -41,10 +42,42 @@ class UrlFeatureExtractorTest {
     }
 
     @Test
+    fun `matches python feature parity fixture`() {
+        val rows = readFeatureParityRows()
+
+        assertTrue(rows.isNotEmpty())
+        for ((url, expected) in rows) {
+            val actual = extractor.extract(url).vector()
+
+            assertEquals(expected.size, actual.size)
+            expected.zip(actual).forEachIndexed { index, (left, right) ->
+                assertClose(left, right, "Feature ${UrlFeatureExtractor.FEATURE_NAMES[index]} drifted for $url")
+            }
+        }
+    }
+
+    @Test
     fun `parses url without scheme`() {
         val features = extractor.extract("support.example.com/help").values
 
         assertEquals(1.0, features.getValue("official_domain_match"))
         assertEquals(5.0, features.getValue("path_length"))
+    }
+
+    private fun readFeatureParityRows(): List<Pair<String, List<Double>>> {
+        val stream = javaClass.getResourceAsStream("/feature_parity_cases.csv")
+            ?: error("feature_parity_cases.csv resource is missing")
+        val lines = stream.bufferedReader().readLines().filter { it.isNotBlank() }
+        val header = lines.first().split(",")
+
+        assertEquals(listOf("url") + UrlFeatureExtractor.FEATURE_NAMES, header)
+        return lines.drop(1).map { line ->
+            val columns = line.split(",")
+            columns.first() to columns.drop(1).map { it.toDouble() }
+        }
+    }
+
+    private fun assertClose(expected: Double, actual: Double, message: String) {
+        assertTrue(abs(expected - actual) < 1.0e-12, "$message: expected $expected but was $actual")
     }
 }
