@@ -23,8 +23,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Run model governance checks
-        run: bash scripts/check-model-governance.sh
+      - name: Check model docs
+        run: bash scripts/check-model-docs.sh
 
       - name: Install server dependencies
         run: python -m pip install -r server/requirements.txt
