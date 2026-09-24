@@ -50,7 +50,7 @@ derived from GUADIAN policy categories and reference documents.
 
 The realistic rows are valuable because they exposed model weaknesses that were
 hidden by synthetic-only data. Accuracy dropped from 97.50% on synthetic-only
-evaluation to 72.73% after realistic rows and targeted edge cases were included. This is treated as a
+evaluation to 79.55% after realistic rows, targeted edge cases, and current feature scaling were included. This is treated as a
 useful finding, not a failure. See [Project Report](../../docs/project-report.md)
 for the evaluation interpretation.
 

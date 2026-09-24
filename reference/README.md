@@ -5,7 +5,7 @@ prototype. Files here are not compiled into the Kotlin runtime and are not part
 of the Python training package unless explicitly copied or merged elsewhere.
 
 For the complete source/provenance explanation, see
-[docs/source-and-reference.md](../docs/source-and-reference.md).
+[docs/provenance.md](../docs/provenance.md).
 
 ## Contents
 

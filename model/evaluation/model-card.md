@@ -55,20 +55,20 @@ Latest deterministic holdout evaluation:
 | :-- | --: |
 | Train samples | 536 |
 | Test samples | 132 |
-| Holdout accuracy | 72.73% |
-| Holdout macro F1 | 74.15% |
+| Holdout accuracy | 79.55% |
+| Holdout macro F1 | 80.98% |
 | Baseline accuracy on same split | 68.94% |
-| 5-fold CV accuracy | 73.16% |
-| 5-fold CV macro F1 | 74.95% |
+| 5-fold CV accuracy | 81.19% |
+| 5-fold CV macro F1 | 82.70% |
 
 Label-level holdout metrics:
 
 | Label | Precision | Recall | F1 | Note |
 | :-- | --: | --: | --: | :-- |
-| `LOW` | 81.40% | 74.47% | 77.78% | long ad/tracking URLs still cause misses |
-| `MEDIUM` | 75.86% | 50.00% | 60.27% | weakest label; often needs page context |
+| `LOW` | 85.37% | 74.47% | 79.55% | long ad/tracking URLs still cause misses |
+| `MEDIUM` | 77.50% | 70.45% | 73.81% | weakest label; often needs page context |
 | `HIGH` | 90.91% | 95.24% | 93.02% | strongest label for clear URL-level risk |
-| `UNKNOWN` | 50.00% | 95.00% | 65.52% | conservative fallback-oriented label |
+| `UNKNOWN` | 65.52% | 95.00% | 77.55% | conservative fallback-oriented label |
 
 ## Runtime Contract
 
@@ -77,6 +77,8 @@ Label-level holdout metrics:
 - Kotlin reads the JSON artifact directly from resources.
 - Per-label distance thresholds control whether the local model is confident
   enough to emit a direct signal.
+- The generated trained-model report includes holdout error buckets so the main
+  failure modes remain visible after each retraining run.
 
 ## Known Limitations
 

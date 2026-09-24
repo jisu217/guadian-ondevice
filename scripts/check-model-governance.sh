@@ -36,8 +36,8 @@ reject_text() {
 
 require_file ".github/workflows/ci.yml"
 require_file "README.md"
-require_file "docs/data-policy.md"
-require_file "docs/source-and-reference.md"
+require_file "docs/data-governance.md"
+require_file "docs/provenance.md"
 require_file "docs/project-report.md"
 require_file "model/README.md"
 require_file "model/data/sample_urls.csv"
@@ -63,9 +63,9 @@ require_text "model/evaluation/model-card.md" "Baseline accuracy on same split" 
   "model card must include baseline comparison"
 require_text "model/evaluation/model-card.md" "feature_parity_cases\\.csv" \
   "model card must mention Python/Kotlin parity fixture"
-require_text "docs/data-policy.md" "Forbidden Claims" \
+require_text "docs/data-governance.md" "Forbidden Claims" \
   "data policy must define forbidden claims"
-require_text "docs/data-policy.md" "LLM-consensus labels are treated as prototype evidence" \
+require_text "docs/data-governance.md" "LLM-consensus labels are treated as prototype evidence" \
   "data policy must distinguish LLM-consensus labels from audited truth"
 pass "model card and data policy include required limits"
 
@@ -73,7 +73,7 @@ require_text "model/evaluation/trained-model-report.md" "Train samples: 536" \
   "trained report must reflect current train split"
 require_text "model/evaluation/trained-model-report.md" "Test samples: 132" \
   "trained report must reflect current test split"
-require_text "model/evaluation/trained-model-report.md" "Model accuracy: 72\\.73%" \
+require_text "model/evaluation/trained-model-report.md" "Model accuracy: 79\\.55%" \
   "trained report must reflect current accuracy"
 require_text "model/evaluation/baseline-report.md" "Samples: 668" \
   "baseline report must reflect current dataset size"

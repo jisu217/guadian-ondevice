@@ -1,21 +1,21 @@
 # GUADIAN On-device Judge
 
-![Status](https://img.shields.io/badge/status-active%20prototype-blue)
-![Runtime](https://img.shields.io/badge/runtime-Kotlin%2FJVM-orange)
-![Model](https://img.shields.io/badge/model-nearest--centroid-green)
-![Android](https://img.shields.io/badge/android-integration%20pending-lightgrey)
+Local-first URL risk judgment pipeline evolved from the SKT FLY AI bootcamp
+GUADIAN project.
 
-Local-first URL risk judgment pipeline for ad landing URLs.
+| Field | Current state |
+| :-- | :-- |
+| Status | Active research prototype |
+| Runtime | Kotlin/JVM local judgment engine |
+| Model | URL-feature nearest-centroid classifier |
+| Android scope | Intended for Android integration; not yet validated as a complete Android app |
 
-> Status: This project is an active research prototype.  
-> The current implementation runs as a Kotlin/JVM local judgment engine and has
-> not yet been validated as a complete Android application.
-
-This repository refactors the GUADIAN risk-judgment concept into a lightweight
-local judgment engine. The current implementation is a Kotlin/JVM prototype
-intended for Android integration: it can classify URLs locally with rules,
-a compact feature-based model, local policy retrieval, and remote fallback for
-uncertain cases.
+This repository takes the original GUADIAN ad-risk judgment concept developed
+during the SKT FLY AI bootcamp and reorganizes it as an on-device-oriented
+local judgment engine. Instead of relying only on a remote server judgment flow,
+the current Kotlin/JVM prototype can classify URLs locally with deterministic
+rules, a compact feature-based model, local policy retrieval, and remote
+fallback for uncertain cases.
 
 ## What This Project Does
 
@@ -82,11 +82,11 @@ Current evaluation with 668 sanitized samples:
 
 | Metric | Value |
 | :-- | --: |
-| Holdout accuracy | 72.73% |
-| Holdout macro F1 | 74.15% |
+| Holdout accuracy | 79.55% |
+| Holdout macro F1 | 80.98% |
 | Baseline accuracy | 68.94% |
-| Cross-validation accuracy | 73.16% |
-| Cross-validation macro F1 | 74.95% |
+| Cross-validation accuracy | 81.19% |
+| Cross-validation macro F1 | 82.70% |
 
 The evaluation intentionally includes realistic ad landing URLs. Accuracy drops
 compared with synthetic-only data, but the failure modes are now visible:
@@ -159,9 +159,9 @@ This regenerates:
 - [Project Report](docs/project-report.md): complete technical narrative,
   evaluation results, limitations, and next steps
 - [Architecture](docs/architecture.md): runtime pipeline and component roles
-- [Source And Reference Notes](docs/source-and-reference.md): what was copied,
+- [Provenance](docs/provenance.md): what was copied,
   derived, or only used as reference
-- [Data Policy](docs/data-policy.md): allowed claims, forbidden claims, and
+- [Data Governance](docs/data-governance.md): allowed claims, forbidden claims, and
   dataset governance rules
 - [Model Card](model/evaluation/model-card.md): artifact role, metrics,
   intended use, and limitations

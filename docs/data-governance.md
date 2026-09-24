@@ -1,4 +1,4 @@
-# Data Policy
+# Data Governance
 
 This project uses a sanitized prototype dataset. The dataset is useful for
 engineering evaluation, but it is not production telemetry and must not be
