@@ -45,16 +45,21 @@ Local Verdict Store
 
 ## Model Evaluation
 
-현재 모델은 seed fixture 기준 nearest-centroid classifier입니다.
+현재 데이터셋은 648개 — 합성 400개(라벨당 100개) + 실제 광고 도착지 248개(`guadian23-model-compare-main`의 Claude/Gemini/GPT-5 3사 합의 + 사람 검토 gold set). 라벨 출처는 행 단위로 `reviewed_by`(human-review / llm-consensus)에 정직하게 남겼습니다.
 
-| Metric | Result |
-| :-- | :-- |
-| Model accuracy | 91.67% |
-| Baseline accuracy | 83.33% |
-| HIGH precision | 100.00% |
-| HIGH recall | 83.33% |
+| Metric | 합성 400개만 | 실데이터 248개 포함(648개) |
+| :-- | --: | --: |
+| Model accuracy | 97.50% | 72.66% |
+| Model macro F1 | 97.53% | 74.24% |
+| Baseline accuracy (같은 split) | 88.75% | 68.75% |
 
-평가 리포트에는 label별 precision/recall과 confusion matrix를 포함했습니다.
+**정확도가 떨어진 게 핵심이 아니라, 왜 떨어졌는지가 핵심입니다.** 실데이터를 섞으니 세 가지가 구체적으로 드러났습니다.
+
+1. **URL 문자열만으로는 못 보는 신호가 있다** — 실제 광고 도착지의 MEDIUM(개인정보 상담폼, JS 전용 렌더링, 확인불가 404)은 페이지 본문을 열어야 보이는 신호입니다. 원본 GUADIAN의 LLM judge는 `page_signals`로 이걸 봤지만, 온디바이스 모델은 URL만 보므로 원리적으로 접근 불가 — MEDIUM recall 51%, UNKNOWN precision 50%로 나타남.
+2. **global threshold 하나가 전체를 좌우한다** — distance threshold가 4개 라벨에 공통 스칼라 하나입니다. cross-validation에서 LOW/MEDIUM 경계의 애매한 케이스 단 1건(`m.fmkorea.com`, distance 0.35)이 걸리자, 원래 1.13이어야 할 threshold가 0.35로 떨어지면서 **HIGH·MEDIUM은 학습셋 전체에서 단 한 건도 "확신" 문턱을 못 넘게** 됐습니다. 라벨별 threshold였다면 이 문제가 없었을 것.
+3. **min-max scaling이 이상치에 취약하다** — 실데이터의 긴 트래킹 URL 몇 개가 `url_length` 등의 스케일 범위를 9~1675로 벌려놓으면서, 다른 모든 샘플의 상대 거리가 좁은 구간으로 눌립니다.
+
+이 세 가지는 "데이터가 더 필요하다"는 문제가 아니라 **URL-only 설계와 global threshold, min-max scaling의 구조적 한계**입니다. `OnDeviceModelJudgeTest`에도 이 사실을 숨기지 않고 그대로 테스트로 남겼습니다 — nearest-centroid의 방향(label)은 맞지만 confidence가 기준을 못 넘겨 `UNKNOWN`으로 떨어지는 케이스를 명시적으로 검증합니다.
 
 ## My Focus
 
@@ -77,14 +82,16 @@ Local Verdict Store
 
 - 실제 Android UI/Shield 연결은 아직 없음
 - Azure 실제 배포는 준비 문서만 있음
-- 모델 데이터셋은 seed fixture 수준
+- 실데이터 248건을 섞은 뒤 온디바이스 모델은 MEDIUM/HIGH를 URL만으로 confident하게 판정하지 못함 — 이 경우 로컬 판정은 LocalRagJudge/RemoteJudge로 넘어가므로 안전하지만, 온디바이스 계층의 실질 적중 범위는 LOW/officially-listed 케이스에 가깝게 좁아짐
 - TFLite/ONNX 런타임 전환 전 단계
 
 ## Next Steps
 
 - Android `Verdict -> Shield UI` 연결
 - Azure App Service 배포
-- URL 데이터셋 확장과 라벨 품질 개선
+- distance threshold를 라벨별로 분리 보정 (global threshold의 단일 오탐 취약성 해소)
+- feature scaling을 min-max 대신 percentile clip 또는 log 변환으로 교체 (긴 URL 이상치에 대한 강건성)
+- 페이지 신호(form 존재, JS-only 여부 등)를 온디바이스에서 확보할 방법 검토 — 안 되면 이 신호가 필요한 케이스는 구조적으로 RAG/원격에 맡기는 것으로 역할 재정의
 - 모델 런타임을 assets JSON, TFLite, ONNX 중 하나로 고도화
 - 실기기 end-to-end 테스트
 

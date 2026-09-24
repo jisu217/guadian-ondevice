@@ -70,7 +70,7 @@ class HybridJudgeTest {
         val remoteJudge = CountingJudge(fixedVerdict("remote", Risk.HIGH, Confidence.CERTAIN))
         val hybridJudge = actualLocalHybrid(remoteJudge = remoteJudge)
 
-        val verdict = judgeNow(hybridJudge, "https://support.example.com/help")
+        val verdict = judgeNow(hybridJudge, "https://docs.example.com/status/incidents/2026")
 
         assertEquals(Risk.LOW, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)
@@ -83,7 +83,7 @@ class HybridJudgeTest {
         val remoteJudge = CountingJudge(fixedVerdict("remote", Risk.HIGH, Confidence.CERTAIN))
         val hybridJudge = actualLocalHybrid(remoteJudge = remoteJudge)
 
-        val verdict = judgeNow(hybridJudge, "https://info.example.org/personal-info-phone-card")
+        val verdict = judgeNow(hybridJudge, "https://info.unlisted-check.test/personal-info-phone-card")
 
         assertEquals(Risk.MEDIUM, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)
@@ -110,8 +110,8 @@ class HybridJudgeTest {
         val remoteJudge = CountingJudge(fixedVerdict("remote", Risk.HIGH, Confidence.CERTAIN))
         val hybridJudge = actualLocalHybrid(store = store, remoteJudge = remoteJudge)
 
-        val first = judgeNow(hybridJudge, "https://support.example.com/help")
-        val second = judgeNow(hybridJudge, "https://www.support.example.com/other-path")
+        val first = judgeNow(hybridJudge, "https://docs.example.com/status/incidents/2026")
+        val second = judgeNow(hybridJudge, "https://www.docs.example.com/other-path")
 
         assertEquals(Risk.LOW, first.risk)
         assertEquals("on-device-model", first.source)
