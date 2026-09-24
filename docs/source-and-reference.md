@@ -16,12 +16,12 @@ domain popularity list.
 The files below are stored under `reference/` for auditability. They are not
 compiled or imported by the current Kotlin/Python runtime.
 
-| Current file | Original role | How it influenced this project |
-| :-- | :-- | :-- |
-| `reference/Judge.kt` | original judge interface and verdict shape | informed the shared `Judge`/`Verdict` abstraction |
-| `reference/HttpJudge.kt` | original remote API judge client | informed `RemoteJudge` fallback shape |
-| `reference/WebNode.kt` | URL, host, and site extraction helper | informed URL parsing concerns |
-| `reference/judge_agent.py` | original server-side judge agent | informed the fallback server boundary |
+| Current file | Source repo file | Original role | How it influenced this project |
+| :-- | :-- | :-- | :-- |
+| `reference/Judge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/Judge.kt` | original judge interface and verdict shape | informed the shared `Judge`/`Verdict` abstraction |
+| `reference/HttpJudge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/HttpJudge.kt` | original remote API judge client | informed `RemoteJudge` fallback shape |
+| `reference/WebNode.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/WebNode.kt` | URL, host, and site extraction helper | informed URL parsing concerns |
+| `reference/judge_agent.py` | `SKT-FLY-AI-TEAM-6/GUADIAN/judge_agent.py` | original server-side judge agent | informed the fallback server boundary |
 
 The current implementation is not a direct port. The local-first sequence,
 Kotlin model runtime, Python training workflow, local RAG fallback, and FastAPI
@@ -31,12 +31,12 @@ server were implemented in this repository.
 
 The original GUADIAN policy documents are preserved under `reference/docs/`.
 
-| Current file | Purpose in this project |
-| :-- | :-- |
-| `reference/docs/judge.md` | risk category and judgment-policy reference |
-| `reference/docs/risk-grade-rationale.md` | rationale for risk levels |
-| `reference/docs/risk-grade-validation.md` | validation framing for risk grades |
-| `reference/docs/history.md` | original project context |
+| Current file | Source repo file | Purpose in this project |
+| :-- | :-- | :-- |
+| `reference/docs/judge.md` | `SKT-FLY-AI-TEAM-6/GUADIAN/docs/judge.md` | risk category and judgment-policy reference |
+| `reference/docs/risk-grade-rationale.md` | `SKT-FLY-AI-TEAM-6/GUADIAN/docs/risk-grade-rationale.md` | rationale for risk levels |
+| `reference/docs/risk-grade-validation.md` | `SKT-FLY-AI-TEAM-6/GUADIAN/docs/risk-grade-validation.md` | validation framing for risk grades |
+| `reference/docs/history.md` | `SKT-FLY-AI-TEAM-6/GUADIAN/docs/history.md` | original project context |
 
 These documents were used as policy background. Current runtime behavior is
 implemented in `android/app/src/main/kotlin/com/guardian/ondevice/`.
@@ -46,7 +46,10 @@ implemented in `android/app/src/main/kotlin/com/guardian/ondevice/`.
 `reference/gold_251.jsonl` comes from a local sibling project:
 
 ```text
-guadian23-model-compare-main/gold/gold_251.jsonl
+Repository name: GuADian23-model-compare
+Local source checkout: /Users/jisu/guadian23-model-compare-main
+Source file: gold/gold_251.jsonl
+Current stored file: reference/gold_251.jsonl
 ```
 
 Recorded source identity:
