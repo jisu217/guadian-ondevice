@@ -10,6 +10,7 @@ from url_features import extract_features
 
 LABELS = ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
 DEFAULT_DATASET = Path(__file__).parents[1] / "data" / "sample_urls.csv"
+DEFAULT_REPORT = Path(__file__).parents[1] / "evaluation" / "baseline-report.md"
 
 
 @dataclass(frozen=True)
@@ -83,6 +84,7 @@ def render_report(predictions: list[Prediction]) -> str:
     lines = [
         "# Baseline Evaluation",
         "",
+        "Evaluation set: full committed dataset",
         f"Samples: {len(predictions)}",
         f"Accuracy: {accuracy(predictions):.2%}",
         "",
@@ -113,9 +115,16 @@ def render_report(predictions: list[Prediction]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def save_report(report: str, path: Path = DEFAULT_REPORT) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(report)
+
+
 def main() -> None:
     rows = load_rows()
-    print(render_report(evaluate(rows)))
+    report = render_report(evaluate(rows))
+    save_report(report)
+    print(report)
 
 
 if __name__ == "__main__":

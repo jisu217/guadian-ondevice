@@ -1,21 +1,14 @@
 # Dataset Schema
 
-> CSV schema for URL risk model training and evaluation.
+This document defines the committed CSV schema for URL-risk model samples.
+The dataset is designed for prototype training and evaluation, not for storing
+raw browsing history or production logs.
 
-데이터셋은 URL 위험 라벨을 학습하기 위한 최소 정보만 저장한다. raw browsing history, token, 개인정보, production log는 저장하지 않는다.
+## File
 
-## Record Format
-
-| Field | Required | Description |
-| :-- | :-- | :-- |
-| `url` | yes | 분류 대상 URL |
-| `label` | yes | `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN` |
-| `source` | yes | `synthetic`, `reference-derived`, `public-benign`, `public-feed` |
-| `reason` | yes | 라벨링 근거 |
-| `category` | no | `official-domain`, `apk-download`, `brand-impersonation`, `suspicious-pattern`, `no-signal` |
-| `brand` | no | 사칭 판단에 관련된 브랜드명 |
-| `reviewed_by` | no | 검토자 또는 `rule-policy` |
-| `created_at` | no | `YYYY-MM-DD` |
+```text
+model/data/sample_urls.csv
+```
 
 Header:
 
@@ -23,29 +16,45 @@ Header:
 url,label,source,reason,category,brand,reviewed_by,created_at
 ```
 
+## Fields
+
+| Field | Required | Description |
+| :-- | :-- | :-- |
+| `url` | yes | URL to classify |
+| `label` | yes | `LOW`, `MEDIUM`, `HIGH`, or `UNKNOWN` |
+| `source` | yes | sample origin, such as `synthetic`, `reference-derived`, `public-benign`, or `public-feed` |
+| `reason` | yes | short labeling rationale |
+| `category` | no | risk category, such as `official-domain`, `apk-download`, `brand-impersonation`, `suspicious-pattern`, or `no-signal` |
+| `brand` | no | related brand when the sample involves possible impersonation |
+| `reviewed_by` | no | reviewer or provenance marker, such as `rule-policy`, `human-review`, or `llm-consensus-claude-gemini-openai` |
+| `created_at` | no | date in `YYYY-MM-DD` format |
+
 ## Labels
 
-- `LOW` — 공식/신뢰 도메인 또는 명확한 위험 신호 없음
-- `MEDIUM` — 의심스럽지만 사용자 확인으로 처리 가능한 흐름
-- `HIGH` — APK, 사칭, credential/payment lure 등 강한 위험 신호
-- `UNKNOWN` — 판정 근거 부족 또는 의도적으로 보류한 샘플
+| Label | Meaning |
+| :-- | :-- |
+| `LOW` | official, trusted, or no meaningful risk signal |
+| `MEDIUM` | suspicious but not clearly severe; should trigger user confirmation |
+| `HIGH` | strong risk signal such as APK download, impersonation, credential capture, or payment lure |
+| `UNKNOWN` | insufficient evidence or intentionally unresolved sample |
 
 ## Labeling Rules
 
-- Official domain or allowlisted host → `LOW`
-- APK download outside trusted app stores → `HIGH`
-- Brand keyword on non-official domain → `MEDIUM` or `HIGH`
-- Reward/event/login lure on unfamiliar host → `MEDIUM`
-- Sensitive personal or payment information request → `HIGH`
-- Shortened or redirected URL without evidence → `MEDIUM` or `UNKNOWN`
-- No clear signal → `UNKNOWN`
+- Official domain or allowlisted host: `LOW`
+- APK download outside trusted app stores: `HIGH`
+- Brand keyword on a non-official domain: `MEDIUM` or `HIGH`
+- Reward, event, or login lure on unfamiliar host: usually `MEDIUM`
+- Sensitive personal or payment information request: `HIGH`
+- Shortened or redirected URL without enough evidence: `MEDIUM` or `UNKNOWN`
+- No clear signal from the URL alone: `UNKNOWN`
 
 ## Safety Rules
 
-- **Do not commit raw user activity** — 개인정보 보호
-- **Redact tokens and identifiers** — session/API key 유출 방지
-- **Prefer synthetic or reviewed samples** — 라벨 품질 유지
-- **Keep sensitive datasets outside repo** — 저장소 안전성 유지
+- Do not commit raw user activity, browser history, or production logs.
+- Redact session IDs, account identifiers, API keys, and private tokens.
+- Prefer synthetic, public-benign, or reviewed reference-derived samples.
+- Keep sensitive or large raw datasets outside this repository.
+- Preserve label provenance when using LLM-consensus rows.
 
 ## Example
 

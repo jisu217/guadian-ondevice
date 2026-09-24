@@ -1,43 +1,75 @@
 # Remote Fallback Server
 
-> FastAPI fallback server for uncertain local verdicts.
+FastAPI server used only when local URL judgment remains uncertain.
 
-`server/`는 Android `RemoteJudge`가 호출하는 `/judge` API를 제공한다. 로컬 판정이 확정되지 않은 URL만 remote fallback 대상으로 보낸다.
+The local Kotlin pipeline should make the first decision attempt. This server is
+the fallback layer for cases where local rules, the URL-feature model, and local
+policy retrieval cannot produce a confident verdict.
+
+## Scope
+
+Implemented:
+
+- `/health` endpoint
+- `/judge` endpoint
+- optional NDJSON streaming response
+- local precheck for obvious APK and suspicious-token cases
+- Claude fallback call when `ANTHROPIC_API_KEY` is configured
+- safe `UNKNOWN` response when the key is missing or the remote call fails
+
+Not implemented:
+
+- production authentication
+- rate limiting
+- persistent logging
+- deployed Azure App Service configuration in this repository
 
 ## Files
 
-- `main.py` — FastAPI app, `/health`, `/judge`
-- `judge_service.py` — precheck, Claude call, response parsing
-- `requirements.txt` — Python dependencies
-- `.env.example` — local environment template
-- `test_main.py` — endpoint tests
-- `test_judge_service.py` — service tests
+| File | Purpose |
+| :-- | :-- |
+| `main.py` | FastAPI app and request/response endpoints |
+| `judge_service.py` | local precheck, Claude call, JSON parsing, fallback behavior |
+| `requirements.txt` | Python dependencies |
+| `.env.example` | local environment template |
+| `test_main.py` | API endpoint tests |
+| `test_judge_service.py` | service-level tests |
 
 ## Environment
 
 | Name | Required | Description |
 | :-- | :-- | :-- |
-| `ANTHROPIC_API_KEY` | Optional | Claude fallback API key. Missing key returns `UNKNOWN / remote_not_configured` |
-| `ANTHROPIC_MODEL` | Optional | Claude model name. Default: `claude-3-5-haiku-latest` |
+| `ANTHROPIC_API_KEY` | no | Claude API key. Missing key returns `UNKNOWN` with `remote_not_configured`. |
+| `ANTHROPIC_MODEL` | no | Claude model name. Defaults to `claude-3-5-haiku-latest`. |
 
-`.env`는 로컬 실행 전용이며 Git에 커밋하지 않는다.
+`.env` is for local development only and should not be committed.
 
-## Local Run
+## Local Setup
+
+From the repository root:
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r server/requirements.txt
 cp server/.env.example server/.env
+```
+
+Run the server:
+
+```bash
 cd server
 ../.venv/bin/uvicorn main:app --reload
 ```
 
-## Checks
+## API Checks
 
-- Health — `curl http://127.0.0.1:8000/health`
-- Tests — `../.venv/bin/python -m unittest discover .`
+Health:
 
-Judge request:
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Judge:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/judge \
@@ -53,29 +85,33 @@ curl -X POST http://127.0.0.1:8000/judge \
   -d '{"url":"https://example.com/app.apk","stream":true}'
 ```
 
-## Azure Prep
+## Tests
 
-Azure에서는 `.env` 파일을 업로드하지 않는다. App Service 환경변수에 값을 등록한다.
+```bash
+cd server
+../.venv/bin/python -m unittest discover .
+```
 
-- `ANTHROPIC_API_KEY` — 실제 API key
-- `ANTHROPIC_MODEL` — 사용할 Claude 모델명
+## Deployment Notes
 
-권장 시작 명령:
+For Azure App Service or a similar platform:
+
+- configure environment variables in the platform settings, not through `.env`
+- set `ANTHROPIC_API_KEY` only in the server environment
+- expose the FastAPI app with a command such as:
 
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-배포 후 확인:
+After deployment, verify:
 
-```text
-1. /health
-2. /judge
-3. Android RemoteJudge baseUrl
-4. local UNKNOWN일 때만 remote fallback 호출
-```
+1. `/health` returns `{"status":"ok"}`.
+2. `/judge` returns a valid verdict JSON.
+3. Android/Kotlin `RemoteJudge` points to the deployed base URL.
+4. The local pipeline calls remote fallback only for uncertain local cases.
 
-현재 Android 기본 remote URL:
+Current default remote URL in the Kotlin client:
 
 ```text
 https://adalert-judge.azurewebsites.net

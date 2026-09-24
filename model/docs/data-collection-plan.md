@@ -1,39 +1,77 @@
 # Data Collection Plan
 
-> Expansion plan for safe, reviewed URL risk samples.
+This document describes how the model dataset should grow while remaining safe
+to commit and honest about label provenance.
 
-`model/data/sample_urls.csv`는 commit 가능한 seed fixture다. 실제 성능 주장을 위한 production dataset이 아니라 feature, training, pipeline 검증용이다.
+`model/data/sample_urls.csv` is a prototype dataset for feature, training, and
+pipeline validation. It is not a production traffic dataset.
 
-## Current Seed Mix
+## Current Mix
 
-- `synthetic` — 통제된 feature/pipeline 테스트
-- `reference-derived` — GUADIAN 위험 카테고리 기반 재구성 샘플
-- `public-benign` — LOW 라벨용 공개 공식/정상 URL
+| Source | Role |
+| :-- | :-- |
+| `synthetic` | controlled patterns for feature and pipeline tests |
+| `reference-derived` | reconstructed or imported samples from GUADIAN-related references |
+| `public-benign` | public official/normal URLs for `LOW` examples |
 
-## Expansion Targets
+Current size:
 
 | Stage | Target | Purpose | Status |
 | :-- | :-- | :-- | :-- |
-| Seed | 120 samples, 30 per label | 첫 balanced training 실험 | Done |
-| Prototype | 400 samples, 100 per label | baseline과 trained model 비교 | Done |
-| Realistic | 1000+ reviewed samples | 일반화 성능과 edge case 평가 | In progress (648) |
+| Seed | 120 samples, 30 per label | first balanced experiment | done |
+| Prototype | 400 samples, 100 per label | compare baseline and trained model | done |
+| Realistic | 1000+ reviewed samples | evaluate generalization and edge cases | in progress: 648 samples |
 
-Prototype 단계(400개)는 `synthetic`/`reference-derived`/`public-benign` 조합만 썼다. Realistic 단계는 여기에 `guadian23-model-compare-main/gold/gold_251.jsonl` — 실제 광고 도착지 251건 중 248건(깨진 URL 2, 중복 1 제외)을 `reference-derived`로 병합해 시작했다(2026-09-24). 라벨 출처(3사 LLM 합의 vs 사람 검토)는 `reviewed_by`에 행 단위로 남긴다 — 251건 중 220건이 LLM 합의였다는 걸 숨기지 않는다.
+## Realistic Reference Rows
 
-실데이터를 섞은 결과 모델 accuracy가 97.50% → 72.66%로 떨어졌다. 이건 실패가 아니라 발견이다 — `docs/interview-brief.md`의 Model Evaluation 항목에 원인 셋(URL-only 설계의 정보 한계, global threshold의 단일 오탐 취약성, min-max scaling의 이상치 취약성)을 정리했다. HIGH 라벨은 실데이터에서 251건 중 1건뿐이라(실제 광고 트래픽은 노골적 피싱을 거의 사전 차단하기 때문) 여전히 synthetic 데이터에 의존한다.
+The realistic stage started by merging 248 usable rows from:
+
+```text
+reference/gold_251.jsonl
+```
+
+Original source:
+
+```text
+guadian23-model-compare-main/gold/gold_251.jsonl
+```
+
+Import notes:
+
+- 251 original rows
+- 248 merged rows
+- 2 malformed rows excluded
+- 1 duplicate excluded
+- row-level provenance preserved in `reviewed_by`
+
+The realistic rows are valuable because they exposed model weaknesses that were
+hidden by synthetic-only data. Accuracy dropped from 97.50% on synthetic-only
+evaluation to 72.66% after realistic rows were included. This is treated as a
+useful finding, not a failure. See [Project Report](../../docs/project-report.md)
+for the evaluation interpretation.
 
 ## Collection Rules
 
-- **Keep data sanitized** — 저장소에 안전하게 commit 가능해야 함
-- **No raw user data** — browsing history, production logs, private URLs 금지
-- **Redact identifiers** — token, session, phone, account 정보 제거
-- **Verify public feeds** — license와 안전성을 확인하고 raw active malicious URL commit 금지
-- **Add useful variety** — 중복보다 새로운 패턴과 label balance 우선
+- Keep data sanitized and safe to commit.
+- Do not commit raw browsing history, private URLs, or production logs.
+- Redact identifiers such as sessions, account IDs, phone numbers, and tokens.
+- Do not commit raw active-malicious URL feeds without license and safety review.
+- Prefer new patterns over near-duplicates.
+- Preserve whether labels came from human review, rule policy, or LLM consensus.
 
 ## Review Checklist
 
-- [ ] Label is valid — `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN`
-- [ ] Metadata is filled — `source`, `reason`, `category`
-- [ ] No duplicate pattern — 기존 row와 near-duplicate 아님
-- [ ] Query is sanitized — identifier 가능성 있으면 redacted
-- [ ] Adds value — 새 패턴 또는 label balance 개선
+- [ ] `label` is one of `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN`.
+- [ ] `source`, `reason`, and `category` are filled.
+- [ ] Query parameters are sanitized when they may contain identifiers.
+- [ ] The row adds a new pattern or improves label balance.
+- [ ] LLM-consensus rows are not presented as fully human-audited ground truth.
+
+## Expansion Priorities
+
+1. Add more human-reviewed real ad landing URLs.
+2. Increase `MEDIUM` examples with clear page-level rationale.
+3. Add benign tracking-heavy URLs to reduce false positives on normal ad flows.
+4. Add redirect/ad-network cases with explicit categories.
+5. Keep `HIGH` examples diverse, since realistic ad traffic may contain few
+   obvious high-risk samples.

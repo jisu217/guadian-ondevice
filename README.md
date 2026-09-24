@@ -1,118 +1,150 @@
 # GUADIAN On-device Judge
 
-> A hybrid risk judgment pipeline that evaluates ad-driven URLs locally first.
+Local-first URL risk judgment pipeline for ad landing URLs.
 
-본 저장소는 SKT FLY AI 부트캠프에서 개발한 GUADIAN 원본 프로젝트의 판정 구조를 기반으로, 온디바이스 우선 하이브리드 판정 파이프라인을 재설계한 연구용 프로젝트다.
+This repository refactors the GUADIAN risk-judgment concept into a lightweight
+local judgment engine. The current implementation is a Kotlin/JVM prototype
+intended for Android integration: it can classify URLs locally with rules,
+a compact feature-based model, local policy retrieval, and remote fallback for
+uncertain cases.
 
-## Overview
+## What This Project Does
 
-URL 위험 판정을 기기 내부에서 먼저 수행하고, 불확실한 경우에만 remote fallback을 사용한다.
+Given an ad landing URL, the pipeline returns an explainable `Verdict`:
 
-- **Local-first** — 캐시, 룰, 모델, RAG를 로컬에서 우선 실행
-- **Low latency** — 네트워크 없이 확정 가능한 케이스를 빠르게 반환
-- **Privacy-aware** — 원격으로 전송되는 URL 범위 최소화
-- **Explainable** — `reason`, `advice`, `source`를 포함한 Verdict 반환
-- **Fallback-aware** — 로컬 판정이 불확실할 때만 remote fallback 호출
+- `LOW`: allow navigation
+- `MEDIUM`: require user confirmation
+- `HIGH`: block or strongly warn
+- `UNKNOWN`: not enough local evidence; use fallback
 
-## Judgment Pipeline
+Each verdict includes `reason`, `advice`, `source`, `confidence`, and `type`
+so the decision can be shown to users or inspected during evaluation.
 
-```text
-URL Input
-  ↓
-Local Verdict Store
-  ↓ miss
-Rule Engine
-  ↓ uncertain
-On-device Model
-  ↓ low confidence / unknown
-Local RAG
-  ↓ still low confidence
-Remote Fallback
-  ↓
-Verdict
-```
+## Current Scope
 
-| 단계 | 구현 | 역할 |
-| :-- | :-- | :-- |
-| Local Verdict Store | `LocalRiskStore` | 도메인 단위 캐시 |
-| Rule Engine | `RuleBasedJudge`, `rules/` | 명시적 위험 신호 판정 |
-| On-device Model | `OnDeviceModelJudge` | nearest-centroid MVP 모델 추론 |
-| Local RAG | `LocalRagJudge` | 로컬 정책 근거 기반 판정 |
-| Remote Fallback | `RemoteJudge`, `server/` | FastAPI 기반 원격 보조 판정 |
+Implemented:
 
-`HybridJudge`가 전체 순서를 제어하고, `LocalReasoningJudge`가 `OnDeviceModelJudge -> LocalRagJudge` 순서의 로컬 추론 계층을 실행한다.
+- Kotlin local judgment pipeline
+- deterministic URL rules
+- feature-based nearest-centroid model
+- local RAG-style policy fallback
+- FastAPI remote fallback server
+- Python model training and evaluation workflow
+- sanitized dataset and reference-source documentation
+- Kotlin and Python unit tests
 
-## Current Status
+Not yet implemented:
 
-- [x] Local Verdict Store
-- [x] Rule Engine
-- [x] On-device Model (MVP)
-- [x] Local RAG (MVP)
-- [x] Remote Fallback Server
-- [x] HybridJudge pipeline test
-- [ ] Android UI/Shield 연결
-- [ ] Azure 실제 배포
-- [ ] TFLite/ONNX 전환
+- Android UI / Shield screen
+- device or emulator end-to-end validation
+- AccessibilityService, WebView, or browser URL capture integration
+- production deployment of the fallback server
+- TFLite/ONNX runtime conversion
 
-## Repository Structure
+## Judgment Flow
 
 ```text
-guadian-ondevice/
-  android/app/src/main/kotlin/com/guardian/ondevice/
-    judge/     HybridJudge, RuleBasedJudge, RemoteJudge, Verdict
-    rules/     APK, 사칭, 의심 URL 등 룰
-    store/     LocalRiskStore
-    model/     OnDeviceModelJudge, UrlFeatureExtractor
-    rag/       LocalRagJudge, LocalKnowledgeRetriever
-
-  server/      FastAPI remote fallback server
-  model/       training, evaluation, artifacts
-  docs/        architecture
-  reference/   GUADIAN 원본 프로젝트 기반 참조 자료
+URL
+  -> LocalRiskStore
+  -> RuleBasedJudge
+  -> OnDeviceModelJudge
+  -> LocalRagJudge
+  -> RemoteJudge
+  -> Verdict
 ```
 
-## Model
+The design is intentionally conservative. Clear local evidence is handled on
+device; uncertain cases are escalated to local policy retrieval or remote
+fallback instead of forcing a confident local decision.
+
+## Model Summary
+
+The model is not a fine-tuned LLM. It is a compact URL-feature classifier built
+for local inference:
+
+- deterministic URL feature extraction
+- nearest-centroid classifier
+- baseline comparison
+- 5-fold stratified cross-validation
+- label-level precision, recall, F1, and error analysis
+- calibrated per-label confidence thresholds
+
+Current evaluation with 648 sanitized samples:
+
+| Metric | Value |
+| :-- | --: |
+| Holdout accuracy | 72.66% |
+| Holdout macro F1 | 74.24% |
+| Baseline accuracy | 68.75% |
+| Cross-validation accuracy | 72.52% |
+| Cross-validation macro F1 | 74.51% |
+
+The evaluation intentionally includes realistic ad landing URLs. Accuracy drops
+compared with synthetic-only data, but the failure modes are now visible:
+`HIGH` is relatively strong, while `MEDIUM` and `UNKNOWN` remain difficult with
+URL-only signals.
+
+## Repository Layout
 
 ```text
-model/artifacts/url_risk_centroid_model.json
-  -> Kotlin nearest-centroid runtime in OnDeviceModelJudge
-  -> UrlFeatureExtractor feature vector
-  -> LOW / MEDIUM / HIGH / UNKNOWN Verdict
+android/app/src/main/kotlin/com/guardian/ondevice/
+  judge/      pipeline orchestration and remote fallback client
+  rules/      deterministic URL risk rules
+  model/      URL features and local model runtime
+  rag/        local policy-based fallback
+  store/      local verdict cache
+
+model/
+  data/       sanitized samples and official-domain allowlist
+  training/   feature extraction, baseline, training, evaluation scripts
+  artifacts/  trained model parameters
+  evaluation/ generated model reports
+
+server/       FastAPI remote fallback server
+docs/         architecture, project report, source/reference notes
+reference/    copied reference materials and external source records
 ```
 
-현재는 직접 만든 nearest-centroid 모델을 Kotlin 런타임에 연결한 MVP 단계다. 추후 assets JSON, TFLite, ONNX 중 하나로 교체할 수 있다.
+## Run Tests
 
-## Remote Fallback Server
+Kotlin pipeline tests:
+
+```bash
+./gradlew test
+```
+
+Python model tests:
+
+```bash
+python3 -m unittest discover model/training
+```
+
+Server tests:
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r server/requirements.txt
-cp server/.env.example server/.env
-cd server
-../.venv/bin/uvicorn main:app --reload
-```
-
-환경변수:
-
-- `ANTHROPIC_API_KEY` — Claude remote fallback 호출용 API key
-- `ANTHROPIC_MODEL` — Claude 모델명. 기본값은 `claude-3-5-haiku-latest`
-
-로컬 실행, 테스트, Azure 준비는 [`server/README.md`](./server/README.md)를 기준으로 한다.
-
-## Test
-
-```bash
-./gradlew test
 cd server
 ../.venv/bin/python -m unittest discover .
 ```
 
-`HybridJudgeTest`는 Local Store, Rule Engine, On-device Model, Local RAG, Remote Fallback이 정해진 순서로 연결되는지 검증한다.
+## Train The Model
 
-## Documentation
+```bash
+python3 model/training/train_model.py
+```
 
-- [`docs/architecture.md`](./docs/architecture.md) — 온디바이스 우선 하이브리드 판정 구조
-- [`docs/interview-brief.md`](./docs/interview-brief.md) — 면접용 프로젝트 설명 요약
-- [`model/README.md`](./model/README.md) — 모델 학습, 평가, 변환, 산출물 관리
-- [`server/README.md`](./server/README.md) — Remote Fallback 서버 실행, 환경변수, Azure 준비
-- [`reference/README.md`](./reference/README.md) — GUADIAN 원본 프로젝트 기반 참조 파일과 원본 경로 매핑
+This regenerates:
+
+- `model/artifacts/url_risk_centroid_model.json`
+- `model/evaluation/trained-model-report.md`
+
+## Key Documents
+
+- [Project Report](docs/project-report.md): complete technical narrative,
+  evaluation results, limitations, and next steps
+- [Architecture](docs/architecture.md): runtime pipeline and component roles
+- [Source And Reference Notes](docs/source-and-reference.md): what was copied,
+  derived, or only used as reference
+- [Model Workspace](model/README.md): dataset, training, and evaluation workflow
+- [Remote Fallback Server](server/README.md): FastAPI fallback setup

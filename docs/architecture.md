@@ -1,62 +1,70 @@
 # Architecture
 
-> Local-first hybrid judgment flow for URL risk decisions.
+This document describes the runtime judgment architecture. For project
+motivation, data provenance, and model evaluation, see
+[Project Report](project-report.md).
 
-GUADIAN On-device Judge는 로컬 판정을 먼저 수행하고, 불확실한 경우에만 remote fallback을 호출한다.
+## Design Goal
 
-## Flow
-
-```text
-URL Input
-  ↓
-Local Verdict Store
-  ↓ miss
-Rule Engine
-  ↓ uncertain
-On-device Model
-  ↓ low confidence / unknown
-Local RAG
-  ↓ still low confidence
-Remote Fallback
-  ↓
-Verdict
-```
-
-## Runtime Composition
+The pipeline minimizes network use by resolving clear URL-risk decisions locally.
+Remote fallback is reserved for cases where local evidence is insufficient.
 
 ```text
-HybridJudge
-  ├─ LocalRiskStore
-  ├─ RuleBasedJudge
-  ├─ LocalReasoningJudge
-  │   ├─ OnDeviceModelJudge
-  │   └─ LocalRagJudge
-  └─ RemoteJudge
+URL input
+  -> LocalRiskStore
+  -> RuleBasedJudge
+  -> LocalReasoningJudge
+       -> OnDeviceModelJudge
+       -> LocalRagJudge
+  -> RemoteJudge
+  -> Verdict
 ```
 
-## Layers
+## Components
 
-| Layer | Implementation | Role |
+| Component | Responsibility | Output behavior |
 | :-- | :-- | :-- |
-| Local Store | `LocalRiskStore` | 도메인 단위 verdict 캐시 |
-| Rule Engine | `RuleBasedJudge`, `rules/` | 명시적 위험 신호 판정 |
-| Local Reasoning | `LocalReasoningJudge` | 모델과 RAG 순서 제어 |
-| On-device Model | `OnDeviceModelJudge` | nearest-centroid MVP 모델 추론 |
-| Local RAG | `LocalRagJudge` | 로컬 정책 근거 기반 판정 |
-| Remote Fallback | `RemoteJudge`, `server/` | 로컬 불확실 케이스 보조 판정 |
+| `LocalRiskStore` | Reuse previous verdicts by normalized host | returns cached verdict or miss |
+| `RuleBasedJudge` | Apply deterministic rules for official domains, APK downloads, brand impersonation, and suspicious URL tokens | returns certain verdict when rule evidence is clear |
+| `OnDeviceModelJudge` | Run local URL-feature classifier | returns certain verdict when label distance passes calibrated threshold |
+| `LocalRagJudge` | Retrieve local policy snippets for known risk patterns | returns policy-backed verdict or `UNKNOWN` |
+| `RemoteJudge` | Call the FastAPI fallback server | returns remote verdict or safe `UNKNOWN` on failure |
+| `HybridJudge` | Orchestrate the sequence and cache reusable verdicts | exposes the unified `Judge` interface |
 
-## Verdict
+## Verdict Contract
 
-- `LOW` — 정상 이동 가능
-- `MEDIUM` — 사용자 재확인이 필요한 의심 흐름
-- `HIGH` — 차단 또는 강한 경고가 필요한 위험 흐름
-- `UNKNOWN` — 판정 근거 부족 또는 fallback 실패
+`Verdict` is the shared output type across all layers.
 
-## Fallback Rules
+| Field | Meaning |
+| :-- | :-- |
+| `risk` | `LOW`, `MEDIUM`, `HIGH`, or `UNKNOWN` |
+| `reason` | user-facing explanation |
+| `advice` | recommended action |
+| `source` | component that produced the verdict |
+| `confidence` | `CERTAIN` or `UNCERTAIN` |
+| `type` | risk category or model/runtime identifier |
+| `site` | optional host/site context |
 
-1. Cached verdict exists → `LocalRiskStore` verdict 반환
-2. Clear rule signal exists → `RuleBasedJudge` verdict 반환
-3. Rule is uncertain → `OnDeviceModelJudge` 실행
-4. Model is uncertain → `LocalRagJudge` 실행
-5. Local RAG is uncertain → `RemoteJudge` 실행
-6. Remote fails → `UNKNOWN` 반환
+## Fallback Policy
+
+1. If the local store has a reusable verdict, return it.
+2. If deterministic rules produce a certain verdict, return it.
+3. If rules are uncertain, run local model inference.
+4. If model confidence is insufficient, run local policy retrieval.
+5. If local policy is still uncertain, call remote fallback.
+6. If remote fallback fails or is not configured, return `UNKNOWN`.
+
+## Current Runtime Boundary
+
+The code is implemented as Kotlin/JVM under `android/app/src/...`, not as a
+complete Android application module. This allows the judgment engine to be
+tested locally before Android UI, URL capture, and device integration are added.
+
+## Engineering Trade-offs
+
+| Decision | Benefit | Cost |
+| :-- | :-- | :-- |
+| Rules before model | Fast, explainable handling for obvious cases | rule maintenance and false-positive management |
+| URL-only local model | privacy-preserving and cheap to run | cannot see page content, rendered forms, or JavaScript-only behavior |
+| Conservative confidence thresholds | reduces overconfident local mistakes | sends more ambiguous cases to fallback |
+| Remote fallback | handles cases local layers cannot resolve | requires server configuration and network access |
