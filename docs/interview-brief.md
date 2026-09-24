@@ -33,11 +33,11 @@ engine designed for Android integration.
 
 | Metric | Value |
 | :-- | --: |
-| Dataset size | 648 samples |
-| Holdout accuracy | 72.66% |
-| Holdout macro F1 | 74.24% |
-| Baseline accuracy | 68.75% |
-| Cross-validation macro F1 | 74.51% |
+| Dataset size | 668 samples |
+| Holdout accuracy | 72.73% |
+| Holdout macro F1 | 74.15% |
+| Baseline accuracy | 68.94% |
+| Cross-validation macro F1 | 74.95% |
 
 Main finding: `HIGH` risk is relatively strong, but `MEDIUM` and `UNKNOWN` are
 hard with URL-only features because many cases require page-level context.

@@ -69,15 +69,15 @@ for local inference:
 - label-level precision, recall, F1, and error analysis
 - calibrated per-label confidence thresholds
 
-Current evaluation with 648 sanitized samples:
+Current evaluation with 668 sanitized samples:
 
 | Metric | Value |
 | :-- | --: |
-| Holdout accuracy | 72.66% |
-| Holdout macro F1 | 74.24% |
-| Baseline accuracy | 68.75% |
-| Cross-validation accuracy | 72.52% |
-| Cross-validation macro F1 | 74.51% |
+| Holdout accuracy | 72.73% |
+| Holdout macro F1 | 74.15% |
+| Baseline accuracy | 68.94% |
+| Cross-validation accuracy | 73.16% |
+| Cross-validation macro F1 | 74.95% |
 
 The evaluation intentionally includes realistic ad landing URLs. Accuracy drops
 compared with synthetic-only data, but the failure modes are now visible:

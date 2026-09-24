@@ -20,7 +20,7 @@ Current size:
 | :-- | :-- | :-- | :-- |
 | Seed | 120 samples, 30 per label | first balanced experiment | done |
 | Prototype | 400 samples, 100 per label | compare baseline and trained model | done |
-| Realistic | 1000+ reviewed samples | evaluate generalization and edge cases | in progress: 648 samples |
+| Realistic | 1000+ reviewed samples | evaluate generalization and edge cases | in progress: 668 samples |
 
 ## Realistic Reference Rows
 
@@ -50,7 +50,7 @@ derived from GUADIAN policy categories and reference documents.
 
 The realistic rows are valuable because they exposed model weaknesses that were
 hidden by synthetic-only data. Accuracy dropped from 97.50% on synthetic-only
-evaluation to 72.66% after realistic rows were included. This is treated as a
+evaluation to 72.73% after realistic rows and targeted edge cases were included. This is treated as a
 useful finding, not a failure. See [Project Report](../../docs/project-report.md)
 for the evaluation interpretation.
 

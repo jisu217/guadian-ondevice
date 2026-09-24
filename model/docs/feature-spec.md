@@ -22,6 +22,7 @@ When a feature changes, update all of these together:
 - `model/training/url_features.py`
 - `android/app/src/main/kotlin/com/guardian/ondevice/model/UrlFeatureExtractor.kt`
 - `model/artifacts/url_risk_centroid_model.json`
+- `model/data/feature_parity_cases.csv`
 - relevant Python and Kotlin tests
 
 ## Parsing Rules

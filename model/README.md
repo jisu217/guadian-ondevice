@@ -13,6 +13,7 @@ fast local signal inside the broader `Rule -> Model -> RAG -> Remote` pipeline.
 | :-- | :-- |
 | `data/sample_urls.csv` | sanitized training/evaluation samples |
 | `data/official_domains.txt` | Tranco top 50000 + project seed/brand domains |
+| `data/feature_parity_cases.csv` | shared Python/Kotlin feature parity fixture |
 | `docs/dataset-schema.md` | CSV schema and labeling rules |
 | `docs/feature-spec.md` | Python/Kotlin feature contract |
 | `docs/model-development-history.md` | model experiment history and design decisions |
@@ -20,7 +21,7 @@ fast local signal inside the broader `Rule -> Model -> RAG -> Remote` pipeline.
 | `training/train_baseline.py` | rule-scoring baseline |
 | `training/train_model.py` | nearest-centroid training and evaluation |
 | `training/build_official_domains.py` | official-domain allowlist builder |
-| `artifacts/url_risk_centroid_model.json` | generated model parameters |
+| `artifacts/url_risk_centroid_model.json` | generated model parameters read by the Kotlin runtime |
 | `evaluation/trained-model-report.md` | generated model report |
 
 ## Dataset
@@ -29,9 +30,9 @@ Current committed dataset:
 
 | Source | Count |
 | :-- | --: |
-| Synthetic and policy-derived samples | 400 |
+| Synthetic and policy-derived samples | 420 |
 | Real ad landing references | 248 |
-| Total | 648 |
+| Total | 668 |
 
 The real ad landing rows are derived from `reference/gold_251.jsonl`. Row-level
 provenance is recorded through `source` and `reviewed_by`. See
@@ -43,11 +44,11 @@ Latest trained-model report:
 
 | Metric | Value |
 | :-- | --: |
-| Holdout accuracy | 72.66% |
-| Holdout macro F1 | 74.24% |
-| Baseline accuracy | 68.75% |
-| Cross-validation accuracy | 72.52% |
-| Cross-validation macro F1 | 74.51% |
+| Holdout accuracy | 72.73% |
+| Holdout macro F1 | 74.15% |
+| Baseline accuracy | 68.94% |
+| Cross-validation accuracy | 73.16% |
+| Cross-validation macro F1 | 74.95% |
 
 The realistic rows lowered headline accuracy but revealed useful failure modes:
 `HIGH` is strong, while `MEDIUM` and `UNKNOWN` need better page-context or
@@ -66,6 +67,10 @@ Train and regenerate report/artifact:
 ```bash
 python3 model/training/train_model.py
 ```
+
+The Kotlin runtime loads `artifacts/url_risk_centroid_model.json` as a classpath
+resource, so retraining updates the runtime model through the generated artifact
+instead of manual centroid copy/paste.
 
 Run the baseline report:
 

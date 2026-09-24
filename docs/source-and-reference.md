@@ -73,24 +73,24 @@ dataset.
 
 ## Committed Dataset Provenance
 
-The current `model/data/sample_urls.csv` contains 648 rows. Provenance is
+The current `model/data/sample_urls.csv` contains 668 rows. Provenance is
 recorded row-by-row through `source`, `reviewed_by`, and `created_at`.
 
 Current `source` distribution:
 
 | Source | Rows | Meaning |
 | :-- | --: | :-- |
-| `synthetic` | 288 | controlled samples generated for feature and pipeline validation |
+| `synthetic` | 301 | controlled samples generated for feature and pipeline validation |
 | `reference-derived` | 275 | samples derived from GUADIAN-related references or the sibling gold dataset |
-| `public-benign` | 85 | public official/normal URLs used as benign examples |
+| `public-benign` | 92 | public official/normal URLs used as benign examples |
 
 Current `reviewed_by` distribution:
 
 | Reviewed by | Rows | Meaning |
 | :-- | --: | :-- |
-| `manual-review` | 319 | manually assigned or manually checked during prototype dataset construction |
+| `manual-review` | 337 | manually assigned or manually checked during prototype dataset construction |
 | `llm-consensus-claude-gemini-openai` | 217 | label from sibling LLM-consensus gold data |
-| `rule-policy` | 81 | label assigned by deterministic project policy |
+| `rule-policy` | 83 | label assigned by deterministic project policy |
 | `human-review` | 31 | human-reviewed rows from the sibling gold data |
 
 Important split:
