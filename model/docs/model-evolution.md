@@ -132,8 +132,8 @@ Files involved:
 | Python/Kotlin feature parity fixture | Prevent training/runtime feature drift. | `feature_parity_cases.csv` is checked by both Python and Kotlin tests. |
 | Log-compressed length features | Prevent very long ad/tracking URLs from stretching feature scale. | Python training and Kotlin inference both apply the same compression before distance calculation. |
 | Redirect/ad-network features | Make tracking-heavy URLs explicit instead of hiding them inside raw length. | Python and Kotlin extract the same redirect/ad-click features and cover them with parity fixtures. |
-| `PageContentJudge` (page-level signals) | URL-only features still missed form, brand wording, and rendered-content evidence. | Renders the destination URL in a hidden on-device WebView after Rule/Model/RAG are uncertain, and flags an unverified login form or a page/host brand mismatch. Does not change the URL-feature model itself. |
-| `ShieldAccessibilityService` | `PageContentJudge` and the rest of the pipeline only ran against a URL entered by hand. | Detects an off-site link click (or one inside an iframe) across 6 browsers and runs the same `HybridJudge` pipeline automatically, behind a full-screen on-device overlay. Site detection infers the current page's site from its own top-level links (`inferCurrentSiteHost`), not a per-browser address-bar resource id -- the original GUADIAN's `WebNode.kt` documents the address bar disappearing from the tree when scrolled, which is why this approach was ported instead. Manually verified on emulator, including the negative case (same-site click produces no overlay). All `AccessibilityNodeInfo`-dependent logic -- including the tree-walking functions (`inferCurrentSiteHost`, `isInsideNestedDoc`) -- is additionally covered by Robolectric (`WebAccessibilityNodeRobolectricTest`), using its `Shadows.shadowOf(parent).addChild(child)` test API to build real parent/child node trees instead of the default no-op stub. Only the service's real-browser event wiring remains manual-only -- see docs/architecture.md. |
+| `PageContentJudge` (runtime layer) | URL-only features still missed form, brand wording, and rendered-content evidence. | Added after model/RAG fallback to inspect rendered page content on-device. It improves the runtime pipeline but does not change the URL-feature model itself. |
+| `ShieldAccessibilityService` (runtime trigger) | The pipeline previously depended on manual URL entry. | Added an Android accessibility trigger for browser link clicks. See `docs/architecture.md` for runtime details; it is tracked here only because it changes where the model is invoked. |
 
 ## 8. Next Experiments
 
@@ -141,7 +141,7 @@ Files involved:
 | :-- | :-- | :-- |
 | 1 | Add real redirect-chain resolution. | Current features can detect nested URLs, but they do not follow the actual HTTP chain. |
 | 2 | Revisit `MEDIUM` and `UNKNOWN` labeling policy. | Separate true uncertainty from suspicious-but-not-severe flows. |
-| 3 | Extend Shield beyond Chrome/Samsung Internet, and to ads rendered inside another app's own WebView. | Currently only two browsers are recognized; in-app ad content (not a browser tab) is not covered at all. |
+| 3 | Extend Shield beyond configured browser packages and toward in-app WebView/native ad surfaces. | Browser package support exists, but arbitrary app-rendered ad content is not covered. |
 
 ## 9. Data Collection Rules
 

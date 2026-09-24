@@ -14,13 +14,6 @@ from url_features import FEATURE_NAMES, feature_vector
 
 LABELS = ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
 
-# url_length/host_length/path_length/query_length are raw character counts with
-# a long tail — a handful of real tracking URLs (query strings with dozens of
-# UTM params) run into the thousands while most URLs are under 100 chars.
-# Min-max scaling those directly stretches the [0, 1] range so far that every
-# ordinary URL collapses into a tiny sliver of it, compressing the distances
-# nearest-centroid actually depends on. log1p keeps ordering but flattens the
-# tail, so one extreme URL no longer distorts the scale for everyone else.
 LENGTH_FEATURE_NAMES = {"url_length", "host_length", "path_length", "query_length"}
 LENGTH_FEATURE_INDICES = [FEATURE_NAMES.index(name) for name in LENGTH_FEATURE_NAMES]
 DEFAULT_DATASET = Path(__file__).parents[1] / "data" / "sample_urls.csv"
@@ -92,6 +85,7 @@ def stratified_kfold_split(rows: list[dict[str, str]], folds: int = DEFAULT_FOLD
 
 
 def _compress_length_features(vector: list[float]) -> list[float]:
+    """Flatten long-tail URL length features before min-max scaling."""
     return [
         math.log1p(value) if index in LENGTH_FEATURE_INDICES else value
         for index, value in enumerate(vector)

@@ -1,30 +1,24 @@
 # Model Workspace
 
-This directory contains the URL-risk model dataset, feature extraction code,
-training scripts, generated artifacts, and evaluation reports.
+This directory contains the local URL-risk model dataset, training scripts,
+generated artifact, and evaluation reports.
 
-The model is a compact URL-feature classifier for local inference. It is not a
-fine-tuned LLM and it does not fetch page content. Its role is to provide a
-fast local signal inside the broader `Rule -> Model -> RAG -> Page Content ->
-Remote` pipeline.
+The model is a compact URL-feature classifier used inside the broader Android
+pipeline. It does not fetch page content and it is not a fine-tuned LLM.
 
-## Directory Structure
+## Layout
 
 | Path | Purpose |
 | :-- | :-- |
 | `data/sample_urls.csv` | sanitized training/evaluation samples |
-| `data/official_domains.txt` | Tranco top 50000 + project seed/brand domains |
-| `data/feature_parity_cases.csv` | shared Python/Kotlin feature parity fixture |
-| `docs/dataset-schema.md` | CSV schema and labeling rules |
-| `docs/feature-spec.md` | Python/Kotlin feature contract |
-| `docs/model-evolution.md` | model experiment history and design decisions |
-| `training/url_features.py` | Python feature extractor |
-| `training/train_baseline.py` | rule-scoring baseline |
-| `training/train_model.py` | nearest-centroid training and evaluation |
-| `training/build_official_domains.py` | official-domain allowlist builder |
-| `artifacts/url_risk_centroid_model.json` | generated model parameters read by the Kotlin runtime |
-| `evaluation/trained-model-report.md` | generated model report |
-| `evaluation/model-card.md` | model role, metrics, intended use, and limitations |
+| `data/official_domains.txt` | shared official-domain allowlist |
+| `data/feature_parity_cases.csv` | Python/Kotlin feature parity fixture |
+| `docs/model-spec.md` | dataset schema and feature contract |
+| `docs/model-evolution.md` | model experiment history |
+| `training/` | feature extraction, baseline, training, and tests |
+| `artifacts/url_risk_centroid_model.json` | generated model parameters |
+| `evaluation/model-card.md` | intended use, metrics, and limits |
+| `evaluation/trained-model-report.md` | generated trained-model report |
 
 ## Dataset
 
@@ -36,13 +30,10 @@ Current committed dataset:
 | Real ad landing references | 248 |
 | Total | 668 |
 
-The real ad landing rows are derived from `reference/gold_251.jsonl`. Row-level
-provenance is recorded through `source` and `reviewed_by`. See
-[Provenance](../docs/provenance.md) for details.
+Row-level provenance is recorded through `source`, `reviewed_by`, and
+`created_at`. See [Provenance](../docs/provenance.md).
 
-## Current Results
-
-Latest trained-model report:
+## Results
 
 | Metric | Value |
 | :-- | --: |
@@ -52,65 +43,31 @@ Latest trained-model report:
 | Cross-validation accuracy | 81.19% |
 | Cross-validation macro F1 | 82.70% |
 
-The realistic rows lowered headline accuracy but revealed useful failure modes:
-`HIGH` is strong, while `MEDIUM` and `UNKNOWN` need better page-context or
-redirect/ad-network features.
+`HIGH` is strongest; `MEDIUM` and `UNKNOWN` remain context-sensitive.
 
 ## Commands
 
-Run model tests:
-
 ```bash
 python3 -m unittest discover model/training
-```
-
-Run model governance checks:
-
-```bash
-bash scripts/check-model-governance.sh
-```
-
-Train and regenerate report/artifact:
-
-```bash
 python3 model/training/train_model.py
-```
-
-The Kotlin runtime loads `artifacts/url_risk_centroid_model.json` as a classpath
-resource, so retraining updates the runtime model through the generated artifact
-instead of manual centroid copy/paste.
-
-Run the baseline report:
-
-```bash
 python3 model/training/train_baseline.py
-```
-
-Rebuild the official-domain allowlist:
-
-```bash
 python3 model/training/build_official_domains.py --tranco /path/to/top-1m.csv
 ```
 
-The Tranco input file is intentionally not committed.
+Retraining regenerates the JSON artifact and evaluation report. Kotlin loads
+the artifact directly as a classpath resource.
 
-## Data Handling Rules
+## Data Rules
 
 - Commit sanitized fixtures only.
 - Do not commit raw browsing logs, private URLs, or page bodies.
 - Redact identifiers such as session tokens and account IDs.
-- Keep large third-party raw datasets outside the repository.
-- Preserve label provenance when rows are generated from LLM consensus rather
-  than full human review.
+- Preserve whether a label came from policy, manual review, human review, or
+  LLM consensus.
 
-For allowed claims, forbidden claims, and dataset governance rules, see the
-"Data Governance" section of the [Model Card](evaluation/model-card.md).
+Related documents:
 
-## Related Documents
-
-- [Project Report](../docs/project-report.md)
+- [Model Specification](docs/model-spec.md)
 - [Model Evolution](docs/model-evolution.md)
-- [Feature Specification](docs/feature-spec.md)
-- [Dataset Schema](docs/dataset-schema.md)
 - [Model Card](evaluation/model-card.md)
 - [Trained Model Report](evaluation/trained-model-report.md)
