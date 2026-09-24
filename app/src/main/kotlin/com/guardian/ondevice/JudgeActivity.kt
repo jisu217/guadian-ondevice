@@ -8,46 +8,15 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.test.espresso.idling.CountingIdlingResource
+import com.guardian.ondevice.judge.DefaultJudgeGraph
 import com.guardian.ondevice.judge.HybridJudge
-import com.guardian.ondevice.judge.LocalReasoningJudge
-import com.guardian.ondevice.judge.RemoteJudge
-import com.guardian.ondevice.judge.RuleBasedJudge
 import com.guardian.ondevice.judge.Verdict
-import com.guardian.ondevice.model.OnDeviceModelJudge
-import com.guardian.ondevice.rag.LocalRagJudge
-import com.guardian.ondevice.rules.ApkRule
-import com.guardian.ondevice.rules.BrandImpersonationRule
-import com.guardian.ondevice.rules.SuspiciousUrlRule
-import com.guardian.ondevice.store.LocalRiskStore
-import com.guardian.ondevice.webview.PageContentJudge
 
 class JudgeActivity : AppCompatActivity() {
     private val mainThread = Handler(Looper.getMainLooper())
 
-    /*
-     * PageContentJudge and RemoteJudge may finish off the UI call path, so all
-     * verdict rendering goes through postToMainThread().
-     */
     private val hybridJudge: HybridJudge by lazy {
-        HybridJudge(
-            store = LocalRiskStore(),
-            ruleBasedJudge = RuleBasedJudge(
-                rules = listOf(
-                    ApkRule(),
-                    BrandImpersonationRule(),
-                    SuspiciousUrlRule(),
-                )
-            ),
-            localReasoningJudge = LocalReasoningJudge(
-                judges = listOf(
-                    OnDeviceModelJudge(),
-                    LocalRagJudge(),
-                    // Last: this is the only local layer that fetches and renders.
-                    PageContentJudge(context = this),
-                )
-            ),
-            remoteJudge = RemoteJudge(),
-        )
+        DefaultJudgeGraph.create(context = this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
