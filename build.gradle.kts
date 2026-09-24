@@ -15,6 +15,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -41,6 +42,9 @@ android {
         getByName("test") {
             kotlin.srcDirs("android/app/src/test/kotlin")
         }
+        getByName("androidTest") {
+            kotlin.srcDirs("android/app/src/androidTest/kotlin")
+        }
     }
 
     testOptions {
@@ -56,6 +60,11 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
 
+    // Lets JudgeActivity signal Espresso when a judge() call is in flight, so
+    // instrumented tests wait for the real callback (sync for rule/model/RAG,
+    // async for the remote executor) instead of guessing with Thread.sleep.
+    implementation("androidx.test.espresso:espresso-idling-resource:3.7.0")
+
     // Explicit versions instead of the kotlin("test") DSL shorthand: that
     // shorthand infers its version from an applied org.jetbrains.kotlin.*
     // plugin, and this project has none now that AGP 9's built-in Kotlin
@@ -63,4 +72,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test:2.0.21")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:2.0.21")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
 }
