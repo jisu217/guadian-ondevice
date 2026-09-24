@@ -9,20 +9,20 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowAccessibilityNodeInfo
 
-// Covers the single-node classification functions that need a real
-// AccessibilityNodeInfo (role/isLink/canBearUrl/targetHost/isNestedDoc): the
-// local `test` sourceSet's default stub android.jar no-ops these, but
+// Covers the node-reading logic that needs a real AccessibilityNodeInfo: the
+// local `test` sourceSet's default stub android.jar no-ops it, but
 // Robolectric gives AccessibilityNodeInfo (and the Bundle its extras are
 // stored in) a real, working implementation, so these run as ordinary JVM
-// tests instead of only being verifiable by hand on an emulator.
-//
-// Tree-walking functions (inferCurrentSiteHost, isInsideNestedDoc's ancestor
-// walk) are not covered here -- they need a real View-backed node hierarchy
-// with working parent/child navigation, which is a materially harder fake to
-// build correctly than a single node's own properties. Those remain covered
-// only by the manual emulator verification in docs/architecture.md.
+// tests instead of only being verifiable by hand on an emulator. This
+// includes the tree-walking functions (inferCurrentSiteHost,
+// isInsideNestedDoc's ancestor walk): ShadowAccessibilityNodeInfo.addChild
+// wires up real parent/child navigation between hand-built nodes (by
+// default -- i.e. without opting into Robolectric's "real ANI" mode -- so
+// getChild/getChildCount/getParent all read from that shadow-managed tree
+// instead of trying an IPC round-trip to a real window).
 @RunWith(RobolectricTestRunner::class)
 class WebAccessibilityNodeRobolectricTest {
 
@@ -106,6 +106,100 @@ class WebAccessibilityNodeRobolectricTest {
 
         node.recycle()
     }
+
+    @Test
+    fun isInsideNestedDocIsTrueWhenAnAncestorIsAnIframe() {
+        val webHost = webHostNode()
+        val iframe = chromeRoleNode(role = "iframe")
+        val link = chromeRoleNode(role = "link", targetUrl = "https://ad-network.test/click")
+        shadowOf(webHost).addChild(iframe)
+        shadowOf(iframe).addChild(link)
+
+        assertTrue(WebAccessibilityNode.isInsideNestedDoc(link))
+
+        webHost.recycle()
+        iframe.recycle()
+        link.recycle()
+    }
+
+    @Test
+    fun isInsideNestedDocIsFalseWhenTheAncestorChainReachesTheWebHostFirst() {
+        val webHost = webHostNode()
+        val paragraph = chromeRoleNode(role = "paragraph")
+        val link = chromeRoleNode(role = "link", targetUrl = "https://m.example.com/about")
+        shadowOf(webHost).addChild(paragraph)
+        shadowOf(paragraph).addChild(link)
+
+        assertFalse(WebAccessibilityNode.isInsideNestedDoc(link))
+
+        webHost.recycle()
+        paragraph.recycle()
+        link.recycle()
+    }
+
+    @Test
+    fun isInsideNestedDocIsFalseForAParentlessNode() {
+        val link = chromeRoleNode(role = "link")
+
+        assertFalse(WebAccessibilityNode.isInsideNestedDoc(link))
+
+        link.recycle()
+    }
+
+    @Test
+    fun inferCurrentSiteHostPicksTheMajorityLinkHost() {
+        val root = webHostNode()
+        val nav = chromeRoleNode(role = "rootWebArea")
+        shadowOf(root).addChild(nav)
+        val links = listOf(
+            linkNode("http://10.0.2.2:8123/"),
+            linkNode("http://10.0.2.2:8123/about"),
+            linkNode("http://10.0.2.2:8123/contact"),
+            linkNode("https://kakaopay-login-check.test/verify"),
+        )
+        links.forEach { shadowOf(nav).addChild(it) }
+
+        assertEquals("10.0.2.2", WebAccessibilityNode.inferCurrentSiteHost(root))
+
+        root.recycle()
+        nav.recycle()
+        links.forEach { it.recycle() }
+    }
+
+    @Test
+    fun inferCurrentSiteHostIgnoresLinksInsideAnIframe() {
+        val root = webHostNode()
+        shadowOf(root).addChild(linkNode("http://10.0.2.2:8123/"))
+        shadowOf(root).addChild(linkNode("http://10.0.2.2:8123/about"))
+        val iframe = chromeRoleNode(role = "iframe")
+        shadowOf(root).addChild(iframe)
+        // A single ad link inside the iframe would otherwise win a naive
+        // majority count if it were (wrongly) included.
+        shadowOf(iframe).addChild(linkNode("https://ad-network.test/click"))
+
+        assertEquals("10.0.2.2", WebAccessibilityNode.inferCurrentSiteHost(root))
+
+        root.recycle()
+        iframe.recycle()
+    }
+
+    @Test
+    fun inferCurrentSiteHostIsNullWithNoLinks() {
+        val root = webHostNode()
+
+        assertNull(WebAccessibilityNode.inferCurrentSiteHost(root))
+
+        root.recycle()
+    }
+
+    private fun webHostNode(): AccessibilityNodeInfo {
+        val node = AccessibilityNodeInfo.obtain()
+        node.className = "android.webkit.WebView"
+        return node
+    }
+
+    private fun linkNode(targetUrl: String): AccessibilityNodeInfo =
+        chromeRoleNode(role = "link", targetUrl = targetUrl)
 
     private fun chromeRoleNode(role: String, targetUrl: String? = null): AccessibilityNodeInfo {
         val node = AccessibilityNodeInfo.obtain()

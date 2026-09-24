@@ -116,18 +116,24 @@ Design notes:
   draw-over-other-apps window.
 
 **Test coverage.** `hostOf`/`siteOf`/`sameSite` are pure string logic and
-plain JUnit-tested. The single-node classification functions
-(`role`/`isLink`/`canBearUrl`/`targetHost`/`isNestedDoc`/`isWebHost`) run
-under **Robolectric** (`WebAccessibilityNodeRobolectricTest`), which gives
-`AccessibilityNodeInfo` a real, working implementation instead of the local
-`test` sourceSet's default no-op stub -- these run as ordinary fast JVM tests,
-not just on a real device. The tree-walking functions
-(`inferCurrentSiteHost`'s child traversal, `isInsideNestedDoc`'s ancestor
-walk) still are not automated: they need a real View-backed node hierarchy
-with working parent/child navigation, which Robolectric can only provide
-convincingly from an actual rendered View tree, not a hand-built fake one.
-These, and the service's end-to-end wiring, are covered by manual emulator
-verification only.
+plain JUnit-tested. Everything else that reads an `AccessibilityNodeInfo` --
+the single-node classification functions
+(`role`/`isLink`/`canBearUrl`/`targetHost`/`isNestedDoc`/`isWebHost`) *and*
+the tree-walking functions (`inferCurrentSiteHost`'s child traversal,
+`isInsideNestedDoc`'s ancestor walk) -- runs under **Robolectric**
+(`WebAccessibilityNodeRobolectricTest`), which gives `AccessibilityNodeInfo` a
+real, working implementation instead of the local `test` sourceSet's default
+no-op stub. Tree fixtures are built with
+`Shadows.shadowOf(parent).addChild(child)`, a Robolectric shadow-only test API
+that wires real parent/child navigation between hand-built nodes (so
+`getChildCount`/`getChild`/`getParent` all read from that in-memory tree
+instead of attempting an IPC round-trip to a real window) -- confirmed by
+reading Robolectric's own `ShadowAccessibilityNodeInfo` source rather than
+assumed. This covers the majority-vote site inference, the iframe-exclusion
+behavior, and the ancestor walk with fixtures a real emulator run can't
+control as precisely (e.g. "exactly one ad link inside an iframe, ignored").
+Only the service's end-to-end wiring (real `AccessibilityEvent` dispatch from
+a real browser, the overlay window itself) remains manual-verification-only.
 
 Manual verification performed (2026-09-24, emulator, real Chrome), rerun
 after replacing the address-bar approach with `inferCurrentSiteHost`: loaded
