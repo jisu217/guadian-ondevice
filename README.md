@@ -6,9 +6,9 @@ GUADIAN project.
 | Field | Current state |
 | :-- | :-- |
 | Status | Active research prototype |
-| Runtime | Kotlin/JVM local judgment engine |
+| Runtime | Real Android app (Gradle/AGP), verified on emulator |
 | Model | URL-feature nearest-centroid classifier |
-| Android scope | Intended for Android integration; not yet validated as a complete Android app |
+| Android scope | Minimal URL-input -> Verdict screen; Shield/browser interception not built |
 
 This repository takes the original GUADIAN ad-risk judgment concept developed
 during the SKT FLY AI bootcamp and reorganizes it as an on-device-oriented
@@ -41,12 +41,16 @@ Implemented:
 - Python model training and evaluation workflow
 - sanitized dataset and reference-source documentation
 - Kotlin and Python unit tests
+- real Android app build (AGP/Gradle), installed and run on emulator
+- minimal UI (`JudgeActivity`): URL input -> Verdict display
+- all 4 judgment layers (rule/model/RAG/remote) verified end-to-end on emulator,
+  including safe failure handling when the remote fallback is unreachable
 
 Not yet implemented:
 
-- Android UI / Shield screen
-- device or emulator end-to-end validation
-- AccessibilityService, WebView, or browser URL capture integration
+- Shield screen / AccessibilityService browser-ad-click interception
+- physical device testing (emulator only so far)
+- risk-based UI styling, app icon, result history
 - production deployment of the fallback server
 - TFLite/ONNX runtime conversion
 
@@ -96,12 +100,16 @@ URL-only signals.
 ## Repository Layout
 
 ```text
-android/app/src/main/kotlin/com/guardian/ondevice/
-  judge/      pipeline orchestration and remote fallback client
-  rules/      deterministic URL risk rules
-  model/      URL features and local model runtime
-  rag/        local policy-based fallback
-  store/      local verdict cache
+android/app/src/main/
+  AndroidManifest.xml
+  res/                                   layout, strings, theme
+  kotlin/com/guardian/ondevice/
+    JudgeActivity.kt   URL input -> Verdict display screen
+    judge/      pipeline orchestration and remote fallback client
+    rules/      deterministic URL risk rules
+    model/      URL features and local model runtime
+    rag/        local policy-based fallback
+    store/      local verdict cache
 
 model/
   data/       sanitized samples and official-domain allowlist
@@ -112,6 +120,15 @@ model/
 server/       FastAPI remote fallback server
 docs/         architecture, project report, source/reference notes
 reference/    copied reference materials and external source records
+```
+
+## Run The App
+
+Requires Android Studio / SDK with an emulator (or device) already set up:
+
+```bash
+./gradlew installDebug
+adb shell am start -n com.guardian.ondevice/.JudgeActivity
 ```
 
 ## Run Tests

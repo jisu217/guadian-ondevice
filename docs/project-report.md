@@ -8,11 +8,19 @@ performed locally before sending a URL to a remote fallback service.
 
 The current system is best described as:
 
-> a Kotlin/JVM local judgment engine designed for later Android integration,
-> with a Python model-training pipeline and a FastAPI remote fallback server.
+> a real Android application (AGP-based Gradle module) with a minimal judgment
+> UI, backed by a Python model-training pipeline and a FastAPI remote fallback
+> server.
 
-It is not yet a complete Android application. No Android UI, Shield screen,
-browser interception, or device-level end-to-end validation has been completed.
+As of 2026-09-24, the project builds as a real Android app (`assembleDebug`),
+installs and runs on an emulator, and all four judgment layers (rule engine,
+on-device model, local RAG, remote fallback) have been exercised end-to-end on
+that emulator with a single-screen UI (`JudgeActivity`: URL input -> Verdict
+display). The remote fallback path was verified to fail safely (`UNKNOWN`,
+no crash) since the fallback server is not deployed. Real-device testing and
+the original "Shield" browser-interception feature (AccessibilityService-based
+ad-click capture) have not been built — this is a URL-input demo screen, not
+the full family-safety app the original GUADIAN targeted.
 
 ## 2. Problem
 
@@ -183,8 +191,11 @@ label. The first and third remain active model-development tasks.
 
 ## 9. Current Limitations
 
-- No Android device or emulator end-to-end verification yet.
-- Current build is Kotlin/JVM, not a full Android Gradle app module.
+- Emulator-verified only; no physical Android device has been tested.
+- No Shield feature: the original GUADIAN's AccessibilityService-based ad-click
+  interception was not rebuilt. The app is a manual URL-input screen.
+- The UI is functionally minimal: no risk-based color coding, app icon, result
+  history, or input validation beyond an empty-string check.
 - URL-only model cannot inspect page body, forms, JavaScript rendering, or final
   redirected content.
 - Dataset is still small and partly synthetic.
@@ -195,12 +206,14 @@ label. The first and third remain active model-development tasks.
 
 Recommended order:
 
-1. Expand the Python/Kotlin feature parity fixture as new edge cases are added.
-2. Add real redirect-chain resolution for URLs that carry nested landing targets.
-3. Revisit `MEDIUM` versus `UNKNOWN` labeling policy.
-4. Add lightweight page-level signals for forms, offer wording, and rendered
+1. Test on a physical Android device once one is available.
+2. Rebuild the Shield/interception feature if the project scope grows beyond a
+   manual URL-input screen.
+3. Expand the Python/Kotlin feature parity fixture as new edge cases are added.
+4. Add real redirect-chain resolution for URLs that carry nested landing targets.
+5. Revisit `MEDIUM` versus `UNKNOWN` labeling policy.
+6. Add lightweight page-level signals for forms, offer wording, and rendered
    content.
-5. Build the Android integration layer after the local engine contract is stable.
 
 ## 11. How To Present This Project
 
