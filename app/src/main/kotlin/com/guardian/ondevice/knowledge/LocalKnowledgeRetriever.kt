@@ -1,4 +1,4 @@
-package com.guardian.ondevice.rag
+package com.guardian.ondevice.knowledge
 
 import com.guardian.ondevice.judge.Confidence
 import com.guardian.ondevice.judge.Risk
