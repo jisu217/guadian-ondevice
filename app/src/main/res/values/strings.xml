@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GUADIAN On-device</string>
+    <string name="url_hint">확인할 URL을 입력하세요</string>
+    <string name="judge_button">판정하기</string>
+
+    <string name="shield_service_description">브라우저에서 클릭한 링크 주소를 온디바이스에서 위험 판정하기 위해 사용합니다. 페이지 내용을 서버로 전송하지 않습니다.</string>
+    <string name="shield_dismiss_button">닫기</string>
+    <string name="shield_pending">판정 중...</string>
+    <string name="shield_risk_label">위험도</string>
+    <string name="shield_reason_label">이유</string>
+    <string name="shield_advice_label">권고</string>
+</resources>

@@ -1,70 +1,93 @@
 # Architecture
 
-This document describes the runtime judgment architecture. For project
-motivation, data provenance, and model evaluation, see
-[Project Report](project-report.md).
+This document describes the runtime structure. For project motivation,
+evaluation, and limitations, see [Technical Report](technical-report.md).
 
-## Design Goal
+## Goal
 
-The pipeline minimizes network use by resolving clear URL-risk decisions locally.
-Remote fallback is reserved for cases where local evidence is insufficient.
+Resolve clear URL-risk cases locally and reserve remote fallback for cases where
+local evidence is insufficient. Local layers should stay conservative: uncertain
+results remain `UNKNOWN` rather than becoming overconfident verdicts.
+
+## Pipeline
 
 ```text
-URL input
+URL
   -> LocalRiskStore
   -> RuleBasedJudge
   -> LocalReasoningJudge
        -> OnDeviceModelJudge
        -> LocalRagJudge
+       -> PageContentJudge
   -> RemoteJudge
   -> Verdict
 ```
 
-## Components
+| Component | Role |
+| :-- | :-- |
+| `LocalRiskStore` | reuse previous host-level verdicts |
+| `RuleBasedJudge` | handle clear URL rule cases |
+| `OnDeviceModelJudge` | run the local URL-feature model |
+| `LocalRagJudge` | apply local policy snippets |
+| `PageContentJudge` | inspect rendered page signals in a hidden WebView |
+| `RemoteJudge` | call the FastAPI fallback server |
+| `HybridJudge` | orchestrate layers and return one `Verdict` |
 
-| Component | Responsibility | Output behavior |
-| :-- | :-- | :-- |
-| `LocalRiskStore` | Reuse previous verdicts by normalized host | returns cached verdict or miss |
-| `RuleBasedJudge` | Apply deterministic rules for official domains, APK downloads, brand impersonation, and suspicious URL tokens | returns certain verdict when rule evidence is clear |
-| `OnDeviceModelJudge` | Run local URL-feature classifier | returns certain verdict when label distance passes calibrated threshold |
-| `LocalRagJudge` | Retrieve local policy snippets for known risk patterns | returns policy-backed verdict or `UNKNOWN` |
-| `RemoteJudge` | Call the FastAPI fallback server | returns remote verdict or safe `UNKNOWN` on failure |
-| `HybridJudge` | Orchestrate the sequence and cache reusable verdicts | exposes the unified `Judge` interface |
+## Verdict
 
-## Verdict Contract
-
-`Verdict` is the shared output type across all layers.
+All layers return the same contract:
 
 | Field | Meaning |
 | :-- | :-- |
 | `risk` | `LOW`, `MEDIUM`, `HIGH`, or `UNKNOWN` |
-| `reason` | user-facing explanation |
+| `reason` | explanation |
 | `advice` | recommended action |
-| `source` | component that produced the verdict |
+| `source` | producing component |
 | `confidence` | `CERTAIN` or `UNCERTAIN` |
-| `type` | risk category or model/runtime identifier |
+| `type` | risk category or runtime identifier |
 | `site` | optional host/site context |
 
-## Fallback Policy
+## Entry Points
 
-1. If the local store has a reusable verdict, return it.
-2. If deterministic rules produce a certain verdict, return it.
-3. If rules are uncertain, run local model inference.
-4. If model confidence is insufficient, run local policy retrieval.
-5. If local policy is still uncertain, call remote fallback.
-6. If remote fallback fails or is not configured, return `UNKNOWN`.
+| Entry point | Flow |
+| :-- | :-- |
+| `JudgeActivity` | user enters a URL manually |
+| `ShieldAccessibilityService` | accessibility event detects a supported-browser link click |
 
-## Current Runtime Boundary
+Shield treats a click as a candidate when it leaves the inferred current site or
+occurs inside an iframe. The current site is inferred from page links rather
+than a browser address-bar resource id.
 
-The code is implemented as Kotlin/JVM under `android/app/src/...`, not as a
-complete Android application module. This allows the judgment engine to be
-tested locally before Android UI, URL capture, and device integration are added.
+Configured browser packages:
 
-## Engineering Trade-offs
+```text
+app/src/main/res/xml/shield_accessibility_service_config.xml
+```
+
+## Runtime Boundary
+
+Implemented:
+
+- Android app module under `app/`
+- manual verdict screen
+- Shield accessibility service and overlay
+- local rule/model/RAG/page-content/remote pipeline
+- generated model artifact loaded by Kotlin runtime
+- local unit tests, Robolectric tests, and CI
+
+Not complete:
+
+- physical-device validation
+- production UI, onboarding, and release packaging
+- arbitrary in-app WebView or native ad-surface coverage
+- production fallback-server deployment and authentication
+
+## Trade-offs
 
 | Decision | Benefit | Cost |
 | :-- | :-- | :-- |
-| Rules before model | Fast, explainable handling for obvious cases | rule maintenance and false-positive management |
-| URL-only local model | privacy-preserving and cheap to run | cannot see page content, rendered forms, or JavaScript-only behavior |
-| Conservative confidence thresholds | reduces overconfident local mistakes | sends more ambiguous cases to fallback |
-| Remote fallback | handles cases local layers cannot resolve | requires server configuration and network access |
+| rules before model | fast and explainable | rule maintenance |
+| URL-feature model | cheap local inference | cannot see rendered behavior |
+| conservative thresholds | fewer overconfident mistakes | more fallback traffic |
+| page content late | catches forms and brand text | page load cost |
+| accessibility Shield | protects browser clicks | permission and surface limits |

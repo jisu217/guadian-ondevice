@@ -10,7 +10,7 @@ url_features.py (training) and UrlFeatureExtractor.kt (runtime, via the
 `resources.srcDir("model/data")` entry in build.gradle.kts) read directly.
 
 BRAND_DOMAINS and SEED_DOMAINS below can't be imported from the Kotlin
-rule engine (android/app/.../rules/OfficialDomains.kt) or the pre-Tranco
+rule engine (app/.../rules/OfficialDomains.kt) or the pre-Tranco
 feature extractor, so they're kept here by hand — same pattern as the
 model centroids in OnDeviceModelJudge.kt.
 """
@@ -23,7 +23,7 @@ from pathlib import Path
 DEFAULT_OUTPUT = Path(__file__).parents[1] / "data" / "official_domains.txt"
 DEFAULT_RANK_LIMIT = 50_000
 
-# Mirrors android/app/src/main/kotlin/com/guardian/ondevice/rules/OfficialDomains.kt
+# Mirrors app/src/main/kotlin/com/guardian/ondevice/rules/OfficialDomains.kt
 BRAND_DOMAINS = {
     "coupang.com", "coupangeats.com",
     "naver.com", "navercorp.com", "pay.naver.com",

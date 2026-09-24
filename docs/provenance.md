@@ -6,7 +6,7 @@ copied from earlier GUADIAN work.
 
 ## Summary
 
-The current implementation in `android/`, `model/`, and `server/` is a new
+The current implementation in `app/`, `model/`, and `server/` is a new
 local-first prototype. It was developed while consulting earlier GUADIAN code,
 GUADIAN risk-policy documents, a sibling model-comparison dataset, and a public
 domain popularity list.
@@ -54,7 +54,7 @@ The original GUADIAN policy documents are preserved under `reference/docs/`.
 | `reference/docs/history.md` | `SKT-FLY-AI-TEAM-6/GUADIAN/docs/history.md` | original project context |
 
 These documents were used as policy background. Current runtime behavior is
-implemented in `android/app/src/main/kotlin/com/guardian/ondevice/`.
+implemented in `app/src/main/kotlin/com/guardian/ondevice/`.
 
 ## Sibling Dataset Reference
 
@@ -154,6 +154,7 @@ Kotlin runtime tests read it as a shared resource.
 
 | Area | New implementation in this repository | Reference influence |
 | :-- | :-- | :-- |
+| Android runtime | `app/src/main/kotlin/com/guardian/ondevice/*` | original app and judge concepts |
 | Local pipeline | `HybridJudge`, `LocalReasoningJudge` | original judge/fallback concept |
 | Rules | `rules/*` | GUADIAN risk policy docs |
 | Model | `model/training/*`, `OnDeviceModelJudge` | new implementation |
