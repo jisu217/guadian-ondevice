@@ -88,7 +88,7 @@ class HybridJudgeTest {
         assertEquals(Risk.MEDIUM, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)
         assertEquals("local-knowledge", verdict.source)
-        assertEquals("personal-info", verdict.type)
+        assertEquals("personal_info", verdict.type)
         assertEquals(0, remoteJudge.calls)
     }
 

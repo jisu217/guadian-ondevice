@@ -20,7 +20,7 @@ class LocalKnowledgeRetrieverTest {
 
         val snippets = retriever.retrieve("naver login official domain mismatch")
 
-        assertEquals("brand-impersonation", snippets.first().id)
+        assertEquals("brand_impersonation", snippets.first().id)
     }
 
     @Test

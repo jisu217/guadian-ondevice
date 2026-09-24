@@ -53,6 +53,11 @@ class LocalKnowledgeRetriever(
         private const val KEYWORD_WEIGHT = 3
         private const val MIN_TOKEN_LENGTH = 2
 
+        // Snippet ids double as Verdict.type when this snippet wins, so they
+        // use the same snake_case taxonomy as the rule-based judges'
+        // types (e.g. BrandImpersonationRule's "brand_impersonation") --
+        // two of these previously used kebab-case and didn't line up with
+        // the rest of the field's values.
         fun defaultSnippets(): List<KnowledgeSnippet> {
             return listOf(
                 KnowledgeSnippet(
@@ -65,7 +70,7 @@ class LocalKnowledgeRetriever(
                     confidence = Confidence.CERTAIN,
                 ),
                 KnowledgeSnippet(
-                    id = "brand-impersonation",
+                    id = "brand_impersonation",
                     title = "Brand impersonation",
                     text = "브랜드를 자처하지만 공식 도메인과 일치하지 않는 경우 사칭 가능성이 높은 위험 신호로 본다.",
                     keywords = setOf("brand", "impersonation", "official domain", "login", "사칭", "공식", "도메인"),
@@ -74,7 +79,7 @@ class LocalKnowledgeRetriever(
                     confidence = Confidence.CERTAIN,
                 ),
                 KnowledgeSnippet(
-                    id = "personal-info",
+                    id = "personal_info",
                     title = "Personal information request",
                     text = "이름, 전화번호, 주민번호, 카드번호 등 민감정보 입력을 요구하는 흐름은 사용자 재확인이 필요한 신호로 본다.",
                     keywords = setOf("personal info", "phone", "card", "password", "개인정보", "전화번호", "카드", "비밀번호"),

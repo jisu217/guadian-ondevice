@@ -13,7 +13,10 @@ class ApkRule : RiskRule {
             reason = "The URL appears to download an APK file outside a trusted app store.",
             advice = "Block the navigation before installation.",
             source = "rule:apk",
-            type = "apk_download",
+            // Matches server/judge_service.py's local precheck and system
+            // prompt vocabulary for the same category -- Verdict.type is
+            // meant to be one shared taxonomy across local and remote.
+            type = "apk",
         )
     }
 }
