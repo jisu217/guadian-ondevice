@@ -199,8 +199,6 @@ def _has_nested_url(query_pairs: list[tuple[str, str]], raw_query: str) -> float
         lowered_value = value.lower()
         if lowered_key in NESTED_URL_PARAM_KEYS and _looks_like_url(lowered_value):
             return 1.0
-        if _looks_like_url(lowered_value):
-            return 1.0
 
     decoded_query = unquote(raw_query).lower()
     return float(_looks_like_url(decoded_query))
