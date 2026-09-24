@@ -77,13 +77,7 @@ class NearestCentroidUrlModel(
         return ModelPrediction(label = nearest.key, distance = nearest.value)
     }
 
-    // Mirrors _compress_length_features in model/training/train_model.py: a
-    // few very long real tracking URLs stretch url_length/host_length/
-    // path_length/query_length's min-max range so far that ordinary URLs
-    // collapse into a tiny sliver of it. log1p keeps ordering but flattens
-    // the tail before scaling, so one extreme URL can't distort distances
-    // for everyone else. Must stay in sync with the Python side — a model
-    // trained with this compression needs it applied at inference too.
+    // Must mirror train_model.py: compress long-tail URL length features before scaling.
     private fun compressLengthFeatures(vector: List<Double>): List<Double> {
         return vector.mapIndexed { index, value ->
             if (index in LENGTH_FEATURE_INDICES) ln(1.0 + value) else value

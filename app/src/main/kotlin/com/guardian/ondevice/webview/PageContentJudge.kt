@@ -16,13 +16,12 @@ import com.guardian.ondevice.rules.OfficialDomains
 import org.json.JSONObject
 import org.json.JSONTokener
 
-// Inspects a page's rendered DOM in a hidden WebView -- the one signal
-// RuleBasedJudge/OnDeviceModelJudge/LocalRagJudge can never see, since those
-// only ever look at the URL string itself. Runs last in the local reasoning
-// chain (see JudgeActivity) because it is the only layer that pays the cost
-// of actually fetching and rendering the destination page. Inspection happens
-// entirely on-device; nothing is sent to this project's own remote judge
-// server.
+/**
+ * On-device rendered-page inspection for cases URL-only layers cannot resolve.
+ *
+ * Runs late in the local chain because it pays the cost of loading a WebView.
+ * It sends no page content to this project's remote fallback server.
+ */
 class PageContentJudge(
     private val context: Context,
     private val officialDomains: OfficialDomains = OfficialDomains(),
@@ -78,9 +77,7 @@ class PageContentJudge(
             }
         }
 
-        // Handler token = webView, so a normal finish can cancel this via
-        // removeCallbacksAndMessages(webView) instead of tracking a separate
-        // Runnable reference.
+        // Use the WebView as the Handler token so finishOnce can cancel timeout.
         mainThread.postAtTime(
             { finishOnce(uncertain("Page content inspection timed out.")) },
             webView,
@@ -152,7 +149,6 @@ class PageContentJudge(
     private companion object {
         const val DEFAULT_TIMEOUT_MS = 8_000L
 
-        // A single expression so evaluateJavascript can run it directly.
         // Returns only what classify() needs, not the full DOM.
         const val INSPECTION_SCRIPT = """
             (function() {

@@ -24,12 +24,10 @@ import com.guardian.ondevice.webview.PageContentJudge
 class JudgeActivity : AppCompatActivity() {
     private val mainThread = Handler(Looper.getMainLooper())
 
-    // HybridJudge runs Local Store -> Rule Engine -> On-device Model -> Local
-    // RAG -> Page Content entirely asynchronously; PageContentJudge posts its
-    // WebView work back through the main-thread handler, and RemoteJudge hops
-    // onto its own executor. postToMainThread() below covers both hops so a
-    // UI update never happens off the main thread regardless of which layer
-    // resolved the verdict.
+    /*
+     * PageContentJudge and RemoteJudge may finish off the UI call path, so all
+     * verdict rendering goes through postToMainThread().
+     */
     private val hybridJudge: HybridJudge by lazy {
         HybridJudge(
             store = LocalRiskStore(),
@@ -44,10 +42,7 @@ class JudgeActivity : AppCompatActivity() {
                 judges = listOf(
                     OnDeviceModelJudge(),
                     LocalRagJudge(),
-                    // Last because it is the only layer that actually fetches
-                    // and renders the destination page; the cheaper URL-only
-                    // layers above run first so this only pays its cost when
-                    // they were all uncertain.
+                    // Last: this is the only local layer that fetches and renders.
                     PageContentJudge(context = this),
                 )
             ),
@@ -96,10 +91,7 @@ class JudgeActivity : AppCompatActivity() {
     }
 
     companion object {
-        // Registered/unregistered by JudgeActivityTest around each test so
-        // Espresso blocks until a judge() call's callback actually fires,
-        // instead of a test guessing a sleep duration that's flaky for the
-        // synchronous local layers and too short for the remote executor hop.
+        // Registered by JudgeActivityTest so Espresso waits for judge callbacks.
         @JvmField
         val idlingResource = CountingIdlingResource("JudgeActivityIdlingResource")
     }

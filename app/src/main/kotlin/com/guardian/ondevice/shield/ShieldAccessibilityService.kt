@@ -25,23 +25,14 @@ import com.guardian.ondevice.rules.SuspiciousUrlRule
 import com.guardian.ondevice.store.LocalRiskStore
 import com.guardian.ondevice.webview.PageContentJudge
 
-// Watches known browser apps' accessibility trees for a link click that
-// leaves the current site (or one inside an iframe, a strong ad-slot signal
-// on its own), then judges the destination with the same HybridJudge
-// pipeline JudgeActivity uses (rule/model/RAG/page-content/remote), behind a
-// full-screen overlay while the verdict is pending. This is the system-wide
-// counterpart to JudgeActivity's manual URL entry: same judgment pipeline,
-// different trigger.
-//
-// The user must enable this service by hand under Settings > Accessibility --
-// Android has no runtime-permission dialog for accessibility access.
-//
-// "Ad click" here is approximated as "link click leaving the current site, or
-// inside an iframe" (see WebAccessibilityNode); it is not restricted to
-// actual ad networks, since that would need an ad-host denylist this project
-// does not maintain. HybridJudge still resolves an ordinary outbound link as
-// LOW risk quickly, so the cost of the broader heuristic is a few extra local
-// judge calls, not wrong verdicts.
+/**
+ * System-wide browser-click trigger for the same HybridJudge pipeline used by
+ * JudgeActivity.
+ *
+ * The user must enable this service under Android accessibility settings. A
+ * candidate click is an off-site link or an iframe link; it is not a confirmed
+ * ad-slot classification.
+ */
 class ShieldAccessibilityService : AccessibilityService() {
 
     private val mainThread = Handler(Looper.getMainLooper())
@@ -70,13 +61,8 @@ class ShieldAccessibilityService : AccessibilityService() {
         if (!WebAccessibilityNode.isLink(node) || !WebAccessibilityNode.canBearUrl(node)) return
         val targetHost = WebAccessibilityNode.targetHost(node) ?: return
 
-        // A click inside an iframe is a strong ad-slot signal on its own,
-        // even if the destination happens to resolve to the page's own site
-        // (an ad iframe pointing at a same-site redirector). Otherwise, fall
-        // back to "does this leave the current site" -- inferred from the
-        // page's own top-level links (see WebAccessibilityNode.
-        // inferCurrentSiteHost), not the browser's address bar, so this works
-        // the same way across any Chromium- or Gecko-based browser.
+        // Iframe clicks are candidates by themselves; other clicks must leave
+        // the site inferred from the page's own top-level links.
         if (!WebAccessibilityNode.isInsideNestedDoc(node)) {
             val root = rootInActiveWindow ?: return
             val pageHost = WebAccessibilityNode.inferCurrentSiteHost(root) ?: return
@@ -119,9 +105,7 @@ class ShieldAccessibilityService : AccessibilityService() {
         return LayoutInflater.from(this).inflate(R.layout.shield_overlay, null)
     }
 
-    // TYPE_ACCESSIBILITY_OVERLAY is available to a bound AccessibilityService
-    // without the separate SYSTEM_ALERT_WINDOW permission a regular Activity
-    // would need for a draw-over-other-apps window.
+    // Bound accessibility services can use this without SYSTEM_ALERT_WINDOW.
     private fun addOverlayToWindow(view: View) {
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,

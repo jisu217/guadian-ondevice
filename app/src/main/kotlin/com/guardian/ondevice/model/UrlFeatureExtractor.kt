@@ -54,12 +54,7 @@ class UrlFeatureExtractor {
         return if ("://" in value) value else "https://$value"
     }
 
-    // Deliberately avoids java.net.URI: its single-String constructor returns a
-    // null host for internationalized domains (e.g. "https://알뜰상조.com/") instead
-    // of throwing, which would silently zero out every host-based feature. This
-    // mirrors Python's urllib.parse.urlparse (used for training in
-    // url_features.py) closely enough that the same URL yields the same
-    // features on both sides — the property that actually matters here.
+    // Custom parsing keeps IDN hosts aligned with Python's training extractor.
     private fun parse(normalized: String): ParsedUrl {
         val afterScheme = normalized.substringAfter("://", normalized)
         val authority = afterScheme.substringBefore("/").substringBefore("?").substringBefore("#")
@@ -241,11 +236,7 @@ class UrlFeatureExtractor {
         )
         private val BASE64_LIKE_PATTERN = Regex("^[A-Za-z0-9_-]{32,}$")
 
-        // Loaded once from model/data/official_domains.txt (Tranco top 50k +
-        // known brand domains), bundled as a classpath resource via the
-        // `resources.srcDir("model/data")` entry in build.gradle.kts. Python's
-        // url_features.py reads the same file directly, so there is exactly
-        // one allowlist instead of two hand-synced copies.
+        // Shared resource also read by Python training.
         private val OFFICIAL_DOMAINS: Set<String> by lazy { loadOfficialDomains() }
 
         private fun loadOfficialDomains(): Set<String> {
