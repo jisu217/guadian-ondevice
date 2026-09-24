@@ -294,7 +294,7 @@ def render_report(
         f"- Threshold calibration uses {DEFAULT_FOLDS}-fold stratified cross-validation on the training split.",
         "- Each label gets its own certain-distance threshold instead of one shared scalar,",
         "  so one close call for label A can no longer collapse label B's threshold too.",
-        "- Thresholds are intentionally conservative: uncertain cases should fall through to local RAG or remote fallback.",
+        "- Thresholds are intentionally conservative: uncertain cases should fall through to local knowledge matching or remote fallback.",
         "- url_length/host_length/path_length/query_length are log1p-compressed before min-max",
         "  scaling, so a few very long real tracking URLs no longer stretch the scale for everyone.",
         "",
