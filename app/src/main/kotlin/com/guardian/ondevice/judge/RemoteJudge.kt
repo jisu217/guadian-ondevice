@@ -29,11 +29,11 @@ class RemoteJudge(
                 readTimeout = readTimeoutMs
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json")
-                setRequestProperty("Accept", "application/x-ndjson, application/json")
+                setRequestProperty("Accept", "application/json")
             }
 
             conn.outputStream.use { output ->
-                val payload = JSONObject().put("url", url).put("stream", true).toString()
+                val payload = JSONObject().put("url", url).toString()
                 output.write(payload.toByteArray())
             }
 
@@ -48,18 +48,8 @@ class RemoteJudge(
         }
     }
 
-    // The server can stream several NDJSON lines (early guesses marked
-    // "early": true, then a final line); only the final, non-early line
-    // matters here. Falls back to parsing the whole body as one JSON object
-    // for a non-streamed response.
     private fun parseVerdict(body: String): Verdict {
-        val json = body.lineSequence()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .mapNotNull { line -> runCatching { JSONObject(line) }.getOrNull() }
-            .filterNot { it.optBoolean("early", false) }
-            .lastOrNull()
-            ?: runCatching { JSONObject(body.trim()) }.getOrNull()
+        val json = runCatching { JSONObject(body.trim()) }.getOrNull()
             ?: return unknown("Remote judge returned an unparseable response.")
 
         val risk = when (json.optString("risk")) {

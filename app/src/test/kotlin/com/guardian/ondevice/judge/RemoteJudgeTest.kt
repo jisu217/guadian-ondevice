@@ -20,13 +20,10 @@ class RemoteJudgeTest {
     }
 
     @Test
-    fun `parses final ndjson verdict`() {
+    fun `parses a verdict`() {
         startServer(
             status = 200,
-            body = """
-                {"early":true,"risk":"LOW","site":"example.com"}
-                {"risk":"HIGH","reason":"Brand impersonation detected.","advice":"Block.","site":"fake.example","type":"brand_impersonation"}
-            """.trimIndent()
+            body = """{"risk":"HIGH","reason":"Brand impersonation detected.","advice":"Block.","site":"fake.example","type":"brand_impersonation"}"""
         )
         val judge = RemoteJudge(
             baseUrl = serverUrl(),
@@ -75,7 +72,7 @@ class RemoteJudgeTest {
     }
 
     private fun HttpExchange.respond(status: Int, body: String) {
-        responseHeaders.add("Content-Type", "application/x-ndjson")
+        responseHeaders.add("Content-Type", "application/json")
         val bytes = body.toByteArray()
         sendResponseHeaders(status, bytes.size.toLong())
         responseBody.use { it.write(bytes) }
