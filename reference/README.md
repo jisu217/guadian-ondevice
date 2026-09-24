@@ -20,7 +20,7 @@ For the complete source/provenance explanation, see
 
 ## Usage Rule
 
-Use `reference/` to explain where ideas and data came from. Use `android/`,
+Use `reference/` to explain where ideas and data came from. Use `app/`,
 `model/`, and `server/` to inspect the current implementation.
 
 Some links inside `reference/docs/` still point to paths from the original
