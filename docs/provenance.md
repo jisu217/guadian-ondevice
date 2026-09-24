@@ -24,7 +24,7 @@ compiled or imported by the current Kotlin/Python runtime.
 | `reference/judge_agent.py` | `SKT-FLY-AI-TEAM-6/GUADIAN/judge_agent.py` | original server-side judge agent | informed the fallback server boundary |
 
 The current implementation is not a direct port. The local-first sequence,
-Kotlin model runtime, Python training workflow, local RAG fallback, and FastAPI
+Kotlin model runtime, Python training workflow, local knowledge fallback, and FastAPI
 server were implemented in this repository.
 
 ### Consulted But Not Copied
