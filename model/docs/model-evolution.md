@@ -137,10 +137,10 @@ Files involved:
 
 ## 8. Next Experiments
 
-| Priority | Experiment | Reason |
-| :-- | :-- | :-- |
-| 1 | Add real redirect-chain resolution. | Current features can detect nested URLs, but they do not follow the actual HTTP chain. |
-| 2 | Revisit `MEDIUM` and `UNKNOWN` labeling policy. | Separate true uncertainty from suspicious-but-not-severe flows. |
+1. Add real redirect-chain resolution -- current features can detect nested
+   URLs, but they do not follow the actual HTTP chain.
+2. Revisit `MEDIUM` and `UNKNOWN` labeling policy -- separate true uncertainty
+   from suspicious-but-not-severe flows.
 
 Project-level runtime follow-up work is tracked in
 [Technical Report](../../docs/technical-report.md#next-steps).
