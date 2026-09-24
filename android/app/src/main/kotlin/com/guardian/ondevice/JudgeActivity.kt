@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.test.espresso.idling.CountingIdlingResource
 import com.guardian.ondevice.judge.HybridJudge
 import com.guardian.ondevice.judge.LocalReasoningJudge
 import com.guardian.ondevice.judge.RemoteJudge
@@ -63,8 +64,12 @@ class JudgeActivity : AppCompatActivity() {
             }
 
             resultText.text = "판정 중..."
+            idlingResource.increment()
             hybridJudge.judge(url) { verdict ->
-                postToMainThread { resultText.text = format(verdict) }
+                postToMainThread {
+                    resultText.text = format(verdict)
+                    idlingResource.decrement()
+                }
             }
         }
     }
@@ -81,5 +86,14 @@ class JudgeActivity : AppCompatActivity() {
             "이유: ${verdict.reason}",
             "권고: ${verdict.advice}",
         ).joinToString("\n")
+    }
+
+    companion object {
+        // Registered/unregistered by JudgeActivityTest around each test so
+        // Espresso blocks until a judge() call's callback actually fires,
+        // instead of a test guessing a sleep duration that's flaky for the
+        // synchronous local layers and too short for the remote executor hop.
+        @JvmField
+        val idlingResource = CountingIdlingResource("JudgeActivityIdlingResource")
     }
 }
