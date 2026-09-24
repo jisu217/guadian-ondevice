@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "guadian-ondevice"
+
+include(":app")
