@@ -6,11 +6,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-// Covers only the pure string logic (hostOf/siteOf/sameSite). The
-// AccessibilityNodeInfo-based functions (role/isLink/canBearUrl/targetHost)
-// need a real accessibility tree from a browser and are not covered by
-// automated tests -- see docs/architecture.md's Shield section for the
-// manual emulator verification steps.
+// Pure string coverage; AccessibilityNodeInfo behavior lives in the Robolectric test.
 class WebAccessibilityNodeTest {
 
     @Test

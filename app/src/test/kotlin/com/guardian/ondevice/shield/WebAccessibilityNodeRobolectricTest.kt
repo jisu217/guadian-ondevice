@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.guardian.ondevice.shield
 
 import android.view.accessibility.AccessibilityNodeInfo
@@ -12,17 +14,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowAccessibilityNodeInfo
 
-// Covers the node-reading logic that needs a real AccessibilityNodeInfo: the
-// local `test` sourceSet's default stub android.jar no-ops it, but
-// Robolectric gives AccessibilityNodeInfo (and the Bundle its extras are
-// stored in) a real, working implementation, so these run as ordinary JVM
-// tests instead of only being verifiable by hand on an emulator. This
-// includes the tree-walking functions (inferCurrentSiteHost,
-// isInsideNestedDoc's ancestor walk): ShadowAccessibilityNodeInfo.addChild
-// wires up real parent/child navigation between hand-built nodes (by
-// default -- i.e. without opting into Robolectric's "real ANI" mode -- so
-// getChild/getChildCount/getParent all read from that shadow-managed tree
-// instead of trying an IPC round-trip to a real window).
+/**
+ * Covers AccessibilityNodeInfo logic with Robolectric instead of Android's
+ * no-op local test stubs.
+ */
 @RunWith(RobolectricTestRunner::class)
 class WebAccessibilityNodeRobolectricTest {
 

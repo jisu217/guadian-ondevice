@@ -53,17 +53,8 @@ class OnDeviceModelJudgeTest {
         assertEquals("MEDIUM", nearestLabel(url))
     }
 
-    // Distance thresholds are calibrated per label against real ad-landing
-    // traffic (model/data/sample_urls.csv's reference-derived rows) instead of
-    // one scalar shared by all 4 labels — see calibrate_certain_distance_
-    // thresholds in train_model.py. That fixed HIGH (above), which had been
-    // collapsed by an unrelated LOW/MEDIUM boundary case. MEDIUM still rarely
-    // clears its own bar on real traffic, and that part is a real, separate
-    // limitation: URL text alone doesn't carry the page-content signal (forms,
-    // JS-only rendering) that most real MEDIUM cases need. This test documents
-    // that limitation instead of hiding it — the nearest-centroid direction is
-    // still right, it's just not confident enough to short-circuit the hybrid
-    // pipeline on its own.
+    // Documents the current URL-only limitation: the nearest centroid leans
+    // MEDIUM, but calibrated confidence still sends this case to fallback.
     @Test
     fun `nearest centroid still leans medium for a reward event url, but not confidently`() {
         val verdict = judgeNow("https://promo-reward-event.test/free-gift")
