@@ -133,6 +133,13 @@ adb shell am start -n com.guardian.ondevice/.JudgeActivity
 
 ## Run Tests
 
+Instrumented UI tests (requires a running emulator/device; automates the same
+4-layer check — rule/model/RAG/remote — done by hand during development):
+
+```bash
+./gradlew connectedDebugAndroidTest
+```
+
 Kotlin pipeline tests:
 
 ```bash
