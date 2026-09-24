@@ -31,19 +31,19 @@ android {
 
     sourceSets {
         getByName("main") {
-            manifest.srcFile("android/app/src/main/AndroidManifest.xml")
-            kotlin.srcDirs("android/app/src/main/kotlin")
-            res.srcDirs("android/app/src/main/res")
+            manifest.srcFile("app/src/main/AndroidManifest.xml")
+            kotlin.srcDirs("app/src/main/kotlin")
+            res.srcDirs("app/src/main/res")
             // official_domains.txt and the trained model artifact live with the
             // training data so Python and Kotlin read the exact same files
             // instead of hand-synced copies.
             resources.srcDirs("model/data", "model/artifacts")
         }
         getByName("test") {
-            kotlin.srcDirs("android/app/src/test/kotlin")
+            kotlin.srcDirs("app/src/test/kotlin")
         }
         getByName("androidTest") {
-            kotlin.srcDirs("android/app/src/androidTest/kotlin")
+            kotlin.srcDirs("app/src/androidTest/kotlin")
         }
     }
 
@@ -72,6 +72,13 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test:2.0.21")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:2.0.21")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+
+    // org.json.* ships as part of the Android platform on a real device or
+    // emulator, but local `test` unit tests run against a stub android.jar
+    // whose org.json methods are no-ops. This standalone build of the same
+    // API gives local unit tests a real implementation; it's test-only and
+    // never ships in the APK, so there's no conflict with the platform copy.
+    testImplementation("org.json:json:20260814")
 
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")

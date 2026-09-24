@@ -1,5 +1,6 @@
 package com.guardian.ondevice.judge
 
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -32,7 +33,8 @@ class RemoteJudge(
             }
 
             conn.outputStream.use { output ->
-                output.write("""{"url":"${url.escapeJson()}","stream":true}""".toByteArray())
+                val payload = JSONObject().put("url", url).put("stream", true).toString()
+                output.write(payload.toByteArray())
             }
 
             if (conn.responseCode !in 200..299) {
@@ -46,15 +48,21 @@ class RemoteJudge(
         }
     }
 
+    // The server can stream several NDJSON lines (early guesses marked
+    // "early": true, then a final line); only the final, non-early line
+    // matters here. Falls back to parsing the whole body as one JSON object
+    // for a non-streamed response.
     private fun parseVerdict(body: String): Verdict {
         val json = body.lineSequence()
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-            .filterNot { it.booleanField("early") == true }
+            .mapNotNull { line -> runCatching { JSONObject(line) }.getOrNull() }
+            .filterNot { it.optBoolean("early", false) }
             .lastOrNull()
-            ?: body.trim()
+            ?: runCatching { JSONObject(body.trim()) }.getOrNull()
+            ?: return unknown("Remote judge returned an unparseable response.")
 
-        val risk = when (json.stringField("risk")) {
+        val risk = when (json.optString("risk")) {
             "LOW" -> Risk.LOW
             "MEDIUM" -> Risk.MEDIUM
             "HIGH" -> Risk.HIGH
@@ -63,12 +71,12 @@ class RemoteJudge(
 
         return Verdict(
             risk = risk,
-            reason = json.stringField("reason") ?: "Remote judge did not provide a reason.",
-            advice = json.stringField("advice") ?: "Keep the user in the safe confirmation flow.",
+            reason = json.optStringOrNull("reason") ?: "Remote judge did not provide a reason.",
+            advice = json.optStringOrNull("advice") ?: "Keep the user in the safe confirmation flow.",
             source = "remote",
             confidence = if (risk == Risk.UNKNOWN) Confidence.UNCERTAIN else Confidence.CERTAIN,
-            site = json.stringField("site"),
-            type = json.stringField("type") ?: "none",
+            site = json.optStringOrNull("site"),
+            type = json.optStringOrNull("type") ?: "none",
         )
     }
 
@@ -82,37 +90,8 @@ class RemoteJudge(
         )
     }
 
-    private fun String.stringField(name: String): String? {
-        val pattern = Regex(""""$name"\s*:\s*"((?:\\.|[^"])*)"""")
-        return pattern.find(this)?.groupValues?.get(1)?.unescapeJson()
-    }
-
-    private fun String.booleanField(name: String): Boolean? {
-        val pattern = Regex(""""$name"\s*:\s*(true|false)""")
-        return pattern.find(this)?.groupValues?.get(1)?.toBooleanStrictOrNull()
-    }
-
-    private fun String.escapeJson(): String {
-        return buildString {
-            for (char in this@escapeJson) {
-                when (char) {
-                    '\\' -> append("\\\\")
-                    '"' -> append("\\\"")
-                    '\n' -> append("\\n")
-                    '\r' -> append("\\r")
-                    '\t' -> append("\\t")
-                    else -> append(char)
-                }
-            }
-        }
-    }
-
-    private fun String.unescapeJson(): String {
-        return replace("\\\"", "\"")
-            .replace("\\\\", "\\")
-            .replace("\\n", "\n")
-            .replace("\\r", "\r")
-            .replace("\\t", "\t")
+    private fun JSONObject.optStringOrNull(key: String): String? {
+        return if (has(key) && !isNull(key)) getString(key) else null
     }
 
     private companion object {
