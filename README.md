@@ -18,33 +18,35 @@ server fallback for unresolved cases.
 
 ## Scope
 
-Implemented:
+The current repository contains the Android runtime, the local model workspace,
+and the remote fallback server. The Android app exposes manual URL judgment
+through `JudgeActivity` and browser-click protection through
+`ShieldAccessibilityService`. Both paths use the same layered `HybridJudge`
+pipeline: URL rules, local model inference, local policy retrieval,
+page-content inspection, and remote fallback.
 
-- Android app module with `JudgeActivity`
-- `ShieldAccessibilityService` for supported browser link-click detection
-- layered `HybridJudge` pipeline
-- URL rules, local model, local RAG, page-content inspection, and remote fallback
-- Python model training and evaluation workflow
-- dataset provenance, model card, and CI governance checks
+Model training, evaluation, provenance tracking, the model card, and CI
+documentation checks are kept in the same repository so runtime behavior and model
+claims can be reviewed together.
 
-Current limits:
+Current limits are summarized here; the full limitations and follow-up work are
+tracked in [Technical Report](docs/technical-report.md#limitations) and
+[Next Steps](docs/technical-report.md#next-steps).
 
 - physical-device validation is not done yet
-- Shield is limited to configured browser packages
-- arbitrary in-app WebViews/native ad surfaces are not covered
-- UI is functional, not product-polished
+- Shield is limited to supported browser-click surfaces
 - model dataset is small and partly synthetic
-- remote fallback server is not production-deployed here
 
 ## Judgment Flow
 
 ```text
 URL
-  -> LocalRiskStore
+  -> InMemoryRiskStore
   -> RuleBasedJudge
-  -> OnDeviceModelJudge
-  -> LocalRagJudge
-  -> PageContentJudge
+  -> LocalReasoningJudge
+       -> OnDeviceModelJudge
+       -> LocalKnowledgeJudge
+       -> PageContentJudge
   -> RemoteJudge
   -> Verdict
 ```
@@ -65,8 +67,9 @@ Evaluation uses 668 sanitized samples:
 | Cross-validation macro F1 | 82.70% |
 
 `HIGH` is strongest on clear APK and impersonation-like URL patterns.
-`MEDIUM` and `UNKNOWN` remain context-sensitive and often require page content,
-redirect-chain, or policy evidence beyond URL text.
+`MEDIUM` and `UNKNOWN` remain context-sensitive. See the
+[Model Workspace](model/README.md) and
+[Technical Report](docs/technical-report.md#evaluation) for details.
 
 ## Repository Layout
 
@@ -76,7 +79,7 @@ model/      dataset, feature extraction, training, artifact, reports
 server/     FastAPI remote fallback
 docs/       architecture, technical report, provenance
 reference/  preserved source/reference material
-scripts/    repository governance checks
+scripts/    repository checks
 ```
 
 ## Run
@@ -92,7 +95,7 @@ Android settings, then click an off-site link in a supported browser.
 ## Check
 
 ```bash
-bash scripts/check-model-governance.sh
+bash scripts/check-model-docs.sh
 python3 -m unittest discover model/training
 .venv/bin/python -m unittest discover server
 ./gradlew test
@@ -115,9 +118,11 @@ Regenerates the model artifact, train/test split, and trained-model report under
 
 ## Documents
 
-- [Architecture](docs/architecture.md)
-- [Technical Report](docs/technical-report.md)
-- [Provenance](docs/provenance.md)
-- [Model Workspace](model/README.md)
-- [Model Card](model/evaluation/model-card.md)
-- [Remote Fallback Server](server/README.md)
+| Document | Purpose |
+| :-- | :-- |
+| [Architecture](docs/architecture.md) | runtime structure and component boundaries |
+| [Technical Report](docs/technical-report.md) | project motivation, evaluation, limits, and next steps |
+| [Provenance](docs/provenance.md) | source lineage, reference boundaries, and dataset origin |
+| [Model Workspace](model/README.md) | model files, commands, and workspace overview |
+| [Model Card](model/evaluation/model-card.md) | intended use, metrics, and forbidden claims |
+| [Remote Fallback Server](server/README.md) | FastAPI fallback scope and local operation |
