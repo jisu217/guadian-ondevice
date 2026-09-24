@@ -5,8 +5,8 @@ rules, model, local policy retrieval, and page-content inspection.
 
 ## Scope
 
-The server exposes `/health` and `/judge`, with an optional NDJSON streaming
-response. Before calling a remote model, it runs a local precheck for obvious
+The server exposes `/health` and `/judge`, returning one JSON verdict per
+request. Before calling a remote model, it runs a local precheck for obvious
 APK and suspicious-token cases. When `ANTHROPIC_API_KEY` is configured, the
 server can use Claude as the fallback judge; when it is unavailable, the server
 returns a safe `UNKNOWN` verdict instead of fabricating a result.
@@ -58,10 +58,8 @@ Tests:
 
 ## Environment
 
-| Name | Required | Description |
-| :-- | :-- | :-- |
-| `ANTHROPIC_API_KEY` | no | missing key returns `UNKNOWN` with `remote_not_configured` |
-| `ANTHROPIC_MODEL` | no | defaults to `claude-3-5-haiku-latest` |
+- `ANTHROPIC_API_KEY` (optional): missing key returns `UNKNOWN` with `remote_not_configured`
+- `ANTHROPIC_MODEL` (optional): defaults to `claude-3-5-haiku-latest`
 
 Current Kotlin default remote URL:
 
