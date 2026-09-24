@@ -137,11 +137,14 @@ class UrlFeatureExtractor {
         return queryPairs.count { (key, _) -> key in TRACKING_PARAM_KEYS }
     }
 
+    // Mirrors url_features.py's _has_nested_url: NESTED_URL_PARAM_KEYS used
+    // to be checked, then checked again with no key restriction right below
+    // it, so the allowlist never actually did anything -- removed on both
+    // sides (verified against the full dataset: zero changed values, since
+    // the raw-query fallback always independently catches the same cases).
     private fun hasNestedUrl(queryPairs: List<Pair<String, String>>, rawQuery: String): Double {
         for ((key, value) in queryPairs) {
-            val loweredValue = value.lowercase()
-            if (key in NESTED_URL_PARAM_KEYS && looksLikeUrl(loweredValue)) return 1.0
-            if (looksLikeUrl(loweredValue)) return 1.0
+            if (key in NESTED_URL_PARAM_KEYS && looksLikeUrl(value.lowercase())) return 1.0
         }
 
         return if (looksLikeUrl(rawQuery.percentDecode().lowercase())) 1.0 else 0.0

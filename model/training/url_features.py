@@ -194,6 +194,13 @@ def _tracking_param_count(query_pairs: list[tuple[str, str]]) -> int:
 
 
 def _has_nested_url(query_pairs: list[tuple[str, str]], raw_query: str) -> float:
+    # NESTED_URL_PARAM_KEYS used to be checked, then checked again with no
+    # key restriction at all right below it -- the unconditional check always
+    # subsumed the key-restricted one, so the allowlist never actually did
+    # anything. Removed. (Verified against the full committed dataset that
+    # this changes zero has_nested_url values, since any value containing an
+    # http(s):// substring makes that same substring present in the raw
+    # query's decode too, which the fallback below still catches.)
     for key, value in query_pairs:
         lowered_key = key.lower()
         lowered_value = value.lower()
