@@ -35,6 +35,11 @@ Row-level provenance is recorded through `source`, `reviewed_by`, and
 
 ## Results
 
+The latest committed training run uses a deterministic holdout split and a
+5-fold cross-validation pass. The nearest-centroid model improves over the
+rule-scoring baseline, but the results still show that URL-only inference is
+not enough for every risk grade.
+
 | Metric | Value |
 | :-- | --: |
 | Holdout accuracy | 79.55% |
@@ -43,7 +48,9 @@ Row-level provenance is recorded through `source`, `reviewed_by`, and
 | Cross-validation accuracy | 81.19% |
 | Cross-validation macro F1 | 82.70% |
 
-`HIGH` is strongest; `MEDIUM` and `UNKNOWN` remain context-sensitive.
+`HIGH` is strongest on clear APK and impersonation-like patterns. `MEDIUM` and
+`UNKNOWN` remain context-sensitive and should be interpreted as part of the full
+hybrid pipeline.
 
 ## Commands
 
@@ -59,15 +66,15 @@ the artifact directly as a classpath resource.
 
 ## Data Rules
 
-- Commit sanitized fixtures only.
-- Do not commit raw browsing logs, private URLs, or page bodies.
-- Redact identifiers such as session tokens and account IDs.
-- Preserve whether a label came from policy, manual review, human review, or
-  LLM consensus.
+The canonical dataset schema and data-safety rules live in
+[Model Specification](docs/model-spec.md#dataset). In short, commit sanitized
+fixtures only and preserve row-level provenance.
 
 Related documents:
 
-- [Model Specification](docs/model-spec.md)
-- [Model Evolution](docs/model-evolution.md)
-- [Model Card](evaluation/model-card.md)
-- [Trained Model Report](evaluation/trained-model-report.md)
+| Document | Purpose |
+| :-- | :-- |
+| [Model Specification](docs/model-spec.md) | dataset schema and feature contract |
+| [Model Evolution](docs/model-evolution.md) | experiment history and modeling decisions |
+| [Model Card](evaluation/model-card.md) | intended use, metrics, and limits |
+| [Trained Model Report](evaluation/trained-model-report.md) | generated latest training report |
