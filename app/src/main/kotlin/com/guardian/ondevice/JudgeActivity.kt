@@ -19,13 +19,15 @@ import com.guardian.ondevice.rules.ApkRule
 import com.guardian.ondevice.rules.BrandImpersonationRule
 import com.guardian.ondevice.rules.SuspiciousUrlRule
 import com.guardian.ondevice.store.LocalRiskStore
+import com.guardian.ondevice.webview.PageContentJudge
 
 class JudgeActivity : AppCompatActivity() {
     private val mainThread = Handler(Looper.getMainLooper())
 
     // HybridJudge runs Local Store -> Rule Engine -> On-device Model -> Local
-    // RAG entirely on this thread; only RemoteJudge hops onto its own
-    // executor. postToMainThread() below covers that one background hop so a
+    // RAG -> Page Content entirely asynchronously; PageContentJudge posts its
+    // WebView work back through the main-thread handler, and RemoteJudge hops
+    // onto its own executor. postToMainThread() below covers both hops so a
     // UI update never happens off the main thread regardless of which layer
     // resolved the verdict.
     private val hybridJudge: HybridJudge by lazy {
@@ -42,6 +44,11 @@ class JudgeActivity : AppCompatActivity() {
                 judges = listOf(
                     OnDeviceModelJudge(),
                     LocalRagJudge(),
+                    // Last because it is the only layer that actually fetches
+                    // and renders the destination page; the cheaper URL-only
+                    // layers above run first so this only pays its cost when
+                    // they were all uncertain.
+                    PageContentJudge(context = this),
                 )
             ),
             remoteJudge = RemoteJudge(),

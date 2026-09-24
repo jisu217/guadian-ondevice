@@ -60,7 +60,10 @@ class JudgeActivityTest {
 
     @Test
     fun remoteFallbackFailsSafelyToUnknown() {
-        judge("https://plain-article.org/read")
+        // .test is IANA-reserved (RFC 2606): guaranteed never to resolve, so
+        // PageContentJudge's WebView load fails deterministically instead of
+        // rendering whatever a real .org registrant happens to host there.
+        judge("https://plain-article.test/read")
 
         onView(withId(R.id.resultText)).check(matches(withText(containsString("UNKNOWN"))))
         onView(withId(R.id.resultText)).check(matches(withText(containsString("remote"))))
