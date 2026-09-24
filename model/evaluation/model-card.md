@@ -16,13 +16,13 @@ not a TFLite/ONNX artifact, and not a production security detection service.
 
 ## Intended Use
 
-- Provide an on-device advisory signal for URL risk judgment.
-- Short-circuit clear URL-level patterns such as APK download lures and
-  impersonation-like login/authentication URLs.
-- Fall through to local policy retrieval, page-content inspection, or remote
-  fallback when the URL-only signal is uncertain.
+The model provides an on-device advisory signal for URL risk judgment. It is
+intended to short-circuit clear URL-level patterns such as APK download lures
+and impersonation-like login or authentication URLs. When the URL-only signal is
+uncertain, the runtime falls through to local policy retrieval, page-content
+inspection, or remote fallback.
 
-The final user-facing verdict is owned by the full hybrid pipeline, not by the
+The final user-facing verdict is owned by the full hybrid pipeline, not by this
 model alone.
 
 ## Data
@@ -72,11 +72,11 @@ Label-level holdout metrics:
 
 ## Runtime Contract
 
-- Python training and Kotlin runtime share feature names and ordering.
-- `model/data/feature_parity_cases.csv` is tested by both Python and Kotlin.
-- Kotlin reads the generated JSON artifact directly from resources.
-- Per-label distance thresholds decide whether the model can emit a confident
-  local signal.
+Python training and Kotlin runtime share feature names, feature ordering, and
+missing-value behavior. `model/data/feature_parity_cases.csv` is tested by both
+implementations, and Kotlin reads the generated JSON artifact directly from
+resources. Per-label distance thresholds decide whether the model can emit a
+confident local signal or should let the hybrid pipeline continue.
 
 ## Forbidden Claims
 
@@ -96,4 +96,4 @@ When changing data or features:
 2. Add Python/Kotlin feature parity rows for new URL patterns.
 3. Regenerate the trained model, baseline report, trained report, artifact, and
    split files.
-4. Run governance, Python, server, and Kotlin tests before committing.
+4. Run model documentation, Python, server, and Kotlin tests before committing.
