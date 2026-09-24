@@ -6,6 +6,7 @@ from train_model import (
     confusion_matrix,
     cross_validate_model,
     evaluate_model,
+    error_buckets,
     load_rows,
     macro_f1,
     precision_recall_by_label,
@@ -94,7 +95,19 @@ class TrainModelTest(unittest.TestCase):
         self.assertIn("model/evaluation/test-split.csv", report)
         self.assertIn("## Precision And Recall", report)
         self.assertIn("macro F1", report)
+        self.assertIn("## Error Buckets", report)
         self.assertIn("## Confusion Matrix", report)
+
+    def test_groups_holdout_errors_into_actionable_buckets(self):
+        predictions = [
+            self._prediction("https://ad.example.com/click?utm_source=ad", "LOW", "MEDIUM"),
+            self._prediction("https://bank-login-verification.test/account", "HIGH", "MEDIUM"),
+        ]
+
+        buckets = error_buckets(predictions)
+
+        self.assertEqual(buckets["LOW tracking/ad URL over-risked"], 1)
+        self.assertEqual(buckets["HIGH impersonation signal below threshold"], 1)
 
     def test_saves_evaluation_split_rows(self):
         rows = load_rows()[:3]
@@ -113,6 +126,11 @@ class TrainModelTest(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         return Path(directory.name) / name
+
+    def _prediction(self, url, actual, predicted):
+        from train_model import ModelPrediction
+
+        return ModelPrediction(url=url, actual=actual, predicted=predicted, distance=0.5)
 
 
 if __name__ == "__main__":

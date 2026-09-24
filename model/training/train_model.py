@@ -13,6 +13,16 @@ from url_features import FEATURE_NAMES, feature_vector
 
 
 LABELS = ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+
+# url_length/host_length/path_length/query_length are raw character counts with
+# a long tail — a handful of real tracking URLs (query strings with dozens of
+# UTM params) run into the thousands while most URLs are under 100 chars.
+# Min-max scaling those directly stretches the [0, 1] range so far that every
+# ordinary URL collapses into a tiny sliver of it, compressing the distances
+# nearest-centroid actually depends on. log1p keeps ordering but flattens the
+# tail, so one extreme URL no longer distorts the scale for everyone else.
+LENGTH_FEATURE_NAMES = {"url_length", "host_length", "path_length", "query_length"}
+LENGTH_FEATURE_INDICES = [FEATURE_NAMES.index(name) for name in LENGTH_FEATURE_NAMES]
 DEFAULT_DATASET = Path(__file__).parents[1] / "data" / "sample_urls.csv"
 DEFAULT_ARTIFACT = Path(__file__).parents[1] / "artifacts" / "url_risk_centroid_model.json"
 DEFAULT_REPORT = Path(__file__).parents[1] / "evaluation" / "trained-model-report.md"
@@ -81,11 +91,18 @@ def stratified_kfold_split(rows: list[dict[str, str]], folds: int = DEFAULT_FOLD
     return splits
 
 
+def _compress_length_features(vector: list[float]) -> list[float]:
+    return [
+        math.log1p(value) if index in LENGTH_FEATURE_INDICES else value
+        for index, value in enumerate(vector)
+    ]
+
+
 def train_centroid_model(
     rows: list[dict[str, str]],
     certain_distance_thresholds: dict[str, float] | None = None,
 ) -> dict:
-    vectors = [feature_vector(row["url"]) for row in rows]
+    vectors = [_compress_length_features(feature_vector(row["url"])) for row in rows]
     mins, maxes = _feature_ranges(vectors)
     grouped: dict[str, list[list[float]]] = defaultdict(list)
 
@@ -114,7 +131,7 @@ def train_centroid_model(
 
 
 def predict(model: dict, url: str) -> tuple[str, float]:
-    vector = feature_vector(url)
+    vector = _compress_length_features(feature_vector(url))
     scaled = _scale(vector, model["feature_min"], model["feature_max"])
     distances = {
         label: _euclidean_distance(scaled, centroid)
@@ -178,6 +195,14 @@ def confusion_matrix(predictions) -> dict[str, dict[str, int]]:
         }
         for actual in LABELS
     }
+
+
+def error_buckets(predictions: list[ModelPrediction]) -> Counter[str]:
+    return Counter(
+        _error_bucket(prediction)
+        for prediction in predictions
+        if prediction.actual != prediction.predicted
+    )
 
 
 def cross_validate_model(rows: list[dict[str, str]], folds: int = DEFAULT_FOLDS) -> tuple[list[FoldEvaluation], list[ModelPrediction]]:
@@ -276,6 +301,8 @@ def render_report(
         "- Each label gets its own certain-distance threshold instead of one shared scalar,",
         "  so one close call for label A can no longer collapse label B's threshold too.",
         "- Thresholds are intentionally conservative: uncertain cases should fall through to local RAG or remote fallback.",
+        "- url_length/host_length/path_length/query_length are log1p-compressed before min-max",
+        "  scaling, so a few very long real tracking URLs no longer stretch the scale for everyone.",
         "",
         "### Calibrated Certain-Distance Thresholds",
         "",
@@ -361,6 +388,20 @@ def render_report(
 
     errors = [prediction for prediction in predictions if prediction.actual != prediction.predicted]
     if errors:
+        buckets = error_buckets(predictions)
+        lines.extend(
+            [
+                "",
+                "## Error Buckets",
+                "",
+                "| Bucket | Count |",
+                "| :-- | --: |",
+            ]
+        )
+
+        for bucket, count in buckets.most_common():
+            lines.append(f"| {bucket} | {count} |")
+
         lines.extend(
             [
                 "",
@@ -476,6 +517,66 @@ def _percentile(values: list[float], percentile: float) -> float:
     lower_value = values[lower]
     upper_value = values[upper]
     return lower_value + (upper_value - lower_value) * (index - lower)
+
+
+def _error_bucket(prediction: ModelPrediction) -> str:
+    url = prediction.url.lower()
+    transition = f"{prediction.actual} -> {prediction.predicted}"
+
+    if prediction.actual == "LOW" and prediction.predicted in {"MEDIUM", "HIGH", "UNKNOWN"}:
+        if _looks_like_tracking_or_ad_url(url):
+            return "LOW tracking/ad URL over-risked"
+        return "LOW benign URL lacks enough local context"
+
+    if prediction.actual == "MEDIUM" and prediction.predicted == "LOW":
+        return "MEDIUM under-risked by URL-only signal"
+
+    if prediction.actual == "MEDIUM" and prediction.predicted in {"HIGH", "UNKNOWN"}:
+        if _looks_like_tracking_or_ad_url(url):
+            return "MEDIUM redirect/ad context needs page evidence"
+        return "MEDIUM needs page or interaction context"
+
+    if prediction.actual == "HIGH" and prediction.predicted in {"LOW", "MEDIUM", "UNKNOWN"}:
+        if _looks_like_brand_or_credential_url(url):
+            return "HIGH impersonation signal below threshold"
+        return "HIGH malicious signal too weak in URL text"
+
+    if prediction.actual == "UNKNOWN" and prediction.predicted != "UNKNOWN":
+        return "UNKNOWN over-classified by sparse URL signal"
+
+    return transition
+
+
+def _looks_like_tracking_or_ad_url(url: str) -> bool:
+    markers = (
+        "utm_",
+        "gclid",
+        "fbclid",
+        "adurl=",
+        "redirect=",
+        "landing_url=",
+        "doubleclick",
+        "ads.",
+        "ad.",
+        "click.",
+    )
+    return any(marker in url for marker in markers)
+
+
+def _looks_like_brand_or_credential_url(url: str) -> bool:
+    markers = (
+        "bank",
+        "login",
+        "verify",
+        "account",
+        "kakao",
+        "naver",
+        "kb",
+        "shinhan",
+        "woori",
+        "nh",
+    )
+    return any(marker in url for marker in markers)
 
 
 def main() -> None:

@@ -4,6 +4,7 @@ import com.guardian.ondevice.judge.Confidence
 import com.guardian.ondevice.judge.Judge
 import com.guardian.ondevice.judge.Risk
 import com.guardian.ondevice.judge.Verdict
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 class OnDeviceModelJudge(
@@ -62,7 +63,8 @@ class NearestCentroidUrlModel(
     val certainDistanceThresholds: Map<String, Double> = DEFAULT_CERTAIN_DISTANCE_THRESHOLDS,
 ) {
     fun predict(vector: List<Double>): ModelPrediction {
-        val scaled = vector.mapIndexed { index, value ->
+        val compressed = compressLengthFeatures(vector)
+        val scaled = compressed.mapIndexed { index, value ->
             scale(value, featureMin[index], featureMax[index])
         }
 
@@ -71,6 +73,19 @@ class NearestCentroidUrlModel(
             .minWith(compareBy<Map.Entry<String, Double>> { it.value }.thenBy { it.key })
 
         return ModelPrediction(label = nearest.key, distance = nearest.value)
+    }
+
+    // Mirrors _compress_length_features in model/training/train_model.py: a
+    // few very long real tracking URLs stretch url_length/host_length/
+    // path_length/query_length's min-max range so far that ordinary URLs
+    // collapse into a tiny sliver of it. log1p keeps ordering but flattens
+    // the tail before scaling, so one extreme URL can't distort distances
+    // for everyone else. Must stay in sync with the Python side — a model
+    // trained with this compression needs it applied at inference too.
+    private fun compressLengthFeatures(vector: List<Double>): List<Double> {
+        return vector.mapIndexed { index, value ->
+            if (index in LENGTH_FEATURE_INDICES) ln(1.0 + value) else value
+        }
     }
 
     private fun scale(value: Double, minimum: Double, maximum: Double): Double {
@@ -84,6 +99,10 @@ class NearestCentroidUrlModel(
     companion object {
         private const val DEFAULT_MODEL_RESOURCE = "/url_risk_centroid_model.json"
         private val DEFAULT_CERTAIN_DISTANCE_THRESHOLDS = Risk.entries.associate { it.name to 1.2 }
+        private val LENGTH_FEATURE_NAMES = setOf("url_length", "host_length", "path_length", "query_length")
+        private val LENGTH_FEATURE_INDICES = UrlFeatureExtractor.FEATURE_NAMES
+            .mapIndexedNotNull { index, name -> index.takeIf { name in LENGTH_FEATURE_NAMES } }
+            .toSet()
 
         fun default(): NearestCentroidUrlModel {
             return fromResource(DEFAULT_MODEL_RESOURCE)
