@@ -1,4 +1,4 @@
-package com.guardian.ondevice.rag
+package com.guardian.ondevice.knowledge
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
