@@ -1,177 +1,150 @@
 # GUADIAN On-device Judge
 
-![Status](https://img.shields.io/badge/status-in%20progress-D4A017?style=flat-square&logo=githubactions&logoColor=white)
-![Android](https://img.shields.io/badge/Android-module-3DDC84?style=flat-square&logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-judge%20module-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
-![Hybrid](https://img.shields.io/badge/strategy-on--device--first%20hybrid-4B5563?style=flat-square&logo=databricks&logoColor=white)
+Local-first URL risk judgment pipeline for ad landing URLs.
 
-> **문서 출처:** GUADIAN은 SKT FLY AI 부트캠프에서 개발한 악성 광고 기반 디지털 피해 예방 서비스이며, 본 저장소는 기존 GUADIAN 프로젝트의 판정 관련 코드와 문서를 참고해 온디바이스 우선 하이브리드 구조로 재설계하는 연구용 프로젝트다.
+This repository refactors the GUADIAN risk-judgment concept into a lightweight
+local judgment engine. The current implementation is a Kotlin/JVM prototype
+intended for Android integration: it can classify URLs locally with rules,
+a compact feature-based model, local policy retrieval, and remote fallback for
+uncertain cases.
 
-GUADIAN On-device Judge는 광고 기반 위험 흐름을 기기 내부에서 먼저 감지하고, 로컬 판단이 불확실한 경우에만 원격 fallback을 사용하는 위험 판정 구조를 설계한다.
+## What This Project Does
 
----
+Given an ad landing URL, the pipeline returns an explainable `Verdict`:
 
-## Project Direction
+- `LOW`: allow navigation
+- `MEDIUM`: require user confirmation
+- `HIGH`: block or strongly warn
+- `UNKNOWN`: not enough local evidence; use fallback
 
-이 프로젝트는 모든 판정을 원격 API에 맡기거나, 반대로 모든 판정을 기기 내부에서만 처리하는 구조를 목표로 하지 않는다.
+Each verdict includes `reason`, `advice`, `source`, `confidence`, and `type`
+so the decision can be shown to users or inspected during evaluation.
 
-핵심 방향은 **Local Verdict Store, Rule Engine, On-device Model, Local RAG를 순서대로 사용하고 Remote Fallback을 보조 계층으로 두는 온디바이스 우선 하이브리드 방식**이다.
+## Current Scope
 
-| 원칙 | 설명 |
-| :-- | :-- |
-| Local-first | 저장된 판정 결과와 명확한 위험 신호를 기기 내부에서 우선 처리 |
-| Low latency | 네트워크 요청 없이 반환 가능한 케이스의 응답 시간 단축 |
-| Privacy-aware | 원격으로 전송되는 URL과 도착지 정보의 범위 최소화 |
-| Explainable | 위험 사유와 사용자 권장 행동을 함께 반환 |
-| Fallback-aware | 로컬 판정이 불확실한 경우에만 remote fallback 사용 |
+Implemented:
 
----
+- Kotlin local judgment pipeline
+- deterministic URL rules
+- feature-based nearest-centroid model
+- local RAG-style policy fallback
+- FastAPI remote fallback server
+- Python model training and evaluation workflow
+- sanitized dataset and reference-source documentation
+- Kotlin and Python unit tests
+
+Not yet implemented:
+
+- Android UI / Shield screen
+- device or emulator end-to-end validation
+- AccessibilityService, WebView, or browser URL capture integration
+- production deployment of the fallback server
+- TFLite/ONNX runtime conversion
 
 ## Judgment Flow
 
 ```text
-URL Input
-  ↓
-Local Verdict Store
-  ↓ miss
-Rule Engine
-  ↓ uncertain
-On-device Model
-  ↓ low confidence / unknown
-Local RAG
-  ↓ still low confidence
-Remote Fallback
-  ↓
-Verdict
+URL
+  -> LocalRiskStore
+  -> RuleBasedJudge
+  -> OnDeviceModelJudge
+  -> LocalRagJudge
+  -> RemoteJudge
+  -> Verdict
 ```
 
-| 단계 | 핵심 |
-| :-- | :-- |
-| Local Verdict Store | Cache |
-| Rule Engine | Heuristics |
-| On-device Model | Local inference |
-| Local RAG | Local evidence retrieval |
-| Remote Fallback | Escalation |
+The design is intentionally conservative. Clear local evidence is handled on
+device; uncertain cases are escalated to local policy retrieval or remote
+fallback instead of forcing a confident local decision.
 
----
+## Model Summary
 
-## Repository Structure
+The model is not a fine-tuned LLM. It is a compact URL-feature classifier built
+for local inference:
+
+- deterministic URL feature extraction
+- nearest-centroid classifier
+- baseline comparison
+- 5-fold stratified cross-validation
+- label-level precision, recall, F1, and error analysis
+- calibrated per-label confidence thresholds
+
+Current evaluation with 648 sanitized samples:
+
+| Metric | Value |
+| :-- | --: |
+| Holdout accuracy | 72.66% |
+| Holdout macro F1 | 74.24% |
+| Baseline accuracy | 68.75% |
+| Cross-validation accuracy | 72.52% |
+| Cross-validation macro F1 | 74.51% |
+
+The evaluation intentionally includes realistic ad landing URLs. Accuracy drops
+compared with synthetic-only data, but the failure modes are now visible:
+`HIGH` is relatively strong, while `MEDIUM` and `UNKNOWN` remain difficult with
+URL-only signals.
+
+## Repository Layout
 
 ```text
-guadian-ondevice/
-  gradlew
-  gradlew.bat
-  settings.gradle.kts
-  build.gradle.kts
-  gradle/wrapper/
+android/app/src/main/kotlin/com/guardian/ondevice/
+  judge/      pipeline orchestration and remote fallback client
+  rules/      deterministic URL risk rules
+  model/      URL features and local model runtime
+  rag/        local policy-based fallback
+  store/      local verdict cache
 
-  android/app/src/main/kotlin/com/guardian/ondevice/
-    judge/
-      Judge.kt
-      Verdict.kt
-      HybridJudge.kt
-      LocalReasoningJudge.kt
-      RuleBasedJudge.kt
-      RemoteJudge.kt
+model/
+  data/       sanitized samples and official-domain allowlist
+  training/   feature extraction, baseline, training, evaluation scripts
+  artifacts/  trained model parameters
+  evaluation/ generated model reports
 
-    rules/
-      RiskRule.kt
-      ApkRule.kt
-      BrandImpersonationRule.kt
-      SuspiciousUrlRule.kt
-      OfficialDomains.kt
-
-    store/
-      LocalRiskStore.kt
-
-    model/
-      OnDeviceModelJudge.kt
-
-    rag/
-      LocalRagJudge.kt
-      LocalKnowledgeRetriever.kt
-
-  docs/
-    architecture.md
-    rule-policy.md
-
-  model/
-    README.md
-    data/
-    training/
-    evaluation/
-    export/
-    artifacts/
-
-  android/app/src/test/kotlin/
-    com/guardian/ondevice/judge/
-      HybridJudgeTest.kt
-      LocalReasoningJudgeTest.kt
-      RemoteJudgeTest.kt
-      RuleBasedJudgeTest.kt
-    com/guardian/ondevice/store/
-      LocalRiskStoreTest.kt
-    com/guardian/ondevice/rag/
-      LocalKnowledgeRetrieverTest.kt
-      LocalRagJudgeTest.kt
-
-  server/
-    main.py
-    judge_service.py
-    requirements.txt
-    .env.example
-
-  reference/
-    Judge.kt
-    HttpJudge.kt
-    WebNode.kt
-    judge_agent.py
-    docs/
-      history.md
-      judge.md
-      risk-grade-rationale.md
-      risk-grade-validation.md
+server/       FastAPI remote fallback server
+docs/         architecture, project report, source/reference notes
+reference/    copied reference materials and external source records
 ```
 
----
+## Run Tests
 
-## Documentation
-
-| 문서 | 내용 |
-| :-- | :-- |
-| [`docs/architecture.md`](./docs/architecture.md) | 온디바이스 우선 하이브리드 판정 계층, 흐름, fallback 규칙 |
-| [`docs/rule-policy.md`](./docs/rule-policy.md) | 룰 기반 판정 출력, 카테고리, 설계 기준 |
-| [`model/README.md`](./model/README.md) | 온디바이스 모델 학습, 평가, 변환, 산출물 관리 공간 |
-
-## Test
+Kotlin pipeline tests:
 
 ```bash
 ./gradlew test
-python3 -m unittest discover server
 ```
 
-## Remote Fallback Server
+Python model tests:
 
 ```bash
-cd server
-cp .env.example .env
-pip install -r requirements.txt
-uvicorn main:app --reload
+python3 -m unittest discover model/training
 ```
 
-`LocalReasoningJudge`는 `OnDeviceModelJudge`를 먼저 실행하고, 모델 판정이 불확실한 경우 `LocalRagJudge`로 로컬 근거를 검색한다. `OnDeviceModelJudge`는 온디바이스 모델 런타임을 연결할 자리이며, 현재는 모델 파일이 없을 때 `UNKNOWN`을 반환한다. 실제 모델이 준비되면 이 계층에 TFLite 또는 ONNX 기반 URL 위험 분류기를 연결한다.
+Server tests:
 
-## References
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r server/requirements.txt
+cd server
+../.venv/bin/python -m unittest discover .
+```
 
-`reference/` 디렉터리는 온디바이스 판정 구조를 설계하기 위한 참고 자료를 포함한다.
+## Train The Model
 
-| 파일 | 용도 |
-| :-- | :-- |
-| `reference/Judge.kt` | Risk, Verdict, Judge 인터페이스 참고 |
-| `reference/HttpJudge.kt` | 원격 판정 API 호출 구조 참고 |
-| `reference/WebNode.kt` | URL, host, site 추출 로직 참고 |
-| `reference/judge_agent.py` | 브랜드/공식 도메인, 위험 신호 참고 |
-| `reference/docs/history.md` | 기존 개발 이력 참고 |
-| `reference/docs/judge.md` | 판정 기준 문서 |
-| `reference/docs/risk-grade-rationale.md` | 위험 등급 근거와 정책 기준 |
-| `reference/docs/risk-grade-validation.md` | 위험 등급 검증 방식 참고 |
+```bash
+python3 model/training/train_model.py
+```
+
+This regenerates:
+
+- `model/artifacts/url_risk_centroid_model.json`
+- `model/evaluation/trained-model-report.md`
+
+## Key Documents
+
+- [Project Report](docs/project-report.md): complete technical narrative,
+  evaluation results, limitations, and next steps
+- [Architecture](docs/architecture.md): runtime pipeline and component roles
+- [Source And Reference Notes](docs/source-and-reference.md): what was copied,
+  derived, or only used as reference
+- [Model Workspace](model/README.md): dataset, training, and evaluation workflow
+- [Remote Fallback Server](server/README.md): FastAPI fallback setup

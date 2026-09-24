@@ -1,3 +1,6 @@
+// 파일 출처: SKT FLY AI 부트캠프 GUADIAN 원본 프로젝트 기반 참조 파일입니다.
+// GUADIAN 원본 경로: app/src/main/java/com/flyai/adalert/Judge.kt
+
 package com.flyai.adalert
 
 import android.os.Handler

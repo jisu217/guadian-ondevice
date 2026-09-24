@@ -16,6 +16,9 @@ dependencies {
 sourceSets {
     main {
         kotlin.srcDir("android/app/src/main/kotlin")
+        // official_domains.txt lives with the training data so Python and
+        // Kotlin read the exact same file instead of two hand-synced copies.
+        resources.srcDir("model/data")
     }
     test {
         kotlin.srcDir("android/app/src/test/kotlin")

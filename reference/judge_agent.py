@@ -1,3 +1,6 @@
+# 파일 출처: SKT FLY AI 부트캠프 GUADIAN 원본 프로젝트 기반 참조 파일입니다.
+# GUADIAN 원본 경로: server/judge_agent.py
+
 """판정 에이전트 — Claude가 도구를 골라 쓰며 착지 페이지의 위험도 판정
 
 예전(main._ask_llm): 코드가 정한 순서 하나 — 페이지 1번 읽기 → Claude에 1번 묻기.

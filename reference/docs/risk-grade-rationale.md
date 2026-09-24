@@ -1,3 +1,6 @@
+> **문서 출처:** SKT FLY AI 부트캠프 GUADIAN 원본 프로젝트 기반 참조 자료입니다.
+> **GUADIAN 원본 경로:** `docs/risk-grade-rationale.md`
+
 ## 위험 등급 판정 근거와 적용 방식
 
 GuADian이 광고 도착지를 `LOW`/`MEDIUM`/`HIGH`/`UNKNOWN`으로 구분하는 기준과, 실제 판정 과정에서 그 기준을 유지하는 방식을 설명합니다.
