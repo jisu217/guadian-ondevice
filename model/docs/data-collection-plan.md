@@ -8,11 +8,11 @@ pipeline validation. It is not a production traffic dataset.
 
 ## Current Mix
 
-| Source | Role |
-| :-- | :-- |
-| `synthetic` | controlled patterns for feature and pipeline tests |
-| `reference-derived` | reconstructed or imported samples from GUADIAN-related references |
-| `public-benign` | public official/normal URLs for `LOW` examples |
+| Source | Rows | Role |
+| :-- | --: | :-- |
+| `synthetic` | 288 | controlled patterns for feature and pipeline tests |
+| `reference-derived` | 275 | reconstructed or imported samples from GUADIAN-related references |
+| `public-benign` | 85 | public official/normal URLs for `LOW` examples |
 
 Current size:
 
@@ -20,7 +20,7 @@ Current size:
 | :-- | :-- | :-- | :-- |
 | Seed | 120 samples, 30 per label | first balanced experiment | done |
 | Prototype | 400 samples, 100 per label | compare baseline and trained model | done |
-| Realistic | 1000+ reviewed samples | evaluate generalization and edge cases | in progress: 648 samples |
+| Realistic | 1000+ reviewed samples | evaluate generalization and edge cases | in progress: 668 samples |
 
 ## Realistic Reference Rows
 
@@ -44,9 +44,13 @@ Import notes:
 - 1 duplicate excluded
 - row-level provenance preserved in `reviewed_by`
 
+The full dataset has 275 `reference-derived` rows. Of those, 248 came from
+`reference/gold_251.jsonl`; the remaining rows are earlier prototype samples
+derived from GUADIAN policy categories and reference documents.
+
 The realistic rows are valuable because they exposed model weaknesses that were
 hidden by synthetic-only data. Accuracy dropped from 97.50% on synthetic-only
-evaluation to 72.66% after realistic rows were included. This is treated as a
+evaluation to 79.55% after realistic rows, targeted edge cases, and current feature scaling were included. This is treated as a
 useful finding, not a failure. See [Project Report](../../docs/project-report.md)
 for the evaluation interpretation.
 

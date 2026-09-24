@@ -1,17 +1,17 @@
 # Baseline Evaluation
 
 Evaluation set: full committed dataset
-Samples: 648
-Accuracy: 68.67%
+Samples: 668
+Accuracy: 68.41%
 
 ## Label Distribution
 
 | Label | Actual | Predicted |
 | :-- | --: | --: |
-| LOW | 228 | 183 |
-| MEDIUM | 219 | 157 |
-| HIGH | 101 | 69 |
-| UNKNOWN | 100 | 239 |
+| LOW | 236 | 193 |
+| MEDIUM | 222 | 162 |
+| HIGH | 107 | 71 |
+| UNKNOWN | 103 | 242 |
 
 ## Predictions
 
@@ -665,3 +665,23 @@ Accuracy: 68.67%
 | MEDIUM | UNKNOWN | 0 | https://s.findmyfamily.co.kr/72924b?gad_source=5&gad_campaignid=24167488278&gclid=CjwKCAjw48TUBhBREiwAK0GnQQOw75qYSmaCwu8F-_bjD3DS2APBgCPxpALNi6y7dm0vVAam4znXhhoCDQkQAvD_BwE |
 | MEDIUM | UNKNOWN | 0 | https://m.isplus.com |
 | MEDIUM | UNKNOWN | 0 | https://healthbk.co.kr/newsm/index_on.html?pid=05 |
+| LOW | LOW | 0 | https://www.kbstar.com |
+| LOW | LOW | 0 | https://obank.kbstar.com/quics?page=C016511 |
+| LOW | LOW | 0 | https://www.shinhan.com/index.jsp |
+| LOW | LOW | 0 | https://www.wooribank.com |
+| LOW | LOW | 0 | https://nid.naver.com/nidlogin.login |
+| LOW | LOW | 0 | https://accounts.google.com/signin/v2/identifier |
+| HIGH | MEDIUM | 3 | https://kb-star.top/login?verify=account |
+| HIGH | MEDIUM | 3 | https://kbstar-security.xyz/auth/account |
+| HIGH | MEDIUM | 3 | https://shinhan-login.click/verify |
+| HIGH | HIGH | 5 | https://woori-bank-auth.top/account |
+| HIGH | HIGH | 5 | https://download-center.click/install/app.apk?token=12345 |
+| HIGH | MEDIUM | 3 | https://secure-update.xyz/auth/account |
+| MEDIUM | LOW | 0 | https://bit.ly/3AbCdEf |
+| MEDIUM | LOW | 0 | https://t.co/r/free-gift |
+| MEDIUM | UNKNOWN | 1 | https://xn--ok0b236bba.com/event |
+| LOW | LOW | 0 | https://coupon.example.com/event/free?gift=1 |
+| LOW | LOW | 0 | https://www.coupang.com/vp/products/123456?itemId=7890 |
+| UNKNOWN | MEDIUM | 2 | https://promo-landing.test/notice |
+| UNKNOWN | UNKNOWN | 0 | https://redirector.example.net/out/7x9 |
+| UNKNOWN | UNKNOWN | 1 | https://mobile-campaign.test/info |

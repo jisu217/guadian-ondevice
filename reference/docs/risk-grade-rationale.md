@@ -1,5 +1,4 @@
-> **문서 출처:** SKT FLY AI 부트캠프 GUADIAN 원본 프로젝트 기반 참조 자료입니다.
-> **GUADIAN 원본 경로:** `docs/risk-grade-rationale.md`
+> **참고 출처:** `SKT-FLY-AI-TEAM-6/GUADIAN/docs/risk-grade-rationale.md`
 
 ## 위험 등급 판정 근거와 적용 방식
 

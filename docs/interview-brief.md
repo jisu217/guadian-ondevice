@@ -14,9 +14,10 @@ only when local evidence is insufficient.
 The project handles risky ad landing URLs with a conservative pipeline:
 deterministic rules, a lightweight URL-feature model, local policy retrieval,
 and remote fallback. I implemented the Kotlin judgment engine, Python model
-training/evaluation workflow, sanitized dataset, and FastAPI fallback server.
-The current result is not a complete Android app yet; it is a Kotlin/JVM local
-engine designed for Android integration.
+training/evaluation workflow, sanitized dataset, FastAPI fallback server, and
+a minimal Android app (URL input -> Verdict screen) that runs the full
+pipeline on an emulator, including safe failure handling when the remote
+fallback is unreachable.
 
 ## Technical Highlights
 
@@ -33,11 +34,11 @@ engine designed for Android integration.
 
 | Metric | Value |
 | :-- | --: |
-| Dataset size | 648 samples |
-| Holdout accuracy | 72.66% |
-| Holdout macro F1 | 74.24% |
-| Baseline accuracy | 68.75% |
-| Cross-validation macro F1 | 74.51% |
+| Dataset size | 668 samples |
+| Holdout accuracy | 79.55% |
+| Holdout macro F1 | 80.98% |
+| Baseline accuracy | 68.94% |
+| Cross-validation macro F1 | 82.70% |
 
 Main finding: `HIGH` risk is relatively strong, but `MEDIUM` and `UNKNOWN` are
 hard with URL-only features because many cases require page-level context.
@@ -46,14 +47,17 @@ hard with URL-only features because many cases require page-level context.
 
 Use:
 
-> I built a local inference prototype for Android integration.
+> I built a local inference prototype and verified it end-to-end on an Android
+> emulator — rule engine, on-device model, local RAG, and remote fallback all
+> exercised through a real Verdict screen.
 
 Avoid:
 
-> I completed a production Android on-device model.
+> I shipped a production Android app.
 
-Reason: the current project has Kotlin/JVM tests and a local runtime, but no
-device/emulator end-to-end validation yet.
+Reason: emulator-only (no physical device tested), no Shield/browser
+interception feature, and the UI is a bare-bones demo screen (no styling,
+history, or app icon).
 
 ## Best Follow-up Answer
 

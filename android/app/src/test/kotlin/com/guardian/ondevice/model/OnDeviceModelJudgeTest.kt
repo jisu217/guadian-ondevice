@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class OnDeviceModelJudgeTest {
     @Test
     fun `predicts low risk for a case under the calibrated distance threshold`() {
-        val verdict = judgeNow("https://docs.example.com/status/incidents/2026")
+        val verdict = judgeNow("https://docs.example.com/support/chat?lang=ko")
 
         assertEquals(Risk.LOW, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)
@@ -23,6 +23,34 @@ class OnDeviceModelJudgeTest {
 
         assertEquals(Risk.HIGH, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)
+    }
+
+    @Test
+    fun `predicts high risk for a suspicious bank lookalike domain`() {
+        val verdict = judgeNow("https://kb-star.top/login?verify=account")
+
+        assertEquals(Risk.HIGH, verdict.risk)
+        assertEquals(Confidence.CERTAIN, verdict.confidence)
+    }
+
+    @Test
+    fun `falls back when an apk url is high leaning but above the certain threshold`() {
+        val url = "https://download-center.click/install/app.apk?token=12345"
+        val verdict = judgeNow(url)
+
+        assertEquals(Risk.UNKNOWN, verdict.risk)
+        assertEquals(Confidence.UNCERTAIN, verdict.confidence)
+        assertEquals("HIGH", nearestLabel(url))
+    }
+
+    @Test
+    fun `falls back for ad click redirect urls instead of making a certain local decision`() {
+        val url = "https://ad.planbplus.co.kr/adlanding/?landing_url=https%3A%2F%2Flink.coupang.com%2Fre%2FAFFSDP%3FpageKey%3D123&adid=4566"
+        val verdict = judgeNow(url)
+
+        assertEquals(Risk.UNKNOWN, verdict.risk)
+        assertEquals(Confidence.UNCERTAIN, verdict.confidence)
+        assertEquals("MEDIUM", nearestLabel(url))
     }
 
     // Distance thresholds are calibrated per label against real ad-landing

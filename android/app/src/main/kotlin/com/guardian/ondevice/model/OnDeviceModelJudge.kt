@@ -4,6 +4,7 @@ import com.guardian.ondevice.judge.Confidence
 import com.guardian.ondevice.judge.Judge
 import com.guardian.ondevice.judge.Risk
 import com.guardian.ondevice.judge.Verdict
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 class OnDeviceModelJudge(
@@ -62,7 +63,8 @@ class NearestCentroidUrlModel(
     val certainDistanceThresholds: Map<String, Double> = DEFAULT_CERTAIN_DISTANCE_THRESHOLDS,
 ) {
     fun predict(vector: List<Double>): ModelPrediction {
-        val scaled = vector.mapIndexed { index, value ->
+        val compressed = compressLengthFeatures(vector)
+        val scaled = compressed.mapIndexed { index, value ->
             scale(value, featureMin[index], featureMax[index])
         }
 
@@ -71,6 +73,19 @@ class NearestCentroidUrlModel(
             .minWith(compareBy<Map.Entry<String, Double>> { it.value }.thenBy { it.key })
 
         return ModelPrediction(label = nearest.key, distance = nearest.value)
+    }
+
+    // Mirrors _compress_length_features in model/training/train_model.py: a
+    // few very long real tracking URLs stretch url_length/host_length/
+    // path_length/query_length's min-max range so far that ordinary URLs
+    // collapse into a tiny sliver of it. log1p keeps ordering but flattens
+    // the tail before scaling, so one extreme URL can't distort distances
+    // for everyone else. Must stay in sync with the Python side — a model
+    // trained with this compression needs it applied at inference too.
+    private fun compressLengthFeatures(vector: List<Double>): List<Double> {
+        return vector.mapIndexed { index, value ->
+            if (index in LENGTH_FEATURE_INDICES) ln(1.0 + value) else value
+        }
     }
 
     private fun scale(value: Double, minimum: Double, maximum: Double): Double {
@@ -82,66 +97,229 @@ class NearestCentroidUrlModel(
     }
 
     companion object {
-        // Kept in sync by hand with model/artifacts/url_risk_centroid_model.json.
-        // Re-run model/training/train_model.py and copy these values whenever the
-        // dataset or feature set changes.
-        //
-        // One threshold per label, calibrated separately (see
-        // calibrate_certain_distance_thresholds in train_model.py) instead of a
-        // single shared scalar. A shared scalar meant one close call for any
-        // label dragged every other label's threshold down with it — HIGH's
-        // threshold once collapsed to 0.35 purely because of an unrelated
-        // LOW/MEDIUM boundary case. Per-label thresholds fixed that (HIGH is
-        // back to resolving confidently), but MEDIUM still rarely clears its
-        // own bar on real traffic — that part is a real, separate limitation
-        // of URL-only features, not a threshold artifact. See model/evaluation/
-        // trained-model-report.md and docs/interview-brief.md.
-        private val DEFAULT_CERTAIN_DISTANCE_THRESHOLDS = mapOf(
-            "LOW" to 0.3521711633503199,
-            "MEDIUM" to 0.7851810328851682,
-            "HIGH" to 1.0400515801994275,
-            "UNKNOWN" to 0.3066487667231378,
-        )
+        private const val DEFAULT_MODEL_RESOURCE = "/url_risk_centroid_model.json"
+        private val DEFAULT_CERTAIN_DISTANCE_THRESHOLDS = Risk.entries.associate { it.name to 1.2 }
+        private val LENGTH_FEATURE_NAMES = setOf("url_length", "host_length", "path_length", "query_length")
+        private val LENGTH_FEATURE_INDICES = UrlFeatureExtractor.FEATURE_NAMES
+            .mapIndexedNotNull { index, name -> index.takeIf { name in LENGTH_FEATURE_NAMES } }
+            .toSet()
 
         fun default(): NearestCentroidUrlModel {
+            return fromResource(DEFAULT_MODEL_RESOURCE)
+        }
+
+        fun fromResource(resourceName: String): NearestCentroidUrlModel {
+            val stream = NearestCentroidUrlModel::class.java.getResourceAsStream(resourceName)
+                ?: error("Model artifact resource not found: $resourceName")
+            return fromJson(stream.bufferedReader().readText())
+        }
+
+        fun fromJson(json: String): NearestCentroidUrlModel {
+            val artifact = JsonReader(json).parseObject()
+            val type = artifact.string("type")
+            require(type == "nearest-centroid") { "Unsupported model type: $type" }
+
+            val featureNames = artifact.stringList("feature_names")
+            require(featureNames == UrlFeatureExtractor.FEATURE_NAMES) {
+                "Model feature_names do not match UrlFeatureExtractor.FEATURE_NAMES."
+            }
+
             return NearestCentroidUrlModel(
-                featureMin = listOf(
-                    9.0, 1.0, 0.0, 0.0, 0.0, 0.03940298507462687, 0.0, 0.0,
-                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                ),
-                featureMax = listOf(
-                    1675.0, 52.0, 1650.0, 729.0, 0.4277227722772277, 0.4444444444444444,
-                    3.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                ),
-                centroids = mapOf(
-                    "LOW" to listOf(
-                        0.060627529700404754, 0.2731168970320369, 0.01570789865871833,
-                        0.08339892209554221, 0.1532108139623962, 0.364186453860736,
-                        0.3041894353369763, 0.00546448087431694, 0.01092896174863388,
-                        0.01092896174863388, 0.0, 0.01639344262295082, 0.15300546448087432,
-                        0.7213114754098361, 0.03278688524590164,
-                    ),
-                    "MEDIUM" to listOf(
-                        0.0550583869911601, 0.28843582887700536, 0.00797520661157025,
-                        0.0859832896869934, 0.15100843634063002, 0.34538716240734574,
-                        0.20643939393939392, 0.0, 0.005681818181818182, 0.4431818181818182,
-                        0.03977272727272727, 0.03977272727272727, 0.10227272727272728,
-                        0.07386363636363637, 0.45454545454545453,
-                    ),
-                    "HIGH" to listOf(
-                        0.024469046878010464, 0.4531590413943355, 0.008477366255144033,
-                        0.0048265000254026314, 0.005627521690492418, 0.34053811046223526,
-                        0.004115226337448559, 0.30864197530864196, 0.6296296296296297,
-                        0.037037037037037035, 0.024691358024691357, 0.0, 0.37037037037037035,
-                        0.0, 0.9876543209876543,
-                    ),
-                    "UNKNOWN" to listOf(
-                        0.018547418967587034, 0.36004901960784313, 0.0072348484848484855,
-                        0.0007716049382716049, 0.05520969006058195, 0.376767182884855,
-                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3,
-                    ),
-                )
+                featureMin = artifact.doubleList("feature_min"),
+                featureMax = artifact.doubleList("feature_max"),
+                centroids = artifact.objectValue("centroids").mapValues { (_, value) ->
+                    value.asDoubleList()
+                },
+                certainDistanceThresholds = artifact.objectValue("certain_distance_thresholds")
+                    .mapValues { (_, value) -> value.asDouble() },
             )
         }
     }
+}
+
+private class JsonReader(private val input: String) {
+    private var index = 0
+
+    fun parseObject(): Map<String, JsonValue> {
+        val value = parseValue()
+        skipWhitespace()
+        require(index == input.length) { "Unexpected trailing JSON content at offset $index." }
+        return value.asObject()
+    }
+
+    private fun parseValue(): JsonValue {
+        skipWhitespace()
+        require(index < input.length) { "Unexpected end of JSON input." }
+        return when (input[index]) {
+            '{' -> JsonValue.ObjectValue(parseObjectValue())
+            '[' -> JsonValue.ArrayValue(parseArrayValue())
+            '"' -> JsonValue.StringValue(parseStringValue())
+            '-', in '0'..'9' -> JsonValue.NumberValue(parseNumberValue())
+            't' -> parseLiteral("true", JsonValue.BooleanValue(true))
+            'f' -> parseLiteral("false", JsonValue.BooleanValue(false))
+            'n' -> parseLiteral("null", JsonValue.NullValue)
+            else -> error("Unexpected JSON token '${input[index]}' at offset $index.")
+        }
+    }
+
+    private fun parseObjectValue(): Map<String, JsonValue> {
+        expect('{')
+        skipWhitespace()
+        if (peek('}')) {
+            index++
+            return emptyMap()
+        }
+
+        val values = linkedMapOf<String, JsonValue>()
+        while (true) {
+            skipWhitespace()
+            val key = parseStringValue()
+            skipWhitespace()
+            expect(':')
+            values[key] = parseValue()
+            skipWhitespace()
+            when {
+                peek(',') -> index++
+                peek('}') -> {
+                    index++
+                    return values
+                }
+                else -> error("Expected ',' or '}' at offset $index.")
+            }
+        }
+    }
+
+    private fun parseArrayValue(): List<JsonValue> {
+        expect('[')
+        skipWhitespace()
+        if (peek(']')) {
+            index++
+            return emptyList()
+        }
+
+        val values = mutableListOf<JsonValue>()
+        while (true) {
+            values += parseValue()
+            skipWhitespace()
+            when {
+                peek(',') -> index++
+                peek(']') -> {
+                    index++
+                    return values
+                }
+                else -> error("Expected ',' or ']' at offset $index.")
+            }
+        }
+    }
+
+    private fun parseStringValue(): String {
+        expect('"')
+        val out = StringBuilder()
+        while (index < input.length) {
+            val char = input[index++]
+            when (char) {
+                '"' -> return out.toString()
+                '\\' -> out.append(parseEscapedChar())
+                else -> out.append(char)
+            }
+        }
+        error("Unterminated JSON string.")
+    }
+
+    private fun parseEscapedChar(): Char {
+        require(index < input.length) { "Unterminated JSON escape." }
+        return when (val escaped = input[index++]) {
+            '"', '\\', '/' -> escaped
+            'b' -> '\b'
+            'f' -> '\u000C'
+            'n' -> '\n'
+            'r' -> '\r'
+            't' -> '\t'
+            'u' -> {
+                val hex = input.substring(index, index + 4)
+                index += 4
+                hex.toInt(16).toChar()
+            }
+            else -> error("Unsupported JSON escape '\\$escaped' at offset ${index - 1}.")
+        }
+    }
+
+    private fun parseNumberValue(): Double {
+        val start = index
+        if (peek('-')) index++
+        consumeDigits()
+        if (peek('.')) {
+            index++
+            consumeDigits()
+        }
+        if (peek('e') || peek('E')) {
+            index++
+            if (peek('+') || peek('-')) index++
+            consumeDigits()
+        }
+        return input.substring(start, index).toDouble()
+    }
+
+    private fun consumeDigits() {
+        val start = index
+        while (index < input.length && input[index].isDigit()) {
+            index++
+        }
+        require(index > start) { "Expected digit at offset $index." }
+    }
+
+    private fun parseLiteral(literal: String, value: JsonValue): JsonValue {
+        require(input.startsWith(literal, index)) { "Expected '$literal' at offset $index." }
+        index += literal.length
+        return value
+    }
+
+    private fun skipWhitespace() {
+        while (index < input.length && input[index].isWhitespace()) {
+            index++
+        }
+    }
+
+    private fun expect(char: Char) {
+        skipWhitespace()
+        require(peek(char)) { "Expected '$char' at offset $index." }
+        index++
+    }
+
+    private fun peek(char: Char): Boolean {
+        return index < input.length && input[index] == char
+    }
+}
+
+private sealed class JsonValue {
+    data class ObjectValue(val value: Map<String, JsonValue>) : JsonValue()
+    data class ArrayValue(val value: List<JsonValue>) : JsonValue()
+    data class StringValue(val value: String) : JsonValue()
+    data class NumberValue(val value: Double) : JsonValue()
+    data class BooleanValue(val value: Boolean) : JsonValue()
+    data object NullValue : JsonValue()
+
+    fun asObject(): Map<String, JsonValue> = (this as ObjectValue).value
+    fun asArray(): List<JsonValue> = (this as ArrayValue).value
+    fun asString(): String = (this as StringValue).value
+    fun asDouble(): Double = (this as NumberValue).value
+    fun asDoubleList(): List<Double> = asArray().map { it.asDouble() }
+}
+
+private fun Map<String, JsonValue>.string(key: String): String {
+    return requireNotNull(this[key]) { "Missing JSON string field: $key" }.asString()
+}
+
+private fun Map<String, JsonValue>.stringList(key: String): List<String> {
+    return requireNotNull(this[key]) { "Missing JSON string array field: $key" }
+        .asArray()
+        .map { it.asString() }
+}
+
+private fun Map<String, JsonValue>.doubleList(key: String): List<Double> {
+    return requireNotNull(this[key]) { "Missing JSON number array field: $key" }.asDoubleList()
+}
+
+private fun Map<String, JsonValue>.objectValue(key: String): Map<String, JsonValue> {
+    return requireNotNull(this[key]) { "Missing JSON object field: $key" }.asObject()
 }

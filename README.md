@@ -1,12 +1,21 @@
 # GUADIAN On-device Judge
 
-Local-first URL risk judgment pipeline for ad landing URLs.
+Local-first URL risk judgment pipeline evolved from the SKT FLY AI bootcamp
+GUADIAN project.
 
-This repository refactors the GUADIAN risk-judgment concept into a lightweight
-local judgment engine. The current implementation is a Kotlin/JVM prototype
-intended for Android integration: it can classify URLs locally with rules,
-a compact feature-based model, local policy retrieval, and remote fallback for
-uncertain cases.
+| Field | Current state |
+| :-- | :-- |
+| Status | Active research prototype |
+| Runtime | Real Android app (Gradle/AGP), verified on emulator |
+| Model | URL-feature nearest-centroid classifier |
+| Android scope | Minimal URL-input -> Verdict screen; Shield/browser interception not built |
+
+This repository takes the original GUADIAN ad-risk judgment concept developed
+during the SKT FLY AI bootcamp and reorganizes it as an on-device-oriented
+local judgment engine. Instead of relying only on a remote server judgment flow,
+the current Kotlin/JVM prototype can classify URLs locally with deterministic
+rules, a compact feature-based model, local policy retrieval, and remote
+fallback for uncertain cases.
 
 ## What This Project Does
 
@@ -32,12 +41,16 @@ Implemented:
 - Python model training and evaluation workflow
 - sanitized dataset and reference-source documentation
 - Kotlin and Python unit tests
+- real Android app build (AGP/Gradle), installed and run on emulator
+- minimal UI (`JudgeActivity`): URL input -> Verdict display
+- all 4 judgment layers (rule/model/RAG/remote) verified end-to-end on emulator,
+  including safe failure handling when the remote fallback is unreachable
 
 Not yet implemented:
 
-- Android UI / Shield screen
-- device or emulator end-to-end validation
-- AccessibilityService, WebView, or browser URL capture integration
+- Shield screen / AccessibilityService browser-ad-click interception
+- physical device testing (emulator only so far)
+- risk-based UI styling, app icon, result history
 - production deployment of the fallback server
 - TFLite/ONNX runtime conversion
 
@@ -69,15 +82,15 @@ for local inference:
 - label-level precision, recall, F1, and error analysis
 - calibrated per-label confidence thresholds
 
-Current evaluation with 648 sanitized samples:
+Current evaluation with 668 sanitized samples:
 
 | Metric | Value |
 | :-- | --: |
-| Holdout accuracy | 72.66% |
-| Holdout macro F1 | 74.24% |
-| Baseline accuracy | 68.75% |
-| Cross-validation accuracy | 72.52% |
-| Cross-validation macro F1 | 74.51% |
+| Holdout accuracy | 79.55% |
+| Holdout macro F1 | 80.98% |
+| Baseline accuracy | 68.94% |
+| Cross-validation accuracy | 81.19% |
+| Cross-validation macro F1 | 82.70% |
 
 The evaluation intentionally includes realistic ad landing URLs. Accuracy drops
 compared with synthetic-only data, but the failure modes are now visible:
@@ -87,12 +100,16 @@ URL-only signals.
 ## Repository Layout
 
 ```text
-android/app/src/main/kotlin/com/guardian/ondevice/
-  judge/      pipeline orchestration and remote fallback client
-  rules/      deterministic URL risk rules
-  model/      URL features and local model runtime
-  rag/        local policy-based fallback
-  store/      local verdict cache
+android/app/src/main/
+  AndroidManifest.xml
+  res/                                   layout, strings, theme
+  kotlin/com/guardian/ondevice/
+    JudgeActivity.kt   URL input -> Verdict display screen
+    judge/      pipeline orchestration and remote fallback client
+    rules/      deterministic URL risk rules
+    model/      URL features and local model runtime
+    rag/        local policy-based fallback
+    store/      local verdict cache
 
 model/
   data/       sanitized samples and official-domain allowlist
@@ -105,7 +122,23 @@ docs/         architecture, project report, source/reference notes
 reference/    copied reference materials and external source records
 ```
 
+## Run The App
+
+Requires Android Studio / SDK with an emulator (or device) already set up:
+
+```bash
+./gradlew installDebug
+adb shell am start -n com.guardian.ondevice/.JudgeActivity
+```
+
 ## Run Tests
+
+Instrumented UI tests (requires a running emulator/device; automates the same
+4-layer check — rule/model/RAG/remote — done by hand during development):
+
+```bash
+./gradlew connectedDebugAndroidTest
+```
 
 Kotlin pipeline tests:
 
@@ -128,6 +161,12 @@ cd server
 ../.venv/bin/python -m unittest discover .
 ```
 
+Repository risk gates:
+
+```bash
+bash scripts/check-model-governance.sh
+```
+
 ## Train The Model
 
 ```bash
@@ -144,7 +183,11 @@ This regenerates:
 - [Project Report](docs/project-report.md): complete technical narrative,
   evaluation results, limitations, and next steps
 - [Architecture](docs/architecture.md): runtime pipeline and component roles
-- [Source And Reference Notes](docs/source-and-reference.md): what was copied,
+- [Provenance](docs/provenance.md): what was copied,
   derived, or only used as reference
+- [Data Governance](docs/data-governance.md): allowed claims, forbidden claims, and
+  dataset governance rules
+- [Model Card](model/evaluation/model-card.md): artifact role, metrics,
+  intended use, and limitations
 - [Model Workspace](model/README.md): dataset, training, and evaluation workflow
 - [Remote Fallback Server](server/README.md): FastAPI fallback setup

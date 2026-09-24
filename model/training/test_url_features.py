@@ -31,6 +31,40 @@ class UrlFeatureTest(unittest.TestCase):
         self.assertEqual(len(vector), len(FEATURE_NAMES))
         self.assertTrue(all(isinstance(value, float) for value in vector))
 
+    def test_extracts_redirect_and_ad_network_features(self):
+        features = extract_features(
+            "https://googleads.g.doubleclick.net/pcs/click?"
+            "adurl=https%3A%2F%2Fexample.com%2Flanding&gclid=abc123&utm_source=display"
+        )
+
+        self.assertEqual(features["query_param_count"], 3.0)
+        self.assertEqual(features["utm_param_count"], 1.0)
+        self.assertEqual(features["tracking_param_count"], 2.0)
+        self.assertEqual(features["has_nested_url"], 1.0)
+        self.assertEqual(features["has_encoded_url"], 1.0)
+        self.assertEqual(features["has_ad_click_host"], 1.0)
+
+    def test_extracts_base64_like_redirect_token(self):
+        features = extract_features(
+            "https://s.adscope.co.kr/adt_connect.php?"
+            "u=aHR0cDovL3Nha3VuemEuY29tL25ld3NtL2luZGV4X2JuLmh0bWw&v=&d="
+        )
+
+        self.assertEqual(features["has_ad_click_host"], 1.0)
+        self.assertEqual(features["has_base64_like_token"], 1.0)
+
+    def test_feature_parity_fixture_matches_python_extractor(self):
+        fixture_path = Path(__file__).parents[1] / "data" / "feature_parity_cases.csv"
+        with fixture_path.open(newline="") as handle:
+            rows = list(csv.DictReader(handle))
+
+        self.assertGreater(len(rows), 0)
+        self.assertEqual([name for name in rows[0] if name != "url"], FEATURE_NAMES)
+
+        for row in rows:
+            expected = [float(row[name]) for name in FEATURE_NAMES]
+            self.assertEqual(feature_vector(row["url"]), expected)
+
     def test_sample_dataset_urls_are_extractable(self):
         sample_path = Path(__file__).parents[1] / "data" / "sample_urls.csv"
         with sample_path.open(newline="") as handle:

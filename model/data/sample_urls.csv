@@ -647,3 +647,23 @@ https://melable.co.kr/product/%EB%A3%A8%EB%B9%84%EC%95%8C%EC%97%94-%ED%94%BC%EC%
 https://s.findmyfamily.co.kr/72924b?gad_source=5&gad_campaignid=24167488278&gclid=CjwKCAjw48TUBhBREiwAK0GnQQOw75qYSmaCwu8F-_bjD3DS2APBgCPxpALNi6y7dm0vVAam4znXhhoCDQkQAvD_BwE,MEDIUM,reference-derived,3-model consensus (claude/gemini/openai) on real ad-landing traffic; type=unverifiable,suspicious-pattern,,llm-consensus-claude-gemini-openai,2026-08-29
 https://m.isplus.com,MEDIUM,reference-derived,3-model consensus (claude/gemini/openai) on real ad-landing traffic; type=unverifiable,suspicious-pattern,,llm-consensus-claude-gemini-openai,2026-08-29
 https://healthbk.co.kr/newsm/index_on.html?pid=05,MEDIUM,reference-derived,3-model consensus (claude/gemini/openai) on real ad-landing traffic; type=unverifiable,suspicious-pattern,,llm-consensus-claude-gemini-openai,2026-08-29
+https://www.kbstar.com,LOW,public-benign,official KB Kookmin Bank domain from allowlist,official-domain,kbstar,manual-review,2026-09-24
+https://obank.kbstar.com/quics?page=C016511,LOW,public-benign,official KB online banking subdomain,official-domain,kbstar,manual-review,2026-09-24
+https://www.shinhan.com/index.jsp,LOW,public-benign,official Shinhan Bank public domain,official-domain,shinhan,manual-review,2026-09-24
+https://www.wooribank.com,LOW,public-benign,official Woori Bank public domain,official-domain,woori,manual-review,2026-09-24
+https://nid.naver.com/nidlogin.login,LOW,public-benign,official Naver login domain despite login token,official-domain,naver,manual-review,2026-09-24
+https://accounts.google.com/signin/v2/identifier,LOW,public-benign,official Google account sign-in domain,official-domain,google,manual-review,2026-09-24
+https://kb-star.top/login?verify=account,HIGH,synthetic,KB-like banking login lure on suspicious top-level domain,brand-impersonation,kbstar,manual-review,2026-09-24
+https://kbstar-security.xyz/auth/account,HIGH,synthetic,KB-like account verification lure on non-official domain,brand-impersonation,kbstar,manual-review,2026-09-24
+https://shinhan-login.click/verify,HIGH,synthetic,Shinhan-like login verification lure on suspicious domain,brand-impersonation,shinhan,manual-review,2026-09-24
+https://woori-bank-auth.top/account,HIGH,synthetic,Woori-like account authentication lure on suspicious domain,brand-impersonation,woori,manual-review,2026-09-24
+https://download-center.click/install/app.apk?token=12345,HIGH,synthetic,external APK installation flow on suspicious domain,apk-download,,rule-policy,2026-09-24
+https://secure-update.xyz/auth/account,HIGH,synthetic,account authentication lure on suspicious top-level domain,suspicious-pattern,,manual-review,2026-09-24
+https://bit.ly/3AbCdEf,MEDIUM,synthetic,shortened URL without destination context,suspicious-pattern,,manual-review,2026-09-24
+https://t.co/r/free-gift,MEDIUM,synthetic,shortener plus free gift lure with limited context,suspicious-pattern,,manual-review,2026-09-24
+https://xn--ok0b236bba.com/event,MEDIUM,synthetic,punycode domain with event lure and no official-domain evidence,suspicious-pattern,,manual-review,2026-09-24
+https://coupon.example.com/event/free?gift=1,LOW,synthetic,event and gift terms on trusted example subdomain,official-domain,,rule-policy,2026-09-24
+https://www.coupang.com/vp/products/123456?itemId=7890,LOW,public-benign,official commerce product page with numeric identifiers,official-domain,coupang,manual-review,2026-09-24
+https://promo-landing.test/notice,UNKNOWN,synthetic,promotional-looking landing page without credential or malware evidence,no-signal,,manual-review,2026-09-24
+https://redirector.example.net/out/7x9,UNKNOWN,synthetic,redirect-looking URL without known target or brand claim,no-signal,,manual-review,2026-09-24
+https://mobile-campaign.test/info,UNKNOWN,synthetic,generic campaign URL with insufficient risk evidence,no-signal,,manual-review,2026-09-24
