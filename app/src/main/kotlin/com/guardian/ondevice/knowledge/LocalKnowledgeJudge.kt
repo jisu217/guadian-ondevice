@@ -1,11 +1,11 @@
-package com.guardian.ondevice.rag
+package com.guardian.ondevice.knowledge
 
 import com.guardian.ondevice.judge.Confidence
 import com.guardian.ondevice.judge.Judge
 import com.guardian.ondevice.judge.Risk
 import com.guardian.ondevice.judge.Verdict
 
-class LocalRagJudge(
+class LocalKnowledgeJudge(
     private val retriever: LocalKnowledgeRetriever = LocalKnowledgeRetriever(),
 ) : Judge {
     override fun judge(url: String, done: (Verdict) -> Unit) {
@@ -16,7 +16,7 @@ class LocalRagJudge(
                     risk = Risk.UNKNOWN,
                     reason = "No local knowledge matched the URL.",
                     advice = "Use remote fallback if local judgment remains uncertain.",
-                    source = "local-rag",
+                    source = "local-knowledge",
                     confidence = Confidence.UNCERTAIN,
                 )
             )
@@ -30,7 +30,7 @@ class LocalRagJudge(
                 risk = primary.risk,
                 reason = "Local knowledge matched: $evidence.",
                 advice = primary.advice,
-                source = "local-rag",
+                source = "local-knowledge",
                 confidence = primary.confidence,
                 type = primary.id,
             )
