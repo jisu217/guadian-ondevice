@@ -16,6 +16,8 @@ LABELS = ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
 DEFAULT_DATASET = Path(__file__).parents[1] / "data" / "sample_urls.csv"
 DEFAULT_ARTIFACT = Path(__file__).parents[1] / "artifacts" / "url_risk_centroid_model.json"
 DEFAULT_REPORT = Path(__file__).parents[1] / "evaluation" / "trained-model-report.md"
+DEFAULT_TRAIN_SPLIT = Path(__file__).parents[1] / "evaluation" / "train-split.csv"
+DEFAULT_TEST_SPLIT = Path(__file__).parents[1] / "evaluation" / "test-split.csv"
 DEFAULT_FOLDS = 5
 DEFAULT_CERTAIN_DISTANCE_THRESHOLD = 1.2
 
@@ -269,6 +271,7 @@ def render_report(
         "## Validation Protocol",
         "",
         "- Final test metrics use a deterministic stratified holdout split.",
+        "- The exact holdout files are saved as `model/evaluation/train-split.csv` and `model/evaluation/test-split.csv`.",
         f"- Threshold calibration uses {DEFAULT_FOLDS}-fold stratified cross-validation on the training split.",
         "- Each label gets its own certain-distance threshold instead of one shared scalar,",
         "  so one close call for label A can no longer collapse label B's threshold too.",
@@ -417,6 +420,18 @@ def save_report(report: str, path: Path = DEFAULT_REPORT) -> None:
     path.write_text(report)
 
 
+def save_rows(rows: list[dict[str, str]], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not rows:
+        path.write_text("")
+        return
+
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def _feature_ranges(vectors: list[list[float]]) -> tuple[list[float], list[float]]:
     transposed = list(zip(*vectors))
     return [min(values) for values in transposed], [max(values) for values in transposed]
@@ -466,6 +481,8 @@ def _percentile(values: list[float], percentile: float) -> float:
 def main() -> None:
     rows = load_rows()
     train_rows, test_rows = stratified_split(rows)
+    save_rows(train_rows, DEFAULT_TRAIN_SPLIT)
+    save_rows(test_rows, DEFAULT_TEST_SPLIT)
     fold_evaluations, cross_validation_predictions = cross_validate_model(train_rows)
     certain_distance_thresholds = calibrate_certain_distance_thresholds(cross_validation_predictions)
     model = train_centroid_model(train_rows, certain_distance_thresholds=certain_distance_thresholds)
