@@ -1,6 +1,15 @@
 # GUADIAN On-device Judge
 
+![Status](https://img.shields.io/badge/status-active%20prototype-blue)
+![Runtime](https://img.shields.io/badge/runtime-Kotlin%2FJVM-orange)
+![Model](https://img.shields.io/badge/model-nearest--centroid-green)
+![Android](https://img.shields.io/badge/android-integration%20pending-lightgrey)
+
 Local-first URL risk judgment pipeline for ad landing URLs.
+
+> Status: This project is an active research prototype.  
+> The current implementation runs as a Kotlin/JVM local judgment engine and has
+> not yet been validated as a complete Android application.
 
 This repository refactors the GUADIAN risk-judgment concept into a lightweight
 local judgment engine. The current implementation is a Kotlin/JVM prototype
@@ -128,6 +137,12 @@ cd server
 ../.venv/bin/python -m unittest discover .
 ```
 
+Repository risk gates:
+
+```bash
+bash scripts/check-model-governance.sh
+```
+
 ## Train The Model
 
 ```bash
@@ -146,5 +161,9 @@ This regenerates:
 - [Architecture](docs/architecture.md): runtime pipeline and component roles
 - [Source And Reference Notes](docs/source-and-reference.md): what was copied,
   derived, or only used as reference
+- [Data Policy](docs/data-policy.md): allowed claims, forbidden claims, and
+  dataset governance rules
+- [Model Card](model/evaluation/model-card.md): artifact role, metrics,
+  intended use, and limitations
 - [Model Workspace](model/README.md): dataset, training, and evaluation workflow
 - [Remote Fallback Server](server/README.md): FastAPI fallback setup
