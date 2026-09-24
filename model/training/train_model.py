@@ -224,7 +224,7 @@ def calibrate_certain_distance_thresholds(predictions: list[ModelPrediction]) ->
 
     A single global threshold means one close-but-wrong prediction for ANY
     label drags the "certain" bar down for every other label too, even ones
-    that are cleanly separated (see docs/project-report.md's evaluation
+    that are cleanly separated (see docs/technical-report.md's evaluation
     discussion for the case that exposed this: one LOW/MEDIUM
     boundary error at distance 0.35 collapsed HIGH's threshold from ~1.1 to
     0.35, even though HIGH itself had no errors anywhere near that close).
