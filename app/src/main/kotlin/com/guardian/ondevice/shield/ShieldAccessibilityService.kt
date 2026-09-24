@@ -12,18 +12,9 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.Button
 import android.widget.TextView
 import com.guardian.ondevice.R
+import com.guardian.ondevice.judge.DefaultJudgeGraph
 import com.guardian.ondevice.judge.HybridJudge
-import com.guardian.ondevice.judge.LocalReasoningJudge
-import com.guardian.ondevice.judge.RemoteJudge
-import com.guardian.ondevice.judge.RuleBasedJudge
 import com.guardian.ondevice.judge.Verdict
-import com.guardian.ondevice.model.OnDeviceModelJudge
-import com.guardian.ondevice.rag.LocalRagJudge
-import com.guardian.ondevice.rules.ApkRule
-import com.guardian.ondevice.rules.BrandImpersonationRule
-import com.guardian.ondevice.rules.SuspiciousUrlRule
-import com.guardian.ondevice.store.LocalRiskStore
-import com.guardian.ondevice.webview.PageContentJudge
 
 /**
  * System-wide browser-click trigger for the same HybridJudge pipeline used by
@@ -39,20 +30,7 @@ class ShieldAccessibilityService : AccessibilityService() {
     private var overlayView: View? = null
 
     private val hybridJudge: HybridJudge by lazy {
-        HybridJudge(
-            store = LocalRiskStore(),
-            ruleBasedJudge = RuleBasedJudge(
-                rules = listOf(ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule())
-            ),
-            localReasoningJudge = LocalReasoningJudge(
-                judges = listOf(
-                    OnDeviceModelJudge(),
-                    LocalRagJudge(),
-                    PageContentJudge(context = this),
-                )
-            ),
-            remoteJudge = RemoteJudge(),
-        )
+        DefaultJudgeGraph.create(context = this)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
