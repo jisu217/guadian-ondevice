@@ -15,7 +15,11 @@ out/
 # IDE project files
 .idea/
 *.iml
+.vscode/
 .github/modernize/
+
+# Android Studio's Espresso test screenshot/video output
+captures/
 
 # macOS Finder metadata
 .DS_Store
