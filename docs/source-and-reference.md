@@ -71,6 +71,39 @@ This distinction matters: LLM-consensus labels are useful for prototype
 evaluation, but they are not equivalent to a fully human-audited production
 dataset.
 
+## Committed Dataset Provenance
+
+The current `model/data/sample_urls.csv` contains 648 rows. Provenance is
+recorded row-by-row through `source`, `reviewed_by`, and `created_at`.
+
+Current `source` distribution:
+
+| Source | Rows | Meaning |
+| :-- | --: | :-- |
+| `synthetic` | 288 | controlled samples generated for feature and pipeline validation |
+| `reference-derived` | 275 | samples derived from GUADIAN-related references or the sibling gold dataset |
+| `public-benign` | 85 | public official/normal URLs used as benign examples |
+
+Current `reviewed_by` distribution:
+
+| Reviewed by | Rows | Meaning |
+| :-- | --: | :-- |
+| `manual-review` | 319 | manually assigned or manually checked during prototype dataset construction |
+| `llm-consensus-claude-gemini-openai` | 217 | label from sibling LLM-consensus gold data |
+| `rule-policy` | 81 | label assigned by deterministic project policy |
+| `human-review` | 31 | human-reviewed rows from the sibling gold data |
+
+Important split:
+
+- 248 `reference-derived` rows came from `reference/gold_251.jsonl`.
+- The remaining `reference-derived` rows are earlier GUADIAN-policy-derived
+  prototype rows. They are labeled as reference-derived because they use the
+  original GUADIAN risk categories and policy documents as the source basis,
+  not because they were copied verbatim from a raw production log.
+
+The exact row-level origin should be read from `sample_urls.csv`; the table
+above summarizes the committed dataset.
+
 ## Public Domain Allowlist Source
 
 `model/data/official_domains.txt` was built from:

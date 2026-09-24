@@ -104,6 +104,9 @@ The Python extractor and Kotlin runtime extractor are kept conceptually aligned.
 `model/data/official_domains.txt` is read as a shared resource to reduce
 manual drift.
 
+The model iteration history is documented in
+[Model Development History](../model/docs/model-development-history.md).
+
 ## 6. Dataset
 
 The current committed dataset is a sanitized prototype dataset, not a production

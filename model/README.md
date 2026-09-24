@@ -15,6 +15,7 @@ fast local signal inside the broader `Rule -> Model -> RAG -> Remote` pipeline.
 | `data/official_domains.txt` | Tranco top 50000 + project seed/brand domains |
 | `docs/dataset-schema.md` | CSV schema and labeling rules |
 | `docs/feature-spec.md` | Python/Kotlin feature contract |
+| `docs/model-development-history.md` | model experiment history and design decisions |
 | `training/url_features.py` | Python feature extractor |
 | `training/train_baseline.py` | rule-scoring baseline |
 | `training/train_model.py` | nearest-centroid training and evaluation |
@@ -92,6 +93,7 @@ The Tranco input file is intentionally not committed.
 ## Related Documents
 
 - [Project Report](../docs/project-report.md)
+- [Model Development History](docs/model-development-history.md)
 - [Feature Specification](docs/feature-spec.md)
 - [Dataset Schema](docs/dataset-schema.md)
 - [Trained Model Report](evaluation/trained-model-report.md)

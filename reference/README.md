@@ -22,3 +22,7 @@ For the complete source/provenance explanation, see
 
 Use `reference/` to explain where ideas and data came from. Use `android/`,
 `model/`, and `server/` to inspect the current implementation.
+
+Some links inside `reference/docs/` still point to paths from the original
+GUADIAN repository. They are preserved for source context and may not resolve in
+this refactored repository.
