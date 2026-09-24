@@ -1,9 +1,9 @@
 package com.guardian.ondevice.judge
 
-import com.guardian.ondevice.store.LocalRiskStore
+import com.guardian.ondevice.store.RiskStore
 
 class HybridJudge(
-    private val store: LocalRiskStore,
+    private val store: RiskStore,
     private val ruleBasedJudge: Judge,
     private val localReasoningJudge: Judge,
     private val remoteJudge: Judge,
