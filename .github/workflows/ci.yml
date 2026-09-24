@@ -23,8 +23,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Check model docs
-        run: bash scripts/check-model-docs.sh
+      - name: Check model requirements
+        run: bash scripts/check-model-requirements.sh
 
       - name: Install server dependencies
         run: python -m pip install -r server/requirements.txt

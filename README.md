@@ -95,7 +95,7 @@ Android settings, then click an off-site link in a supported browser.
 ## Check
 
 ```bash
-bash scripts/check-model-docs.sh
+bash scripts/check-model-requirements.sh
 python3 -m unittest discover model/training
 .venv/bin/python -m unittest discover server
 ./gradlew test

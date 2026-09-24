@@ -4,12 +4,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 fail() {
-  echo "[model-docs] FAIL: $*" >&2
+  echo "[model-requirements] FAIL: $*" >&2
   exit 1
 }
 
 pass() {
-  echo "[model-docs] PASS: $*"
+  echo "[model-requirements] PASS: $*"
 }
 
 require_file() {
@@ -53,14 +53,14 @@ require_file "model/training/test_url_features.py"
 require_file "app/src/test/kotlin/com/guardian/ondevice/model/UrlFeatureExtractorTest.kt"
 pass "required model files exist"
 
-require_text ".github/workflows/ci.yml" "scripts/check-model-docs\\.sh" \
-  "CI must run scripts/check-model-docs.sh"
-pass "CI runs model documentation checks"
+require_text ".github/workflows/ci.yml" "scripts/check-model-requirements\\.sh" \
+  "CI must run scripts/check-model-requirements.sh"
+pass "CI runs model requirement checks"
 
 # Checks for required *claims*, not exact metric values: a legitimate
 # retrain changes accuracy/sample counts on every run, so hardcoding those
 # here would make this script fail on every honest improvement instead of
-# catching an actual documentation problem.
+# catching an actual requirements problem.
 require_text "model/evaluation/model-card.md" "not a production security detection service" \
   "model card must state production limitation"
 require_text "model/evaluation/model-card.md" "Baseline accuracy on same split" \
