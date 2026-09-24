@@ -9,14 +9,14 @@ class LocalReasoningJudgeTest {
         val judge = LocalReasoningJudge(
             listOf(
                 fixedJudge("on-device-model", Risk.UNKNOWN, Confidence.UNCERTAIN),
-                fixedJudge("local-rag", Risk.MEDIUM, Confidence.CERTAIN),
+                fixedJudge("local-knowledge", Risk.MEDIUM, Confidence.CERTAIN),
             )
         )
 
         val verdict = judgeNow(judge, "https://example.com/free")
 
         assertEquals(Risk.MEDIUM, verdict.risk)
-        assertEquals("local-rag", verdict.source)
+        assertEquals("local-knowledge", verdict.source)
     }
 
     @Test
@@ -24,14 +24,14 @@ class LocalReasoningJudgeTest {
         val judge = LocalReasoningJudge(
             listOf(
                 fixedJudge("on-device-model", Risk.UNKNOWN, Confidence.UNCERTAIN),
-                fixedJudge("local-rag", Risk.UNKNOWN, Confidence.UNCERTAIN),
+                fixedJudge("local-knowledge", Risk.UNKNOWN, Confidence.UNCERTAIN),
             )
         )
 
         val verdict = judgeNow(judge, "https://example.com")
 
         assertEquals(Risk.UNKNOWN, verdict.risk)
-        assertEquals("local-rag", verdict.source)
+        assertEquals("local-knowledge", verdict.source)
     }
 
     private fun fixedJudge(source: String, risk: Risk, confidence: Confidence): Judge {
