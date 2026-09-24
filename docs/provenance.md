@@ -27,6 +27,21 @@ The current implementation is not a direct port. The local-first sequence,
 Kotlin model runtime, Python training workflow, local RAG fallback, and FastAPI
 server were implemented in this repository.
 
+### Consulted But Not Copied
+
+- `GuADian23-model-compare/domains.py` (`host_of`, `site_of`, both diagnostic
+  helpers, not part of the merged gold dataset) was read to diagnose why
+  `java.net.URI` returned a null host for internationalized domains (for
+  example `https://알뜰상조.com/`). `UrlFeatureExtractor.kt`'s `parse()` function
+  is a new implementation matching Python's `urllib.parse.urlparse` behavior,
+  not a port of that file.
+- `eval_set.json` (45 hand-labeled real ad-landing cases) exists identically in
+  three local checkouts of the original GUADIAN app (`guadian`,
+  `guadian-demo-master`, `guadian23-judge-research-master`) and was read to
+  understand how the original team validated risk grades. None of its rows
+  were merged into `model/data/sample_urls.csv` — only `gold_251.jsonl` (from
+  the separate `GuADian23-model-compare` repo) was.
+
 ## Reference Policy Documents
 
 The original GUADIAN policy documents are preserved under `reference/docs/`.
@@ -43,7 +58,16 @@ implemented in `android/app/src/main/kotlin/com/guardian/ondevice/`.
 
 ## Sibling Dataset Reference
 
-`reference/gold_251.jsonl` comes from a local sibling project:
+`GuADian23-model-compare` is a separate, independent experiment repository
+from the same team, not the GUADIAN app repository itself. It re-runs the same
+judge inputs through Claude, Gemini, and GPT-5, merges the three providers'
+verdicts, and hands disagreements to a human reviewer to produce a scored gold
+set (see that repo's own README for the full pipeline: `run_eval.py` ->
+`merge_results.py` -> `extract_disagreements.py` -> `build_gold.py`). This
+project only consumes its output file, `gold/gold_251.jsonl`; none of its
+provider-comparison code was copied here.
+
+`reference/gold_251.jsonl` comes from that local sibling project:
 
 ```text
 Repository name: GuADian23-model-compare
