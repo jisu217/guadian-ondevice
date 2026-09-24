@@ -29,25 +29,22 @@ sibling model-comparison dataset. Preserved source material is stored under
 `reference/`; copied, derived, and reference-only boundaries are documented in
 [Provenance](provenance.md).
 
-New implementation in this repository:
-
-- local-first Kotlin judgment pipeline
-- URL-feature model and generated runtime artifact
-- local policy fallback
-- hidden-WebView page-content inspection
-- accessibility-triggered Shield flow
-- FastAPI fallback server
-- model governance and CI checks
+The current repository is a new implementation rather than a direct port. The
+new work includes the local-first Kotlin judgment pipeline, generated
+URL-feature model artifact, local policy fallback, hidden-WebView page-content
+inspection, accessibility-triggered Shield flow, FastAPI fallback server, and
+model documentation checks.
 
 ## Runtime
 
 ```text
 URL
-  -> LocalRiskStore
+  -> InMemoryRiskStore
   -> RuleBasedJudge
-  -> OnDeviceModelJudge
-  -> LocalRagJudge
-  -> PageContentJudge
+  -> LocalReasoningJudge
+       -> OnDeviceModelJudge
+       -> LocalKnowledgeJudge
+       -> PageContentJudge
   -> RemoteJudge
   -> Verdict
 ```
@@ -118,20 +115,14 @@ blind spots that the URL model itself cannot own.
 
 ## Android Verification
 
-Automated:
+Automated verification covers Kotlin unit tests, Robolectric tests for
+accessibility-node helper logic, Python model tests, server tests, and model
+documentation checks in CI.
 
-- Kotlin unit tests
-- Robolectric tests for accessibility-node helper logic
-- Python model tests
-- server tests
-- model governance checks in CI
-
-Manual/emulator:
-
-- URL judgment through `JudgeActivity`
-- safe `UNKNOWN` fallback when remote server is unavailable
-- Shield overlay on off-site browser link click
-- no overlay on same-site browser navigation
+Manual emulator verification has covered URL judgment through `JudgeActivity`,
+safe `UNKNOWN` fallback when the remote server is unavailable, Shield overlay
+display on off-site browser link clicks, and no overlay on same-site browser
+navigation.
 
 ## Limitations
 
