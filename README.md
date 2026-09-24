@@ -100,7 +100,7 @@ URL-only signals.
 ## Repository Layout
 
 ```text
-android/app/src/main/
+app/src/main/
   AndroidManifest.xml
   res/                                   layout, strings, theme
   kotlin/com/guardian/ondevice/
@@ -185,9 +185,7 @@ This regenerates:
 - [Architecture](docs/architecture.md): runtime pipeline and component roles
 - [Provenance](docs/provenance.md): what was copied,
   derived, or only used as reference
-- [Data Governance](docs/data-governance.md): allowed claims, forbidden claims, and
-  dataset governance rules
-- [Model Card](model/evaluation/model-card.md): artifact role, metrics,
-  intended use, and limitations
+- [Model Card](model/evaluation/model-card.md): artifact role, metrics, intended
+  use, limitations, and dataset governance rules
 - [Model Workspace](model/README.md): dataset, training, and evaluation workflow
 - [Remote Fallback Server](server/README.md): FastAPI fallback setup

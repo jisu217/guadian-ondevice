@@ -225,3 +225,21 @@ A precise summary:
 > pipeline. The model is not production-grade yet, but the project now has
 > measurable local performance, documented data provenance, and clear failure
 > modes for future improvement.
+
+Phrasing to use versus avoid:
+
+> Use: "I built a local inference prototype and verified it end-to-end on an
+> Android emulator — rule engine, on-device model, local RAG, and remote
+> fallback all exercised through a real Verdict screen."
+>
+> Avoid: "I shipped a production Android app." (Emulator-only, no Shield/
+> browser-interception feature, and the UI is a bare-bones demo screen with no
+> styling, history, or app icon.)
+
+If asked why accuracy dropped after adding realistic data:
+
+> The drop was useful. Synthetic-only data made the model look stronger than
+> it was. Real ad landing URLs exposed the limits of URL-only inference,
+> especially for medium-risk flows that require page text, form detection, or
+> rendered content. I used that result to separate model issues from
+> data/context limits and to define the next engineering steps.

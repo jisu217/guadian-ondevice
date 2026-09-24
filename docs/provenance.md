@@ -54,7 +54,7 @@ The original GUADIAN policy documents are preserved under `reference/docs/`.
 | `reference/docs/history.md` | `SKT-FLY-AI-TEAM-6/GUADIAN/docs/history.md` | original project context |
 
 These documents were used as policy background. Current runtime behavior is
-implemented in `android/app/src/main/kotlin/com/guardian/ondevice/`.
+implemented in `app/src/main/kotlin/com/guardian/ondevice/`.
 
 ## Sibling Dataset Reference
 

@@ -121,8 +121,8 @@ Files involved:
 | `model/training/train_baseline.py` | rule-scoring baseline |
 | `model/training/train_model.py` | model training, cross-validation, threshold calibration, report generation |
 | `model/artifacts/url_risk_centroid_model.json` | generated model parameters |
-| `android/app/src/main/kotlin/com/guardian/ondevice/model/UrlFeatureExtractor.kt` | Kotlin runtime feature extraction |
-| `android/app/src/main/kotlin/com/guardian/ondevice/model/OnDeviceModelJudge.kt` | Kotlin runtime inference |
+| `app/src/main/kotlin/com/guardian/ondevice/model/UrlFeatureExtractor.kt` | Kotlin runtime feature extraction |
+| `app/src/main/kotlin/com/guardian/ondevice/model/OnDeviceModelJudge.kt` | Kotlin runtime inference |
 
 ## 7. Completed Runtime Improvement
 
@@ -140,3 +140,30 @@ Files involved:
 | 1 | Add real redirect-chain resolution. | Current features can detect nested URLs, but they do not follow the actual HTTP chain. |
 | 2 | Revisit `MEDIUM` and `UNKNOWN` labeling policy. | Separate true uncertainty from suspicious-but-not-severe flows. |
 | 3 | Add page-level lightweight signals. | URL-only features still miss form, offer wording, and rendered-content evidence. |
+
+## 9. Data Collection Rules
+
+When adding or changing rows in `model/data/sample_urls.csv`:
+
+- Keep data sanitized and safe to commit; never commit raw browsing history,
+  private URLs, or production logs.
+- Redact identifiers such as sessions, account IDs, phone numbers, and tokens.
+- Do not commit raw active-malicious URL feeds without a license and safety
+  review.
+- Prefer new patterns over near-duplicates, and preserve whether a label came
+  from human review, rule policy, or LLM consensus.
+
+Review checklist for a new row:
+
+- [ ] `label` is one of `LOW`, `MEDIUM`, `HIGH`, `UNKNOWN`.
+- [ ] `source`, `reason`, and `category` are filled.
+- [ ] Query parameters are sanitized when they may contain identifiers.
+- [ ] The row adds a new pattern or improves label balance.
+- [ ] LLM-consensus rows are not presented as fully human-audited ground truth.
+
+Collection priorities, in order: more human-reviewed real ad-landing URLs;
+more `MEDIUM` examples with a clear page-level rationale; more benign
+tracking-heavy URLs to reduce false positives on normal ad flows; more
+redirect/ad-network cases with explicit categories; and keeping `HIGH`
+examples diverse, since realistic ad traffic surfaces few obvious high-risk
+samples.

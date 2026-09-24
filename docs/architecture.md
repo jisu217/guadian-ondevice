@@ -56,7 +56,7 @@ URL input
 
 ## Current Runtime Boundary
 
-The code is implemented as Kotlin/JVM under `android/app/src/...`, not as a
+The code is implemented as Kotlin/JVM under `app/src/...`, not as a
 complete Android application module. This allows the judgment engine to be
 tested locally before Android UI, URL capture, and device integration are added.
 

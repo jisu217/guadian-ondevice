@@ -102,13 +102,12 @@ The Tranco input file is intentionally not committed.
 - Preserve label provenance when rows are generated from LLM consensus rather
   than full human review.
 
-For allowed claims, forbidden claims, and dataset governance rules, see
-[Data Governance](../docs/data-governance.md).
+For allowed claims, forbidden claims, and dataset governance rules, see the
+"Data Governance" section of the [Model Card](evaluation/model-card.md).
 
 ## Related Documents
 
 - [Project Report](../docs/project-report.md)
-- [Data Governance](../docs/data-governance.md)
 - [Model Evolution](docs/model-evolution.md)
 - [Feature Specification](docs/feature-spec.md)
 - [Dataset Schema](docs/dataset-schema.md)
