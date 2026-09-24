@@ -13,9 +13,9 @@ GUADIAN project.
 This repository takes the original GUADIAN ad-risk judgment concept developed
 during the SKT FLY AI bootcamp and reorganizes it as an on-device-oriented
 local judgment engine. Instead of relying only on a remote server judgment flow,
-the current Kotlin/JVM prototype can classify URLs locally with deterministic
-rules, a compact feature-based model, local policy retrieval, and remote
-fallback for uncertain cases.
+the Android app can classify URLs locally with deterministic rules, a compact
+feature-based model, local policy retrieval, on-device page-content inspection,
+and remote fallback for uncertain cases.
 
 ## What This Project Does
 
@@ -43,12 +43,21 @@ Implemented:
 - Kotlin and Python unit tests
 - real Android app build (AGP/Gradle), installed and run on emulator
 - minimal UI (`JudgeActivity`): URL input -> Verdict display
-- all 4 judgment layers (rule/model/RAG/remote) verified end-to-end on emulator,
-  including safe failure handling when the remote fallback is unreachable
+- on-device page-content inspection (`PageContentJudge`): renders the
+  destination URL in a hidden WebView and flags an unverified login form or a
+  page/host brand mismatch, entirely on-device
+- all 5 judgment layers (rule/model/RAG/page-content/remote) verified
+  end-to-end on emulator, including safe failure handling when the remote
+  fallback is unreachable
+- Shield (`ShieldAccessibilityService`): detects a link click that leaves the
+  current site in Chrome/Samsung Internet, judges the destination with the
+  same `HybridJudge` pipeline, and shows the verdict behind a full-screen
+  on-device overlay -- manually verified end-to-end on emulator against real
+  Chrome (see [Architecture](docs/architecture.md) for the verification notes
+  and known limitations)
 
 Not yet implemented:
 
-- Shield screen / AccessibilityService browser-ad-click interception
 - physical device testing (emulator only so far)
 - risk-based UI styling, app icon, result history
 - production deployment of the fallback server
@@ -62,6 +71,7 @@ URL
   -> RuleBasedJudge
   -> OnDeviceModelJudge
   -> LocalRagJudge
+  -> PageContentJudge
   -> RemoteJudge
   -> Verdict
 ```
@@ -110,6 +120,7 @@ app/src/main/
     model/      URL features and local model runtime
     rag/        local policy-based fallback
     store/      local verdict cache
+    webview/    on-device page-content inspection (hidden WebView + DOM check)
 
 model/
   data/       sanitized samples and official-domain allowlist
@@ -134,7 +145,8 @@ adb shell am start -n com.guardian.ondevice/.JudgeActivity
 ## Run Tests
 
 Instrumented UI tests (requires a running emulator/device; automates the same
-4-layer check — rule/model/RAG/remote — done by hand during development):
+5-layer check — rule/model/RAG/page-content/remote — done by hand during
+development):
 
 ```bash
 ./gradlew connectedDebugAndroidTest

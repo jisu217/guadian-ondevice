@@ -5,7 +5,8 @@ training scripts, generated artifacts, and evaluation reports.
 
 The model is a compact URL-feature classifier for local inference. It is not a
 fine-tuned LLM and it does not fetch page content. Its role is to provide a
-fast local signal inside the broader `Rule -> Model -> RAG -> Remote` pipeline.
+fast local signal inside the broader `Rule -> Model -> RAG -> Page Content ->
+Remote` pipeline.
 
 ## Directory Structure
 

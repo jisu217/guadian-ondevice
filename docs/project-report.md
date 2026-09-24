@@ -13,14 +13,20 @@ The current system is best described as:
 > server.
 
 As of 2026-09-24, the project builds as a real Android app (`assembleDebug`),
-installs and runs on an emulator, and all four judgment layers (rule engine,
-on-device model, local RAG, remote fallback) have been exercised end-to-end on
-that emulator with a single-screen UI (`JudgeActivity`: URL input -> Verdict
-display). The remote fallback path was verified to fail safely (`UNKNOWN`,
-no crash) since the fallback server is not deployed. Real-device testing and
-the original "Shield" browser-interception feature (AccessibilityService-based
-ad-click capture) have not been built — this is a URL-input demo screen, not
-the full family-safety app the original GUADIAN targeted.
+installs and runs on an emulator, and all five judgment layers (rule engine,
+on-device model, local RAG, on-device page-content inspection, remote
+fallback) have been exercised end-to-end on that emulator, reachable two
+ways: the manual single-screen UI (`JudgeActivity`: URL input -> Verdict
+display), and `ShieldAccessibilityService`, which detects an off-site link
+click in Chrome/Samsung Internet and shows the same verdict behind a
+full-screen on-device overlay. The remote fallback path was verified to fail
+safely (`UNKNOWN`, no crash) since the fallback server is not deployed.
+Real-device testing has not been done, and the Shield only recognizes two
+browsers and cannot see ads rendered inside another app's own WebView (as
+opposed to a browser tab) — so this is still closer to a demo than the full
+family-safety app the original GUADIAN targeted, but the core "detect a risky
+click and warn before the user acts on it" loop now runs end-to-end without
+the user opening this app.
 
 ## 2. Problem
 
@@ -64,13 +70,15 @@ URL
   -> RuleBasedJudge
   -> OnDeviceModelJudge
   -> LocalRagJudge
+  -> PageContentJudge
   -> RemoteJudge
   -> Verdict
 ```
 
 The sequence is conservative by design. Deterministic evidence is handled first;
 the model is used only after rules are uncertain; low-confidence local results
-fall through to local policy retrieval or remote fallback.
+fall through to local policy retrieval, then on-device page-content inspection,
+then remote fallback.
 
 | Layer | Purpose |
 | :-- | :-- |
@@ -78,9 +86,14 @@ fall through to local policy retrieval or remote fallback.
 | Rule engine | Handle clear APK, official-domain, brand, and suspicious-token cases |
 | Local model | Classify URL feature vectors with a lightweight centroid model |
 | Local RAG | Apply local policy snippets for known risk patterns |
+| Page content | Render the destination page in a hidden WebView and flag an unverified login form or a page/host brand mismatch, on-device |
 | Remote fallback | Ask a server-side judge when local evidence is insufficient |
 
-See [Architecture](architecture.md) for component-level details.
+This pipeline is reachable two ways: manual URL entry (`JudgeActivity`), and
+`ShieldAccessibilityService`, which detects an off-site link click in the
+browser and runs the same pipeline automatically. See
+[Architecture](architecture.md) for component-level details, including how
+Shield's browser detection was verified.
 
 ## 5. Model Development
 
@@ -229,12 +242,16 @@ A precise summary:
 Phrasing to use versus avoid:
 
 > Use: "I built a local inference prototype and verified it end-to-end on an
-> Android emulator — rule engine, on-device model, local RAG, and remote
-> fallback all exercised through a real Verdict screen."
+> Android emulator — rule engine, on-device model, local RAG, on-device
+> page-content inspection, and remote fallback all exercised through a real
+> Verdict screen, and separately through a Shield accessibility service that
+> detects a risky link click in the browser and warns before the user acts
+> on it."
 >
-> Avoid: "I shipped a production Android app." (Emulator-only, no Shield/
-> browser-interception feature, and the UI is a bare-bones demo screen with no
-> styling, history, or app icon.)
+> Avoid: "I shipped a production Android app." (Emulator-only, Shield only
+> recognizes two browsers and cannot see ads inside another app's own
+> WebView, and the UI is a bare-bones demo screen with no styling, history,
+> or app icon.)
 
 If asked why accuracy dropped after adding realistic data:
 

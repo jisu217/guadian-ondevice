@@ -132,6 +132,8 @@ Files involved:
 | Python/Kotlin feature parity fixture | Prevent training/runtime feature drift. | `feature_parity_cases.csv` is checked by both Python and Kotlin tests. |
 | Log-compressed length features | Prevent very long ad/tracking URLs from stretching feature scale. | Python training and Kotlin inference both apply the same compression before distance calculation. |
 | Redirect/ad-network features | Make tracking-heavy URLs explicit instead of hiding them inside raw length. | Python and Kotlin extract the same redirect/ad-click features and cover them with parity fixtures. |
+| `PageContentJudge` (page-level signals) | URL-only features still missed form, brand wording, and rendered-content evidence. | Renders the destination URL in a hidden on-device WebView after Rule/Model/RAG are uncertain, and flags an unverified login form or a page/host brand mismatch. Does not change the URL-feature model itself. |
+| `ShieldAccessibilityService` | `PageContentJudge` and the rest of the pipeline only ran against a URL entered by hand. | Detects an off-site link click (or one inside an iframe) across 6 browsers and runs the same `HybridJudge` pipeline automatically, behind a full-screen on-device overlay. Site detection infers the current page's site from its own top-level links (`inferCurrentSiteHost`), not a per-browser address-bar resource id -- the original GUADIAN's `WebNode.kt` documents the address bar disappearing from the tree when scrolled, which is why this approach was ported instead. Manually verified on emulator, including the negative case (same-site click produces no overlay); the single-node classification functions are additionally covered by Robolectric (`WebAccessibilityNodeRobolectricTest`), giving `AccessibilityNodeInfo` a real implementation instead of the default no-op stub. The tree-walking functions still have no automated coverage -- see docs/architecture.md. |
 
 ## 8. Next Experiments
 
@@ -139,7 +141,7 @@ Files involved:
 | :-- | :-- | :-- |
 | 1 | Add real redirect-chain resolution. | Current features can detect nested URLs, but they do not follow the actual HTTP chain. |
 | 2 | Revisit `MEDIUM` and `UNKNOWN` labeling policy. | Separate true uncertainty from suspicious-but-not-severe flows. |
-| 3 | Add page-level lightweight signals. | URL-only features still miss form, offer wording, and rendered-content evidence. |
+| 3 | Extend Shield beyond Chrome/Samsung Internet, and to ads rendered inside another app's own WebView. | Currently only two browsers are recognized; in-app ad content (not a browser tab) is not covered at all. |
 
 ## 9. Data Collection Rules
 
