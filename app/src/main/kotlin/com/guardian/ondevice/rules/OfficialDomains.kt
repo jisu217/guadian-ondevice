@@ -17,8 +17,9 @@ class OfficialDomains {
     }
 
     fun brandForOfficialHost(host: String): String? {
+        val normalized = host.lowercase()
         return domainsByBrand.entries.firstOrNull { (_, domains) ->
-            domains.any { host == it || host.endsWith(".$it") }
+            domains.any { normalized == it || normalized.endsWith(".$it") }
         }?.key
     }
 

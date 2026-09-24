@@ -13,6 +13,7 @@ import com.guardian.ondevice.judge.Judge
 import com.guardian.ondevice.judge.Risk
 import com.guardian.ondevice.judge.Verdict
 import com.guardian.ondevice.rules.OfficialDomains
+import com.guardian.ondevice.util.UrlHost
 import org.json.JSONObject
 import org.json.JSONTokener
 
@@ -93,7 +94,7 @@ class PageContentJudge(
             ?: return uncertain("Page content script returned no data.")
         val json = JSONObject(payload)
 
-        val host = hostOf(finishedUrl)
+        val host = UrlHost.of(finishedUrl)
         val officialBrand = host?.let { officialDomains.brandForOfficialHost(it) }
         val pageText = "${json.optString("title")} ${json.optString("bodyText")}"
         val mentionedBrand = officialDomains.brandMentionedInText(pageText)
@@ -135,10 +136,6 @@ class PageContentJudge(
             confidence = Confidence.UNCERTAIN,
             site = site,
         )
-    }
-
-    private fun hostOf(url: String): String? {
-        return runCatching { java.net.URI(url).host?.removePrefix("www.") }.getOrNull()
     }
 
     private fun isInspectable(url: String): Boolean {

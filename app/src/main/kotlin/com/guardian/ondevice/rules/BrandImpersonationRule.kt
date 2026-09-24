@@ -3,13 +3,14 @@ package com.guardian.ondevice.rules
 import com.guardian.ondevice.judge.Confidence
 import com.guardian.ondevice.judge.Risk
 import com.guardian.ondevice.judge.Verdict
+import com.guardian.ondevice.util.UrlHost
 
 class BrandImpersonationRule(
     private val officialDomains: OfficialDomains = OfficialDomains(),
 ) : RiskRule {
 
     override fun evaluate(url: String): Verdict? {
-        val host = hostOf(url) ?: return null
+        val host = UrlHost.of(url) ?: return null
         val knownBrand = officialDomains.brandForOfficialHost(host)
         if (knownBrand != null) {
             return Verdict(
@@ -35,9 +36,5 @@ class BrandImpersonationRule(
         }
 
         return null
-    }
-
-    private fun hostOf(url: String): String? {
-        return runCatching { java.net.URI(url).host?.removePrefix("www.") }.getOrNull()
     }
 }

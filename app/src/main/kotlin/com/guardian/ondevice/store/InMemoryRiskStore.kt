@@ -1,6 +1,7 @@
 package com.guardian.ondevice.store
 
 import com.guardian.ondevice.judge.Verdict
+import com.guardian.ondevice.util.UrlHost
 
 interface RiskStore {
     fun find(url: String): Verdict?
@@ -18,11 +19,10 @@ class InMemoryRiskStore : RiskStore {
         verdicts[keyOf(url)] = verdict
     }
 
+    // Falls back to the trimmed, lowercased URL itself when host parsing
+    // fails, so an unparsable input still gets a stable (if imperfect) cache
+    // key instead of silently never being cached.
     private fun keyOf(url: String): String {
-        val trimmed = url.trim()
-        val candidate = if ("://" in trimmed) trimmed else "https://$trimmed"
-        return runCatching { java.net.URI(candidate).host?.lowercase()?.removePrefix("www.") }
-            .getOrNull()
-            ?: trimmed.lowercase()
+        return UrlHost.of(url) ?: url.trim().lowercase()
     }
 }

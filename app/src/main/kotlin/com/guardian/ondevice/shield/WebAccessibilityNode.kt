@@ -1,7 +1,7 @@
 package com.guardian.ondevice.shield
 
 import android.view.accessibility.AccessibilityNodeInfo
-import java.net.URI
+import com.guardian.ondevice.util.UrlHost
 
 /**
  * Browser accessibility-tree helpers used by ShieldAccessibilityService.
@@ -105,18 +105,7 @@ object WebAccessibilityNode {
         return hostCounts.maxByOrNull { it.value }?.key
     }
 
-    /** Uses java.net.URI so host parsing remains local-JVM testable. */
-    fun hostOf(raw: String?): String? {
-        var s = raw?.trim() ?: return null
-        if (s.isEmpty()) return null
-        if (!s.contains("://")) s = "https://$s"
-        val host = try {
-            URI(s).host?.lowercase()
-        } catch (e: Throwable) {
-            null
-        } ?: return null
-        return host.ifEmpty { null }
-    }
+    fun hostOf(raw: String?): String? = UrlHost.of(raw)
 
     fun siteOf(host: String): String {
         val parts = host.lowercase().trim('.').split('.')
