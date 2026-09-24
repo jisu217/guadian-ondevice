@@ -1,22 +1,30 @@
+# Gradle/Kotlin build caches and outputs
 .gradle/
 .kotlin/
 build/
 out/
 
+# Compiled artifacts -- keep the wrapper jar, it's what makes ./gradlew work
+# without Gradle installed
 *.class
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 
+# IDE project files
 .idea/
 *.iml
 .github/modernize/
 
+# macOS Finder metadata
 .DS_Store
 
+# Python (model/, server/)
 __pycache__/
 *.py[cod]
 .env
 .venv/
+
+# Local machine-specific Android SDK path, never shared
 local.properties
