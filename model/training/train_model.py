@@ -16,6 +16,8 @@ LABELS = ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
 DEFAULT_DATASET = Path(__file__).parents[1] / "data" / "sample_urls.csv"
 DEFAULT_ARTIFACT = Path(__file__).parents[1] / "artifacts" / "url_risk_centroid_model.json"
 DEFAULT_REPORT = Path(__file__).parents[1] / "evaluation" / "trained-model-report.md"
+DEFAULT_FOLDS = 5
+DEFAULT_CERTAIN_DISTANCE_THRESHOLD = 1.2
 
 
 @dataclass(frozen=True)
@@ -24,6 +26,15 @@ class ModelPrediction:
     actual: str
     predicted: str
     distance: float
+
+
+@dataclass(frozen=True)
+class FoldEvaluation:
+    fold: int
+    train_samples: int
+    validation_samples: int
+    accuracy: float
+    macro_f1: float
 
 
 def load_rows(path: Path = DEFAULT_DATASET) -> list[dict[str, str]]:
@@ -48,7 +59,30 @@ def stratified_split(rows: list[dict[str, str]], test_every: int = 5) -> tuple[l
     return train_rows, test_rows
 
 
-def train_centroid_model(rows: list[dict[str, str]]) -> dict:
+def stratified_kfold_split(rows: list[dict[str, str]], folds: int = DEFAULT_FOLDS) -> list[tuple[list[dict[str, str]], list[dict[str, str]]]]:
+    buckets: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        buckets[row["label"]].append(row)
+
+    splits = []
+    for fold in range(folds):
+        train_rows = []
+        validation_rows = []
+        for label in LABELS:
+            for index, row in enumerate(buckets[label]):
+                if index % folds == fold:
+                    validation_rows.append(row)
+                else:
+                    train_rows.append(row)
+        splits.append((train_rows, validation_rows))
+
+    return splits
+
+
+def train_centroid_model(
+    rows: list[dict[str, str]],
+    certain_distance_threshold: float = DEFAULT_CERTAIN_DISTANCE_THRESHOLD,
+) -> dict:
     vectors = [feature_vector(row["url"]) for row in rows]
     mins, maxes = _feature_ranges(vectors)
     grouped: dict[str, list[list[float]]] = defaultdict(list)
@@ -69,6 +103,7 @@ def train_centroid_model(rows: list[dict[str, str]]) -> dict:
         "feature_min": mins,
         "feature_max": maxes,
         "centroids": centroids,
+        "certain_distance_threshold": certain_distance_threshold,
     }
 
 
@@ -111,14 +146,22 @@ def precision_recall_by_label(predictions) -> dict[str, dict[str, float]]:
         true_positive = sum(1 for prediction in predictions if prediction.actual == label and prediction.predicted == label)
         predicted_positive = sum(1 for prediction in predictions if prediction.predicted == label)
         actual_positive = sum(1 for prediction in predictions if prediction.actual == label)
+        precision = _safe_divide(true_positive, predicted_positive)
+        recall = _safe_divide(true_positive, actual_positive)
 
         metrics[label] = {
-            "precision": _safe_divide(true_positive, predicted_positive),
-            "recall": _safe_divide(true_positive, actual_positive),
+            "precision": precision,
+            "recall": recall,
+            "f1": _safe_divide(2 * precision * recall, precision + recall),
             "support": float(actual_positive),
         }
 
     return metrics
+
+
+def macro_f1(predictions) -> float:
+    metrics = precision_recall_by_label(predictions)
+    return sum(metrics[label]["f1"] for label in LABELS) / len(LABELS)
 
 
 def confusion_matrix(predictions) -> dict[str, dict[str, int]]:
@@ -131,11 +174,58 @@ def confusion_matrix(predictions) -> dict[str, dict[str, int]]:
     }
 
 
+def cross_validate_model(rows: list[dict[str, str]], folds: int = DEFAULT_FOLDS) -> tuple[list[FoldEvaluation], list[ModelPrediction]]:
+    fold_evaluations = []
+    all_predictions = []
+    for fold, (train_rows, validation_rows) in enumerate(stratified_kfold_split(rows, folds), start=1):
+        model = train_centroid_model(train_rows)
+        predictions = evaluate_model(model, validation_rows)
+        all_predictions.extend(predictions)
+        fold_evaluations.append(
+            FoldEvaluation(
+                fold=fold,
+                train_samples=len(train_rows),
+                validation_samples=len(validation_rows),
+                accuracy=accuracy(predictions),
+                macro_f1=macro_f1(predictions),
+            )
+        )
+
+    return fold_evaluations, all_predictions
+
+
+def calibrate_certain_distance_threshold(predictions: list[ModelPrediction]) -> float:
+    correct_distances = sorted(
+        prediction.distance
+        for prediction in predictions
+        if prediction.actual == prediction.predicted and prediction.predicted != "UNKNOWN"
+    )
+    incorrect_distances = sorted(
+        prediction.distance
+        for prediction in predictions
+        if prediction.actual != prediction.predicted and prediction.predicted != "UNKNOWN"
+    )
+
+    if not correct_distances:
+        return DEFAULT_CERTAIN_DISTANCE_THRESHOLD
+
+    conservative_correct = _percentile(correct_distances, 0.90)
+    if incorrect_distances:
+        nearest_error = incorrect_distances[0]
+        if nearest_error <= conservative_correct:
+            return max(0.0, nearest_error - 0.0001)
+
+    return conservative_correct
+
+
 def render_report(
     train_rows: list[dict[str, str]],
     test_rows: list[dict[str, str]],
     predictions: list[ModelPrediction],
     baseline_predictions,
+    fold_evaluations: list[FoldEvaluation] | None = None,
+    cross_validation_predictions: list[ModelPrediction] | None = None,
+    certain_distance_threshold: float = DEFAULT_CERTAIN_DISTANCE_THRESHOLD,
 ) -> str:
     actual_counts = Counter(prediction.actual for prediction in predictions)
     predicted_counts = Counter(prediction.predicted for prediction in predictions)
@@ -144,6 +234,8 @@ def render_report(
     model_metrics = precision_recall_by_label(predictions)
     baseline_metrics = precision_recall_by_label(baseline_predictions)
     matrix = confusion_matrix(predictions)
+    fold_evaluations = fold_evaluations or []
+    cross_validation_predictions = cross_validation_predictions or []
 
     lines = [
         "# Trained Model Evaluation",
@@ -152,13 +244,67 @@ def render_report(
         f"Train samples: {len(train_rows)}",
         f"Test samples: {len(test_rows)}",
         f"Model accuracy: {model_acc:.2%}",
+        f"Model macro F1: {macro_f1(predictions):.2%}",
         f"Baseline accuracy on same test split: {baseline_acc:.2%}",
+        f"Calibrated certain distance threshold: {certain_distance_threshold:.4f}",
         "",
+        "## Validation Protocol",
+        "",
+        "- Final test metrics use a deterministic stratified holdout split.",
+        f"- Threshold calibration uses {DEFAULT_FOLDS}-fold stratified cross-validation on the training split.",
+        "- The threshold is intentionally conservative: uncertain cases should fall through to local RAG or remote fallback.",
+        "",
+    ]
+
+    if fold_evaluations:
+        average_accuracy = sum(fold.accuracy for fold in fold_evaluations) / len(fold_evaluations)
+        average_macro_f1 = sum(fold.macro_f1 for fold in fold_evaluations) / len(fold_evaluations)
+        lines.extend(
+            [
+                "## Cross Validation",
+                "",
+                f"Average accuracy: {average_accuracy:.2%}",
+                f"Average macro F1: {average_macro_f1:.2%}",
+                "",
+                "| Fold | Train | Validation | Accuracy | Macro F1 |",
+                "| :-- | --: | --: | --: | --: |",
+            ]
+        )
+
+        for fold in fold_evaluations:
+            lines.append(
+                f"| {fold.fold} | {fold.train_samples} | {fold.validation_samples} | "
+                f"{fold.accuracy:.2%} | {fold.macro_f1:.2%} |"
+            )
+
+        if cross_validation_predictions:
+            cv_metrics = precision_recall_by_label(cross_validation_predictions)
+            lines.extend(
+                [
+                    "",
+                    "### Cross-Validation Label Metrics",
+                    "",
+                    "| Label | Precision | Recall | F1 | Support |",
+                    "| :-- | --: | --: | --: | --: |",
+                ]
+            )
+            for label in LABELS:
+                current = cv_metrics[label]
+                lines.append(
+                    f"| {label} | {current['precision']:.2%} | {current['recall']:.2%} | "
+                    f"{current['f1']:.2%} | {int(current['support'])} |"
+                )
+
+        lines.append("")
+
+    lines.extend(
+        [
         "## Label Distribution",
         "",
         "| Label | Actual | Predicted |",
         "| :-- | --: | --: |",
-    ]
+        ]
+    )
 
     for label in LABELS:
         lines.append(f"| {label} | {actual_counts[label]} | {predicted_counts[label]} |")
@@ -168,8 +314,8 @@ def render_report(
             "",
             "## Precision And Recall",
             "",
-            "| Label | Precision | Recall | Support | Baseline Precision | Baseline Recall |",
-            "| :-- | --: | --: | --: | --: | --: |",
+            "| Label | Precision | Recall | F1 | Support | Baseline Precision | Baseline Recall |",
+            "| :-- | --: | --: | --: | --: | --: | --: |",
         ]
     )
 
@@ -177,9 +323,26 @@ def render_report(
         current = model_metrics[label]
         baseline = baseline_metrics[label]
         lines.append(
-            f"| {label} | {current['precision']:.2%} | {current['recall']:.2%} | "
+            f"| {label} | {current['precision']:.2%} | {current['recall']:.2%} | {current['f1']:.2%} | "
             f"{int(current['support'])} | {baseline['precision']:.2%} | {baseline['recall']:.2%} |"
         )
+
+    errors = [prediction for prediction in predictions if prediction.actual != prediction.predicted]
+    if errors:
+        lines.extend(
+            [
+                "",
+                "## Error Analysis",
+                "",
+                "| Actual | Predicted | Distance | URL |",
+                "| :-- | :-- | --: | :-- |",
+            ]
+        )
+
+        for prediction in errors:
+            lines.append(
+                f"| {prediction.actual} | {prediction.predicted} | {prediction.distance:.4f} | {prediction.url} |"
+            )
 
     lines.extend(
         [
@@ -254,13 +417,40 @@ def _safe_divide(numerator: int, denominator: int) -> float:
     return numerator / denominator
 
 
+def _percentile(values: list[float], percentile: float) -> float:
+    if not values:
+        return 0.0
+    if len(values) == 1:
+        return values[0]
+
+    index = (len(values) - 1) * percentile
+    lower = math.floor(index)
+    upper = math.ceil(index)
+    if lower == upper:
+        return values[int(index)]
+
+    lower_value = values[lower]
+    upper_value = values[upper]
+    return lower_value + (upper_value - lower_value) * (index - lower)
+
+
 def main() -> None:
     rows = load_rows()
     train_rows, test_rows = stratified_split(rows)
-    model = train_centroid_model(train_rows)
+    fold_evaluations, cross_validation_predictions = cross_validate_model(train_rows)
+    certain_distance_threshold = calibrate_certain_distance_threshold(cross_validation_predictions)
+    model = train_centroid_model(train_rows, certain_distance_threshold=certain_distance_threshold)
     predictions = evaluate_model(model, test_rows)
     baseline_predictions = evaluate_baseline(test_rows)
-    report = render_report(train_rows, test_rows, predictions, baseline_predictions)
+    report = render_report(
+        train_rows,
+        test_rows,
+        predictions,
+        baseline_predictions,
+        fold_evaluations=fold_evaluations,
+        cross_validation_predictions=cross_validation_predictions,
+        certain_distance_threshold=certain_distance_threshold,
+    )
 
     save_model(model)
     save_report(report)
