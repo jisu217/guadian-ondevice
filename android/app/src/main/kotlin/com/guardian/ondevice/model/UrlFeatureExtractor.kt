@@ -1,7 +1,5 @@
 package com.guardian.ondevice.model
 
-import java.net.URI
-
 data class UrlFeatures(
     val values: Map<String, Double>,
 ) {
@@ -10,13 +8,15 @@ data class UrlFeatures(
     }
 }
 
+private data class ParsedUrl(val host: String, val path: String, val query: String)
+
 class UrlFeatureExtractor {
     fun extract(url: String): UrlFeatures {
         val normalized = normalizeForParse(url)
-        val parsed = URI(normalized)
-        val host = (parsed.host ?: "").lowercase()
-        val path = parsed.rawPath ?: ""
-        val query = parsed.rawQuery ?: ""
+        val parsed = parse(normalized)
+        val host = parsed.host
+        val path = parsed.path
+        val query = parsed.query
         val searchable = listOf(host, path, query).joinToString(" ").lowercase()
         val tokens = tokenize(searchable)
 
@@ -35,7 +35,7 @@ class UrlFeatureExtractor {
                 "has_free" to containsAny(tokens, FREE_TOKENS),
                 "has_shortener_token" to hasShortenerSignal(host, tokens),
                 "brand_keyword_present" to containsAny(tokens, BRAND_KEYWORDS),
-                "official_domain_match" to if (host in OFFICIAL_DOMAINS) 1.0 else 0.0,
+                "official_domain_match" to if (isOfficialDomain(host)) 1.0 else 0.0,
                 "suspicious_tld" to if (lastLabel(host) in SUSPICIOUS_TLDS) 1.0 else 0.0,
             )
         )
@@ -44,6 +44,25 @@ class UrlFeatureExtractor {
     private fun normalizeForParse(url: String): String {
         val value = url.trim()
         return if ("://" in value) value else "https://$value"
+    }
+
+    // Deliberately avoids java.net.URI: its single-String constructor returns a
+    // null host for internationalized domains (e.g. "https://알뜰상조.com/") instead
+    // of throwing, which would silently zero out every host-based feature. This
+    // mirrors Python's urllib.parse.urlparse (used for training in
+    // url_features.py) closely enough that the same URL yields the same
+    // features on both sides — the property that actually matters here.
+    private fun parse(normalized: String): ParsedUrl {
+        val afterScheme = normalized.substringAfter("://", normalized)
+        val authority = afterScheme.substringBefore("/").substringBefore("?").substringBefore("#")
+        val host = authority.substringAfterLast("@").substringBefore(":").lowercase()
+
+        val afterAuthority = afterScheme.substring(minOf(authority.length, afterScheme.length))
+        val pathAndQuery = afterAuthority.substringBefore("#")
+        val path = pathAndQuery.substringBefore("?")
+        val query = if ("?" in pathAndQuery) pathAndQuery.substringAfter("?") else ""
+
+        return ParsedUrl(host = host, path = path, query = query)
     }
 
     private fun tokenize(value: String): Set<String> {
@@ -115,35 +134,26 @@ class UrlFeatureExtractor {
         private val SHORTENER_HOSTS = setOf("bit.ly", "tinyurl.com", "t.co", "short.test")
         private val SHORTENER_TOKENS = setOf("short", "go", "r", "l")
         private val BRAND_KEYWORDS = setOf("bank", "kakao", "naver", "google", "samsung", "sk", "toss")
-        private val OFFICIAL_DOMAINS = setOf(
-            "example.com",
-            "support.example.com",
-            "docs.example.com",
-            "news.example.com",
-            "www.google.com",
-            "www.apple.com",
-            "www.samsung.com",
-            "www.microsoft.com",
-            "www.cloudflare.com",
-            "www.wikipedia.org",
-            "github.com",
-            "docs.github.com",
-            "www.kakaocorp.com",
-            "www.naver.com",
-            "www.toss.im",
-            "www.iana.org",
-            "developer.android.com",
-            "kotlinlang.org",
-            "www.python.org",
-            "safe-reference.test",
-            "trusted-service.test",
-            "verified-support.test",
-            "official-store.test",
-            "customer-center.test",
-            "docs.safe-example.test",
-            "news.safe-example.test",
-            "status.safe-example.test",
-        )
         private val SUSPICIOUS_TLDS = setOf("zip", "top", "xyz", "click", "test")
+
+        // Loaded once from model/data/official_domains.txt (Tranco top 50k +
+        // known brand domains), bundled as a classpath resource via the
+        // `resources.srcDir("model/data")` entry in build.gradle.kts. Python's
+        // url_features.py reads the same file directly, so there is exactly
+        // one allowlist instead of two hand-synced copies.
+        private val OFFICIAL_DOMAINS: Set<String> by lazy { loadOfficialDomains() }
+
+        private fun loadOfficialDomains(): Set<String> {
+            val stream = UrlFeatureExtractor::class.java.getResourceAsStream("/official_domains.txt")
+                ?: return emptySet()
+            return stream.bufferedReader().useLines { lines ->
+                lines.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
+            }
+        }
+
+        private fun isOfficialDomain(host: String): Boolean {
+            if (host.isEmpty()) return false
+            return host in OFFICIAL_DOMAINS || OFFICIAL_DOMAINS.any { host.endsWith(".$it") }
+        }
     }
 }

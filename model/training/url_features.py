@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from urllib.parse import urlparse
 
+
+DEFAULT_OFFICIAL_DOMAINS_PATH = Path(__file__).parents[1] / "data" / "official_domains.txt"
 
 FEATURE_NAMES = [
     "url_length",
@@ -29,36 +32,28 @@ FREE_TOKENS = {"free", "gift", "prize", "win", "winner"}
 SHORTENER_HOSTS = {"bit.ly", "tinyurl.com", "t.co", "short.test"}
 SHORTENER_TOKENS = {"short", "go", "r", "l"}
 BRAND_KEYWORDS = {"bank", "kakao", "naver", "google", "samsung", "sk", "toss"}
-OFFICIAL_DOMAINS = {
-    "example.com",
-    "support.example.com",
-    "docs.example.com",
-    "news.example.com",
-    "www.google.com",
-    "www.apple.com",
-    "www.samsung.com",
-    "www.microsoft.com",
-    "www.cloudflare.com",
-    "www.wikipedia.org",
-    "github.com",
-    "docs.github.com",
-    "www.kakaocorp.com",
-    "www.naver.com",
-    "www.toss.im",
-    "www.iana.org",
-    "developer.android.com",
-    "kotlinlang.org",
-    "www.python.org",
-    "safe-reference.test",
-    "trusted-service.test",
-    "verified-support.test",
-    "official-store.test",
-    "customer-center.test",
-    "docs.safe-example.test",
-    "news.safe-example.test",
-    "status.safe-example.test",
-}
 SUSPICIOUS_TLDS = {"zip", "top", "xyz", "click", "test"}
+
+
+def load_official_domains(path: Path = DEFAULT_OFFICIAL_DOMAINS_PATH) -> frozenset[str]:
+    with path.open() as handle:
+        return frozenset(line.strip().lower() for line in handle if line.strip())
+
+
+OFFICIAL_DOMAINS = load_official_domains()
+
+
+def is_official_domain(host: str, domains: frozenset[str] = OFFICIAL_DOMAINS) -> bool:
+    """host itself, or a subdomain of, any allowlisted domain.
+
+    A flat 50k+ domain list can only cover the exact hosts it lists (mostly
+    apex domains like "naver.com"); real traffic overwhelmingly uses
+    subdomains ("m.naver.com", "pay.naver.com"). Matching on suffix instead
+    of exact string is what makes the allowlist actually generalize.
+    """
+    if not host:
+        return False
+    return host in domains or any(host.endswith("." + d) for d in domains)
 
 
 def extract_features(url: str) -> dict[str, float]:
@@ -84,7 +79,7 @@ def extract_features(url: str) -> dict[str, float]:
         "has_free": _contains_any(tokens, FREE_TOKENS),
         "has_shortener_token": _has_shortener_signal(host, tokens),
         "brand_keyword_present": _contains_any(tokens, BRAND_KEYWORDS),
-        "official_domain_match": float(host in OFFICIAL_DOMAINS),
+        "official_domain_match": float(is_official_domain(host)),
         "suspicious_tld": float(_last_label(host) in SUSPICIOUS_TLDS),
     }
 
