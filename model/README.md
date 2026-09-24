@@ -24,7 +24,7 @@ model/artifacts/url_risk_centroid_model.json
 
 현재 모델은 fine-tuned LLM이 아니라 URL feature 기반 nearest-centroid classifier다.
 
-`sample_urls.csv`는 이제 648행 — 합성 400개 + 실제 광고 도착지 248개(`reference/gold_251.jsonl`, 3-LLM 합의 + 사람 검토). 실데이터를 섞자 model accuracy가 97.50% → 72.66%로 떨어졌고, 원인은 URL 문자열만으론 안 보이는 페이지 신호·global threshold의 단일 오탐 취약성·min-max scaling의 이상치 민감성 세 가지다. 자세한 내용과 다음 개선 후보는 [`docs/interview-brief.md`](../docs/interview-brief.md)의 Model Evaluation, [`trained-model-report.md`](evaluation/trained-model-report.md)를 참고.
+`sample_urls.csv`는 이제 648행 — 합성 400개 + 실제 광고 도착지 248개(`reference/gold_251.jsonl`, 3-LLM 합의 + 사람 검토). 실데이터를 섞자 model accuracy가 97.50% → 72.66%로 떨어졌고, 원인은 URL 문자열만으론 안 보이는 페이지 신호·global threshold의 단일 오탐 취약성·min-max scaling의 이상치 민감성 세 가지였다. 이 중 threshold는 라벨별로 분리 보정해서 고쳤다 — HIGH의 confident 판정이 0건 → 92건으로 회복됐다. MEDIUM은 자기 threshold를 줘도 여전히 0건이라, 이건 threshold 문제가 아니라 URL-only 설계 자체의 한계로 실험상 분리 확인됐다. 자세한 내용과 남은 개선 후보(min-max scaling 교체 등)는 [`docs/interview-brief.md`](../docs/interview-brief.md)의 Model Evaluation, [`trained-model-report.md`](evaluation/trained-model-report.md)를 참고.
 
 ## Workflow
 

@@ -83,7 +83,7 @@ class HybridJudgeTest {
         val remoteJudge = CountingJudge(fixedVerdict("remote", Risk.HIGH, Confidence.CERTAIN))
         val hybridJudge = actualLocalHybrid(remoteJudge = remoteJudge)
 
-        val verdict = judgeNow(hybridJudge, "https://info.unlisted-check.test/personal-info-phone-card")
+        val verdict = judgeNow(hybridJudge, "https://survey-form.unlisted-check.test/personal-info-phone-card?ref=abcdefghijklmnopqrstuvwxyz1234567890")
 
         assertEquals(Risk.MEDIUM, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)

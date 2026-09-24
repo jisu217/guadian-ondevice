@@ -17,15 +17,25 @@ class OnDeviceModelJudgeTest {
         assertEquals("nearest_centroid", verdict.type)
     }
 
-    // The distance threshold is now calibrated against real ad-landing traffic
-    // (model/data/sample_urls.csv's reference-derived rows), not just synthetic
-    // fixtures. Under that calibration, no MEDIUM or HIGH case in the training
-    // set clears the "certain" bar on URL text alone — a handful of very long
-    // real tracking URLs stretch the min-max feature scale enough to compress
-    // everything else together. See model/evaluation/trained-model-report.md.
-    // These two tests document that real limitation instead of hiding it:
-    // the *direction* of the nearest-centroid guess is still right, it's just
-    // never confident enough on its own to short-circuit the hybrid pipeline.
+    @Test
+    fun `predicts high risk for a brand login verification url`() {
+        val verdict = judgeNow("https://bank-login-verification.test/account")
+
+        assertEquals(Risk.HIGH, verdict.risk)
+        assertEquals(Confidence.CERTAIN, verdict.confidence)
+    }
+
+    // Distance thresholds are calibrated per label against real ad-landing
+    // traffic (model/data/sample_urls.csv's reference-derived rows) instead of
+    // one scalar shared by all 4 labels — see calibrate_certain_distance_
+    // thresholds in train_model.py. That fixed HIGH (above), which had been
+    // collapsed by an unrelated LOW/MEDIUM boundary case. MEDIUM still rarely
+    // clears its own bar on real traffic, and that part is a real, separate
+    // limitation: URL text alone doesn't carry the page-content signal (forms,
+    // JS-only rendering) that most real MEDIUM cases need. This test documents
+    // that limitation instead of hiding it — the nearest-centroid direction is
+    // still right, it's just not confident enough to short-circuit the hybrid
+    // pipeline on its own.
     @Test
     fun `nearest centroid still leans medium for a reward event url, but not confidently`() {
         val verdict = judgeNow("https://promo-reward-event.test/free-gift")
@@ -33,15 +43,6 @@ class OnDeviceModelJudgeTest {
         assertEquals(Risk.UNKNOWN, verdict.risk)
         assertEquals(Confidence.UNCERTAIN, verdict.confidence)
         assertEquals("MEDIUM", nearestLabel("https://promo-reward-event.test/free-gift"))
-    }
-
-    @Test
-    fun `nearest centroid still leans high for a brand login verification url, but not confidently`() {
-        val verdict = judgeNow("https://bank-login-verification.test/account")
-
-        assertEquals(Risk.UNKNOWN, verdict.risk)
-        assertEquals(Confidence.UNCERTAIN, verdict.confidence)
-        assertEquals("HIGH", nearestLabel("https://bank-login-verification.test/account"))
     }
 
     @Test

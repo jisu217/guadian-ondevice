@@ -81,7 +81,7 @@ def stratified_kfold_split(rows: list[dict[str, str]], folds: int = DEFAULT_FOLD
 
 def train_centroid_model(
     rows: list[dict[str, str]],
-    certain_distance_threshold: float = DEFAULT_CERTAIN_DISTANCE_THRESHOLD,
+    certain_distance_thresholds: dict[str, float] | None = None,
 ) -> dict:
     vectors = [feature_vector(row["url"]) for row in rows]
     mins, maxes = _feature_ranges(vectors)
@@ -96,6 +96,10 @@ def train_centroid_model(
         if vectors_for_label
     }
 
+    thresholds = certain_distance_thresholds or {
+        label: DEFAULT_CERTAIN_DISTANCE_THRESHOLD for label in LABELS
+    }
+
     return {
         "type": "nearest-centroid",
         "labels": LABELS,
@@ -103,7 +107,7 @@ def train_centroid_model(
         "feature_min": mins,
         "feature_max": maxes,
         "centroids": centroids,
-        "certain_distance_threshold": certain_distance_threshold,
+        "certain_distance_thresholds": thresholds,
     }
 
 
@@ -194,28 +198,42 @@ def cross_validate_model(rows: list[dict[str, str]], folds: int = DEFAULT_FOLDS)
     return fold_evaluations, all_predictions
 
 
-def calibrate_certain_distance_threshold(predictions: list[ModelPrediction]) -> float:
-    correct_distances = sorted(
-        prediction.distance
-        for prediction in predictions
-        if prediction.actual == prediction.predicted and prediction.predicted != "UNKNOWN"
-    )
-    incorrect_distances = sorted(
-        prediction.distance
-        for prediction in predictions
-        if prediction.actual != prediction.predicted and prediction.predicted != "UNKNOWN"
-    )
+def calibrate_certain_distance_thresholds(predictions: list[ModelPrediction]) -> dict[str, float]:
+    """Per-label distance threshold instead of one scalar shared by all 4 labels.
 
-    if not correct_distances:
-        return DEFAULT_CERTAIN_DISTANCE_THRESHOLD
+    A single global threshold means one close-but-wrong prediction for ANY
+    label drags the "certain" bar down for every other label too, even ones
+    that are cleanly separated (see docs/interview-brief.md's Model
+    Evaluation section for the case that exposed this: one LOW/MEDIUM
+    boundary error at distance 0.35 collapsed HIGH's threshold from ~1.1 to
+    0.35, even though HIGH itself had no errors anywhere near that close).
+    Calibrating per predicted label keeps each label's threshold tied only
+    to its own separation from its own nearest confusable neighbor.
+    """
+    thresholds: dict[str, float] = {}
+    for label in LABELS:
+        correct_distances = sorted(
+            prediction.distance
+            for prediction in predictions
+            if prediction.predicted == label and prediction.actual == label
+        )
+        incorrect_distances = sorted(
+            prediction.distance
+            for prediction in predictions
+            if prediction.predicted == label and prediction.actual != label
+        )
 
-    conservative_correct = _percentile(correct_distances, 0.90)
-    if incorrect_distances:
-        nearest_error = incorrect_distances[0]
-        if nearest_error <= conservative_correct:
-            return max(0.0, nearest_error - 0.0001)
+        if not correct_distances:
+            thresholds[label] = DEFAULT_CERTAIN_DISTANCE_THRESHOLD
+            continue
 
-    return conservative_correct
+        conservative_correct = _percentile(correct_distances, 0.90)
+        if incorrect_distances and incorrect_distances[0] <= conservative_correct:
+            thresholds[label] = max(0.0, incorrect_distances[0] - 0.0001)
+        else:
+            thresholds[label] = conservative_correct
+
+    return thresholds
 
 
 def render_report(
@@ -225,7 +243,7 @@ def render_report(
     baseline_predictions,
     fold_evaluations: list[FoldEvaluation] | None = None,
     cross_validation_predictions: list[ModelPrediction] | None = None,
-    certain_distance_threshold: float = DEFAULT_CERTAIN_DISTANCE_THRESHOLD,
+    certain_distance_thresholds: dict[str, float] | None = None,
 ) -> str:
     actual_counts = Counter(prediction.actual for prediction in predictions)
     predicted_counts = Counter(prediction.predicted for prediction in predictions)
@@ -236,6 +254,7 @@ def render_report(
     matrix = confusion_matrix(predictions)
     fold_evaluations = fold_evaluations or []
     cross_validation_predictions = cross_validation_predictions or []
+    certain_distance_thresholds = certain_distance_thresholds or {}
 
     lines = [
         "# Trained Model Evaluation",
@@ -246,15 +265,25 @@ def render_report(
         f"Model accuracy: {model_acc:.2%}",
         f"Model macro F1: {macro_f1(predictions):.2%}",
         f"Baseline accuracy on same test split: {baseline_acc:.2%}",
-        f"Calibrated certain distance threshold: {certain_distance_threshold:.4f}",
         "",
         "## Validation Protocol",
         "",
         "- Final test metrics use a deterministic stratified holdout split.",
         f"- Threshold calibration uses {DEFAULT_FOLDS}-fold stratified cross-validation on the training split.",
-        "- The threshold is intentionally conservative: uncertain cases should fall through to local RAG or remote fallback.",
+        "- Each label gets its own certain-distance threshold instead of one shared scalar,",
+        "  so one close call for label A can no longer collapse label B's threshold too.",
+        "- Thresholds are intentionally conservative: uncertain cases should fall through to local RAG or remote fallback.",
         "",
+        "### Calibrated Certain-Distance Thresholds",
+        "",
+        "| Label | Threshold |",
+        "| :-- | --: |",
     ]
+
+    for label in LABELS:
+        lines.append(f"| {label} | {certain_distance_thresholds.get(label, DEFAULT_CERTAIN_DISTANCE_THRESHOLD):.4f} |")
+
+    lines.append("")
 
     if fold_evaluations:
         average_accuracy = sum(fold.accuracy for fold in fold_evaluations) / len(fold_evaluations)
@@ -438,8 +467,8 @@ def main() -> None:
     rows = load_rows()
     train_rows, test_rows = stratified_split(rows)
     fold_evaluations, cross_validation_predictions = cross_validate_model(train_rows)
-    certain_distance_threshold = calibrate_certain_distance_threshold(cross_validation_predictions)
-    model = train_centroid_model(train_rows, certain_distance_threshold=certain_distance_threshold)
+    certain_distance_thresholds = calibrate_certain_distance_thresholds(cross_validation_predictions)
+    model = train_centroid_model(train_rows, certain_distance_thresholds=certain_distance_thresholds)
     predictions = evaluate_model(model, test_rows)
     baseline_predictions = evaluate_baseline(test_rows)
     report = render_report(
@@ -449,7 +478,7 @@ def main() -> None:
         baseline_predictions,
         fold_evaluations=fold_evaluations,
         cross_validation_predictions=cross_validation_predictions,
-        certain_distance_threshold=certain_distance_threshold,
+        certain_distance_thresholds=certain_distance_thresholds,
     )
 
     save_model(model)

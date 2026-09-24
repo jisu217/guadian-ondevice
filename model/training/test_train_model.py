@@ -2,7 +2,7 @@ import unittest
 
 from train_model import (
     accuracy,
-    calibrate_certain_distance_threshold,
+    calibrate_certain_distance_thresholds,
     confusion_matrix,
     cross_validate_model,
     evaluate_model,
@@ -38,7 +38,7 @@ class TrainModelTest(unittest.TestCase):
 
         self.assertEqual(model["type"], "nearest-centroid")
         self.assertEqual(set(model["centroids"]), {"LOW", "MEDIUM", "HIGH", "UNKNOWN"})
-        self.assertIn("certain_distance_threshold", model)
+        self.assertIn("certain_distance_thresholds", model)
 
     def test_predicts_known_url_label(self):
         train_rows, _ = stratified_split(load_rows())
@@ -70,15 +70,17 @@ class TrainModelTest(unittest.TestCase):
         self.assertEqual(set(matrix), {"LOW", "MEDIUM", "HIGH", "UNKNOWN"})
         self.assertEqual(sum(sum(row.values()) for row in matrix.values()), len(predictions))
 
-    def test_cross_validates_and_calibrates_threshold(self):
+    def test_cross_validates_and_calibrates_thresholds(self):
         train_rows, _ = stratified_split(load_rows())
 
         folds, predictions = cross_validate_model(train_rows)
-        threshold = calibrate_certain_distance_threshold(predictions)
+        thresholds = calibrate_certain_distance_thresholds(predictions)
 
         self.assertEqual(len(folds), 5)
         self.assertEqual(len(predictions), len(train_rows))
-        self.assertGreaterEqual(threshold, 0.0)
+        self.assertEqual(set(thresholds), {"LOW", "MEDIUM", "HIGH", "UNKNOWN"})
+        for threshold in thresholds.values():
+            self.assertGreaterEqual(threshold, 0.0)
 
     def test_report_includes_precision_recall_and_confusion_matrix(self):
         train_rows, test_rows = stratified_split(load_rows())

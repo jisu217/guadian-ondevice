@@ -127,5 +127,10 @@
       0.3
     ]
   },
-  "certain_distance_threshold": 0.3521711633503199
+  "certain_distance_thresholds": {
+    "LOW": 0.3521711633503199,
+    "MEDIUM": 0.7851810328851682,
+    "HIGH": 1.0400515801994275,
+    "UNKNOWN": 0.3066487667231378
+  }
 }

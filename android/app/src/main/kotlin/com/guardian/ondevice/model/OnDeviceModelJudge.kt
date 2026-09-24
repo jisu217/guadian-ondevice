@@ -13,7 +13,8 @@ class OnDeviceModelJudge(
     override fun judge(url: String, done: (Verdict) -> Unit) {
         val prediction = model.predict(extractor.extract(url).vector())
         val risk = Risk.valueOf(prediction.label)
-        val confidence = if (risk == Risk.UNKNOWN || prediction.distance > model.certainDistanceThreshold) {
+        val threshold = model.certainDistanceThresholds.getValue(prediction.label)
+        val confidence = if (risk == Risk.UNKNOWN || prediction.distance > threshold) {
             Confidence.UNCERTAIN
         } else {
             Confidence.CERTAIN
@@ -58,7 +59,7 @@ class NearestCentroidUrlModel(
     private val featureMin: List<Double>,
     private val featureMax: List<Double>,
     private val centroids: Map<String, List<Double>>,
-    val certainDistanceThreshold: Double = DEFAULT_CERTAIN_DISTANCE_THRESHOLD,
+    val certainDistanceThresholds: Map<String, Double> = DEFAULT_CERTAIN_DISTANCE_THRESHOLDS,
 ) {
     fun predict(vector: List<Double>): ModelPrediction {
         val scaled = vector.mapIndexed { index, value ->
@@ -85,15 +86,22 @@ class NearestCentroidUrlModel(
         // Re-run model/training/train_model.py and copy these values whenever the
         // dataset or feature set changes.
         //
-        // This threshold is calibrated against real ad-landing traffic (see
-        // model/data/sample_urls.csv's reference-derived rows), not just
-        // synthetic fixtures, and it shows: a handful of long, real tracking
-        // URLs stretch the min-max feature scale so far that most MEDIUM/HIGH
-        // cases no longer clear the "certain" bar on URL text alone. That is a
-        // real, currently-unresolved limitation — see model/evaluation/
-        // trained-model-report.md and docs/interview-brief.md for the full
-        // writeup, not a bug in this constant.
-        private const val DEFAULT_CERTAIN_DISTANCE_THRESHOLD = 0.3521711633503199
+        // One threshold per label, calibrated separately (see
+        // calibrate_certain_distance_thresholds in train_model.py) instead of a
+        // single shared scalar. A shared scalar meant one close call for any
+        // label dragged every other label's threshold down with it — HIGH's
+        // threshold once collapsed to 0.35 purely because of an unrelated
+        // LOW/MEDIUM boundary case. Per-label thresholds fixed that (HIGH is
+        // back to resolving confidently), but MEDIUM still rarely clears its
+        // own bar on real traffic — that part is a real, separate limitation
+        // of URL-only features, not a threshold artifact. See model/evaluation/
+        // trained-model-report.md and docs/interview-brief.md.
+        private val DEFAULT_CERTAIN_DISTANCE_THRESHOLDS = mapOf(
+            "LOW" to 0.3521711633503199,
+            "MEDIUM" to 0.7851810328851682,
+            "HIGH" to 1.0400515801994275,
+            "UNKNOWN" to 0.3066487667231378,
+        )
 
         fun default(): NearestCentroidUrlModel {
             return NearestCentroidUrlModel(

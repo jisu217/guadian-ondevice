@@ -6,13 +6,23 @@ Test samples: 128
 Model accuracy: 72.66%
 Model macro F1: 74.24%
 Baseline accuracy on same test split: 68.75%
-Calibrated certain distance threshold: 0.3522
 
 ## Validation Protocol
 
 - Final test metrics use a deterministic stratified holdout split.
 - Threshold calibration uses 5-fold stratified cross-validation on the training split.
-- The threshold is intentionally conservative: uncertain cases should fall through to local RAG or remote fallback.
+- Each label gets its own certain-distance threshold instead of one shared scalar,
+  so one close call for label A can no longer collapse label B's threshold too.
+- Thresholds are intentionally conservative: uncertain cases should fall through to local RAG or remote fallback.
+
+### Calibrated Certain-Distance Thresholds
+
+| Label | Threshold |
+| :-- | --: |
+| LOW | 0.3522 |
+| MEDIUM | 0.7852 |
+| HIGH | 1.0401 |
+| UNKNOWN | 0.3066 |
 
 ## Cross Validation
 
