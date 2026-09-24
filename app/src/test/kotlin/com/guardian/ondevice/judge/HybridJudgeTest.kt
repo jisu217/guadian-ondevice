@@ -1,18 +1,18 @@
 package com.guardian.ondevice.judge
 
 import com.guardian.ondevice.model.OnDeviceModelJudge
-import com.guardian.ondevice.rag.LocalRagJudge
+import com.guardian.ondevice.knowledge.LocalKnowledgeJudge
 import com.guardian.ondevice.rules.ApkRule
 import com.guardian.ondevice.rules.BrandImpersonationRule
 import com.guardian.ondevice.rules.SuspiciousUrlRule
-import com.guardian.ondevice.store.LocalRiskStore
+import com.guardian.ondevice.store.InMemoryRiskStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class HybridJudgeTest {
     @Test
     fun `returns cached verdict before running other judges`() {
-        val store = LocalRiskStore()
+        val store = InMemoryRiskStore()
         store.save(
             "https://example.com",
             Verdict(
@@ -38,7 +38,7 @@ class HybridJudgeTest {
     @Test
     fun `uses remote fallback when local judges are uncertain`() {
         val hybridJudge = HybridJudge(
-            store = LocalRiskStore(),
+            store = InMemoryRiskStore(),
             ruleBasedJudge = fixedJudge("rule-engine", Risk.UNKNOWN, Confidence.UNCERTAIN),
             localReasoningJudge = fixedJudge("local-reasoning", Risk.UNKNOWN, Confidence.UNCERTAIN),
             remoteJudge = fixedJudge("remote", Risk.MEDIUM, Confidence.CERTAIN),
@@ -52,7 +52,7 @@ class HybridJudgeTest {
 
     @Test
     fun `does not cache unknown fallback result`() {
-        val store = LocalRiskStore()
+        val store = InMemoryRiskStore()
         val hybridJudge = HybridJudge(
             store = store,
             ruleBasedJudge = fixedJudge("rule-engine", Risk.UNKNOWN, Confidence.UNCERTAIN),
@@ -79,7 +79,7 @@ class HybridJudgeTest {
     }
 
     @Test
-    fun `uses local rag when model is uncertain`() {
+    fun `uses local knowledge when model is uncertain`() {
         val remoteJudge = CountingJudge(fixedVerdict("remote", Risk.HIGH, Confidence.CERTAIN))
         val hybridJudge = actualLocalHybrid(remoteJudge = remoteJudge)
 
@@ -87,13 +87,13 @@ class HybridJudgeTest {
 
         assertEquals(Risk.MEDIUM, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)
-        assertEquals("local-rag", verdict.source)
+        assertEquals("local-knowledge", verdict.source)
         assertEquals("personal-info", verdict.type)
         assertEquals(0, remoteJudge.calls)
     }
 
     @Test
-    fun `uses remote only when rule model and rag are uncertain`() {
+    fun `uses remote only when rule model and local knowledge are uncertain`() {
         val remoteJudge = CountingJudge(fixedVerdict("remote", Risk.MEDIUM, Confidence.CERTAIN))
         val hybridJudge = actualLocalHybrid(remoteJudge = remoteJudge)
 
@@ -106,7 +106,7 @@ class HybridJudgeTest {
 
     @Test
     fun `caches reusable local model verdict`() {
-        val store = LocalRiskStore()
+        val store = InMemoryRiskStore()
         val remoteJudge = CountingJudge(fixedVerdict("remote", Risk.HIGH, Confidence.CERTAIN))
         val hybridJudge = actualLocalHybrid(store = store, remoteJudge = remoteJudge)
 
@@ -121,7 +121,7 @@ class HybridJudgeTest {
     }
 
     private fun actualLocalHybrid(
-        store: LocalRiskStore = LocalRiskStore(),
+        store: InMemoryRiskStore = InMemoryRiskStore(),
         remoteJudge: Judge,
     ): HybridJudge {
         return HybridJudge(
@@ -136,7 +136,7 @@ class HybridJudgeTest {
             localReasoningJudge = LocalReasoningJudge(
                 judges = listOf(
                     OnDeviceModelJudge(),
-                    LocalRagJudge(),
+                    LocalKnowledgeJudge(),
                 )
             ),
             remoteJudge = remoteJudge,
