@@ -22,8 +22,16 @@ class OfficialDomains {
         }?.key
     }
 
-    fun brandMentionedInHost(host: String): String? {
-        val normalized = host.lowercase()
+    fun brandMentionedInHost(host: String): String? = firstMentionedBrand(host)
+
+    // Same label set as brandMentionedInHost, applied to rendered page text
+    // (title + body) instead of the host string. Lets PageContentJudge catch a
+    // fake login page that names a brand in its content even when the URL
+    // itself carries no brand token.
+    fun brandMentionedInText(text: String): String? = firstMentionedBrand(text)
+
+    private fun firstMentionedBrand(text: String): String? {
+        val normalized = text.lowercase()
         return mentionLabelsByBrand.entries.firstOrNull { (_, labels) ->
             labels.any { normalized.contains(it) }
         }?.key
