@@ -23,6 +23,7 @@ fast local signal inside the broader `Rule -> Model -> RAG -> Remote` pipeline.
 | `training/build_official_domains.py` | official-domain allowlist builder |
 | `artifacts/url_risk_centroid_model.json` | generated model parameters read by the Kotlin runtime |
 | `evaluation/trained-model-report.md` | generated model report |
+| `evaluation/model-card.md` | model role, metrics, intended use, and limitations |
 
 ## Dataset
 
@@ -62,6 +63,12 @@ Run model tests:
 python3 -m unittest discover model/training
 ```
 
+Run model governance checks:
+
+```bash
+bash scripts/check-model-governance.sh
+```
+
 Train and regenerate report/artifact:
 
 ```bash
@@ -86,7 +93,7 @@ python3 model/training/build_official_domains.py --tranco /path/to/top-1m.csv
 
 The Tranco input file is intentionally not committed.
 
-## Data Policy
+## Data Handling Rules
 
 - Commit sanitized fixtures only.
 - Do not commit raw browsing logs, private URLs, or page bodies.
@@ -95,10 +102,15 @@ The Tranco input file is intentionally not committed.
 - Preserve label provenance when rows are generated from LLM consensus rather
   than full human review.
 
+For allowed claims, forbidden claims, and dataset governance rules, see
+[Data Policy](../docs/data-policy.md).
+
 ## Related Documents
 
 - [Project Report](../docs/project-report.md)
+- [Data Policy](../docs/data-policy.md)
 - [Model Development History](docs/model-development-history.md)
 - [Feature Specification](docs/feature-spec.md)
 - [Dataset Schema](docs/dataset-schema.md)
+- [Model Card](evaluation/model-card.md)
 - [Trained Model Report](evaluation/trained-model-report.md)
