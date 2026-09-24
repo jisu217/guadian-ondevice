@@ -2,14 +2,12 @@
 
 ## Overview
 
-| Field | Value |
-| :-- | :-- |
-| Artifact | `model/artifacts/url_risk_centroid_model.json` |
-| Type | nearest-centroid URL-feature classifier |
-| Runtime | Android/Kotlin local inference inside the hybrid pipeline |
-| Training code | `model/training/train_model.py` |
-| Feature contract | `model/docs/model-spec.md` |
-| Dataset | `model/data/sample_urls.csv` |
+- Artifact: `model/artifacts/url_risk_centroid_model.json`
+- Type: nearest-centroid URL-feature classifier
+- Runtime: Android/Kotlin local inference inside the hybrid pipeline
+- Training code: `model/training/train_model.py`
+- Feature contract: `model/docs/model-spec.md`
+- Dataset: `model/data/sample_urls.csv`
 
 This model is a compact local URL-risk classifier. It is not a fine-tuned LLM,
 not a TFLite/ONNX artifact, and not a production security detection service.
