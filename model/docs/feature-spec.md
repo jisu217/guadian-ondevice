@@ -52,6 +52,13 @@ When a feature changes, update all of these together:
 | `brand_keyword_present` | binary | known brand keyword in tokenized URL text |
 | `official_domain_match` | binary | host appears in the official-domain allowlist |
 | `suspicious_tld` | binary | TLD appears in the local suspicious-TLD policy |
+| `query_param_count` | numeric | number of parsed query parameters |
+| `utm_param_count` | numeric | number of `utm_*` query parameters |
+| `tracking_param_count` | numeric | number of known tracking query parameters such as `gclid`, `dclid`, and `utm_*` |
+| `has_nested_url` | binary | query contains a raw or decoded nested `http://` or `https://` URL |
+| `has_encoded_url` | binary | query contains percent-encoded URL markers such as `https%3A` or `%2F%2F` |
+| `has_ad_click_host` | binary | host/token signal for known ad-click or ad-network infrastructure |
+| `has_base64_like_token` | binary | long URL-safe token that often indicates encoded redirect state |
 
 ## Derived Signals
 
@@ -61,11 +68,14 @@ When a feature changes, update all of these together:
 | Brand impersonation | `brand_keyword_present`, `official_domain_match`, `subdomain_count` |
 | Reward or urgency lure | `has_event`, `has_free`, `url_length` |
 | Obfuscated or tracking-heavy URL | `digit_ratio`, `special_char_ratio`, `query_length` |
+| Redirect/ad-network URL | `query_param_count`, `tracking_param_count`, `has_nested_url`, `has_encoded_url`, `has_ad_click_host` |
+| Encoded state token | `has_base64_like_token`, `special_char_ratio`, `query_length` |
 
 ## Known Limitations
 
 - URL-only features cannot detect rendered forms, page text, JavaScript-only
   flows, or final redirected content.
-- Min-max scaling is sensitive to very long tracking URLs.
+- Length features are log-compressed before min-max scaling, but URL-only
+  signals still cannot inspect the final redirected page.
 - `MEDIUM` and `UNKNOWN` are inherently difficult to separate without page
   context.
