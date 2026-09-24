@@ -3,13 +3,11 @@
 Local-first Android URL-risk judgment prototype evolved from the SKT FLY AI
 bootcamp GUADIAN project.
 
-| Field | Current state |
-| :-- | :-- |
-| Status | Active research prototype |
-| Runtime | Android app module (`:app`) + Python model workspace + FastAPI fallback |
-| Trigger paths | Manual URL entry and browser-click Shield accessibility service |
-| Model | URL-feature nearest-centroid classifier, not a fine-tuned LLM |
-| Verification | Unit tests, Robolectric tests, CI, and emulator manual checks |
+- Status: active research prototype
+- Runtime: Android app module (`:app`) + Python model workspace + FastAPI fallback
+- Trigger paths: manual URL entry and browser-click Shield accessibility service
+- Model: URL-feature nearest-centroid classifier, not a fine-tuned LLM
+- Verification: unit tests, Robolectric tests, CI, and emulator manual checks
 
 The project explores how much URL-risk judgment can happen on-device before
 falling back to a remote judge. It combines deterministic URL rules, a compact
