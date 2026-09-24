@@ -13,11 +13,11 @@ results remain `UNKNOWN` rather than becoming overconfident verdicts.
 
 ```text
 URL
-  -> LocalRiskStore
+  -> InMemoryRiskStore
   -> RuleBasedJudge
   -> LocalReasoningJudge
        -> OnDeviceModelJudge
-       -> LocalRagJudge
+       -> LocalKnowledgeJudge
        -> PageContentJudge
   -> RemoteJudge
   -> Verdict
@@ -25,10 +25,11 @@ URL
 
 | Component | Role |
 | :-- | :-- |
-| `LocalRiskStore` | reuse previous host-level verdicts |
+| `InMemoryRiskStore` | reuse previous host-level verdicts during the app process |
 | `RuleBasedJudge` | handle clear URL rule cases |
+| `LocalReasoningJudge` | run local model, policy, and page-content layers |
 | `OnDeviceModelJudge` | run the local URL-feature model |
-| `LocalRagJudge` | apply local policy snippets |
+| `LocalKnowledgeJudge` | apply local policy snippets |
 | `PageContentJudge` | inspect rendered page signals in a hidden WebView |
 | `RemoteJudge` | call the FastAPI fallback server |
 | `HybridJudge` | orchestrate layers and return one `Verdict` |
@@ -66,21 +67,17 @@ app/src/main/res/xml/shield_accessibility_service_config.xml
 
 ## Runtime Boundary
 
-Implemented:
-
-- Android app module under `app/`
-- manual verdict screen
-- Shield accessibility service and overlay
-- local rule/model/RAG/page-content/remote pipeline
-- generated model artifact loaded by Kotlin runtime
-- local unit tests, Robolectric tests, and CI
+The implemented runtime lives primarily under `app/`. It includes the manual
+verdict screen, the Shield accessibility service and overlay, the local
+rule/model/knowledge/page-content pipeline, the remote fallback client, and Kotlin
+loading of the generated model artifact. Local unit tests, Robolectric tests,
+and CI cover the main runtime and model documentation paths.
 
 Not complete:
 
-- physical-device validation
-- production UI, onboarding, and release packaging
+- physical-device validation and production readiness; see
+  [Technical Report](technical-report.md#next-steps)
 - arbitrary in-app WebView or native ad-surface coverage
-- production fallback-server deployment and authentication
 
 ## Trade-offs
 
