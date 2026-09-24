@@ -5,21 +5,16 @@ rules, model, local policy retrieval, and page-content inspection.
 
 ## Scope
 
-Implemented:
+The server exposes `/health` and `/judge`, with an optional NDJSON streaming
+response. Before calling a remote model, it runs a local precheck for obvious
+APK and suspicious-token cases. When `ANTHROPIC_API_KEY` is configured, the
+server can use Claude as the fallback judge; when it is unavailable, the server
+returns a safe `UNKNOWN` verdict instead of fabricating a result.
 
-- `/health`
-- `/judge`
-- optional NDJSON streaming response
-- local precheck for obvious APK and suspicious-token cases
-- Claude fallback when `ANTHROPIC_API_KEY` is configured
-- safe `UNKNOWN` when remote fallback is unavailable
-
-Not implemented:
-
-- production authentication
-- rate limiting
-- persistent logging
-- production deployment configuration
+Production hardening is outside the current server scope. Authentication, rate
+limiting, persistent logging, and deployment configuration are tracked with the
+project-level follow-up work in
+[Technical Report](../docs/technical-report.md#next-steps).
 
 ## Files
 
