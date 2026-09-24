@@ -11,6 +11,7 @@ from train_model import (
     precision_recall_by_label,
     predict,
     render_report,
+    save_rows,
     stratified_kfold_split,
     stratified_split,
     train_centroid_model,
@@ -90,9 +91,28 @@ class TrainModelTest(unittest.TestCase):
         report = render_report(train_rows, test_rows, predictions, predictions)
 
         self.assertIn("## Validation Protocol", report)
+        self.assertIn("model/evaluation/test-split.csv", report)
         self.assertIn("## Precision And Recall", report)
         self.assertIn("macro F1", report)
         self.assertIn("## Confusion Matrix", report)
+
+    def test_saves_evaluation_split_rows(self):
+        rows = load_rows()[:3]
+        path = self._tmp_path("split.csv")
+
+        save_rows(rows, path)
+
+        saved = path.read_text()
+        self.assertIn("url,label,source,reason,category,brand,reviewed_by,created_at", saved)
+        self.assertEqual(len(saved.strip().splitlines()), 4)
+
+    def _tmp_path(self, name):
+        import tempfile
+        from pathlib import Path
+
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        return Path(directory.name) / name
 
 
 if __name__ == "__main__":
