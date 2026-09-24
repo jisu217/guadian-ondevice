@@ -2,14 +2,19 @@ package com.guardian.ondevice.store
 
 import com.guardian.ondevice.judge.Verdict
 
-class LocalRiskStore {
+interface RiskStore {
+    fun find(url: String): Verdict?
+    fun save(url: String, verdict: Verdict)
+}
+
+class InMemoryRiskStore : RiskStore {
     private val verdicts = linkedMapOf<String, Verdict>()
 
-    fun find(url: String): Verdict? {
+    override fun find(url: String): Verdict? {
         return verdicts[keyOf(url)]
     }
 
-    fun save(url: String, verdict: Verdict) {
+    override fun save(url: String, verdict: Verdict) {
         verdicts[keyOf(url)] = verdict
     }
 
