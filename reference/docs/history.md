@@ -1,5 +1,4 @@
-> **문서 출처:** SKT FLY AI 부트캠프 GUADIAN 원본 프로젝트 기반 참조 자료입니다.
-> **GUADIAN 원본 경로:** `docs/history.md`
+> **참고 출처:** `SKT-FLY-AI-TEAM-6/GUADIAN/docs/history.md`
 
 ## GuADian 개발 이력
 
