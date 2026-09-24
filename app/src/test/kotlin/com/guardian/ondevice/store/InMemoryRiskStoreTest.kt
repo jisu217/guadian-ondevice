@@ -5,10 +5,10 @@ import com.guardian.ondevice.judge.Verdict
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class LocalRiskStoreTest {
+class InMemoryRiskStoreTest {
     @Test
     fun `stores verdict by normalized host`() {
-        val store = LocalRiskStore()
+        val store = InMemoryRiskStore()
         val verdict = Verdict(
             risk = Risk.LOW,
             reason = "Official domain.",
