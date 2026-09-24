@@ -15,7 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 
 // Automates the same 4-layer check that was done by hand on an emulator with
-// adb (rule engine, on-device model, local RAG, remote fallback failure).
+// adb (rule engine, on-device model, local knowledge, remote fallback failure).
 // Run with: ./gradlew connectedDebugAndroidTest
 class JudgeActivityTest {
     @get:Rule
@@ -48,14 +48,14 @@ class JudgeActivityTest {
     }
 
     @Test
-    fun localRagResolvesPersonalInfoUrlAsMedium() {
+    fun localKnowledgeResolvesPersonalInfoUrlAsMedium() {
         judge(
             "https://survey-form.unlisted-check.test/personal-info-phone-card" +
                 "?ref=abcdefghijklmnopqrstuvwxyz1234567890"
         )
 
         onView(withId(R.id.resultText)).check(matches(withText(containsString("MEDIUM"))))
-        onView(withId(R.id.resultText)).check(matches(withText(containsString("local-rag"))))
+        onView(withId(R.id.resultText)).check(matches(withText(containsString("local-knowledge"))))
     }
 
     @Test
