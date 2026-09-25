@@ -18,6 +18,9 @@ out/
 .vscode/
 .github/modernize/
 
+# JVM heap dumps written when a Gradle daemon runs out of memory
+*.hprof
+
 # Android Studio's Espresso test screenshot/video output
 captures/
 
