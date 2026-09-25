@@ -1,0 +1,30 @@
+package com.guardian.ondevice
+
+import android.app.Application
+import com.guardian.ondevice.classifier.NearestCentroidUrlModel
+import com.guardian.ondevice.rules.OfficialDomains
+import com.guardian.ondevice.util.DomainAllowlist
+import com.guardian.ondevice.util.PublicSuffixList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+
+/** Owns the single judge graph shared by JudgeActivity and ShieldAccessibilityService. */
+class GuardianApp : Application() {
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    val judges: DefaultJudgeGraph by lazy { DefaultJudgeGraph(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+        // Load the large runtime resources off the main thread before the
+        // first judgment needs them.
+        appScope.launch {
+            DomainAllowlist.default
+            PublicSuffixList.default
+            OfficialDomains.defaultBrandDomains
+            NearestCentroidUrlModel.default
+        }
+    }
+}

@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.parse import parse_qsl, unquote, urlparse
 
 
-DEFAULT_OFFICIAL_DOMAINS_PATH = Path(__file__).parents[1] / "data" / "official_domains.txt"
+DEFAULT_OFFICIAL_DOMAINS_PATH = Path(__file__).parents[1] / "runtime" / "official_domains.txt"
 
 FEATURE_NAMES = [
     "url_length",
@@ -36,10 +36,13 @@ APK_TOKENS = {"apk", "download", "install"}
 LOGIN_TOKENS = {"login", "signin", "auth", "account", "verify", "verification"}
 EVENT_TOKENS = {"event", "promo", "promotion", "reward", "coupon"}
 FREE_TOKENS = {"free", "gift", "prize", "win", "winner"}
-SHORTENER_HOSTS = {"bit.ly", "tinyurl.com", "t.co", "short.test"}
+SHORTENER_HOSTS = {"bit.ly", "tinyurl.com", "t.co"}
 SHORTENER_TOKENS = {"short", "go", "r", "l"}
 BRAND_KEYWORDS = {"bank", "kakao", "naver", "google", "samsung", "sk", "toss"}
-SUSPICIOUS_TLDS = {"zip", "top", "xyz", "click", "test"}
+# "test" is deliberately absent: the synthetic rows use the reserved .test
+# TLD, so listing it let the model learn "synthetic" instead of "risky"
+# (66 of 107 HIGH rows were .test). Mirrored in UrlFeatureExtractor.kt.
+SUSPICIOUS_TLDS = {"zip", "top", "xyz", "click"}
 TRACKING_PARAM_KEYS = {
     "gclid",
     "dclid",
@@ -90,10 +93,12 @@ def is_official_domain(host: str, domains: frozenset[str] = OFFICIAL_DOMAINS) ->
     apex domains like "naver.com"); real traffic overwhelmingly uses
     subdomains ("m.naver.com", "pay.naver.com"). Matching on suffix instead
     of exact string is what makes the allowlist actually generalize.
+
+    Walks the host's own parent domains (a few set lookups) rather than
+    scanning every listed domain; DomainAllowlist.kt does the same walk.
     """
-    if not host:
-        return False
-    return host in domains or any(host.endswith("." + d) for d in domains)
+    labels = host.split(".")
+    return any(".".join(labels[i:]) in domains for i in range(len(labels)) if labels[i:] != [""])
 
 
 def extract_features(url: str) -> dict[str, float]:

@@ -18,7 +18,7 @@ and which claims about it are not supported.
 The model is a compact nearest-centroid URL-feature classifier that runs as
 local Android/Kotlin inference (`OnDeviceModelJudge`) inside the hybrid
 pipeline. Its parameters are a JSON artifact,
-`model/artifacts/url_risk_centroid_model.json`, trained by
+`model/runtime/url_risk_centroid_model.json` (version `v8-prep`), trained by
 `model/training/train_model.py` on `model/data/sample_urls.csv`; the feature
 contract is defined in [Model Specification](../docs/model-spec.md).
 
@@ -58,25 +58,30 @@ split ([Trained Model Report](trained-model-report.md)):
 
 | Metric | Value |
 | :-- | --: |
-| Holdout accuracy | 79.55% |
-| Holdout macro F1 | 80.98% |
-| Baseline accuracy on same split | 68.94% |
-| 5-fold CV accuracy | 81.19% |
-| 5-fold CV macro F1 | 82.70% |
+| Holdout accuracy | 75.00% |
+| Holdout macro F1 | 74.63% |
+| Baseline accuracy on same split | 64.39% |
+| 5-fold CV accuracy | 80.44% |
+| 5-fold CV macro F1 | 81.44% |
 
 Per-label precision, recall, and F1 on the same 132-row holdout test split:
 
 | Label | Precision | Recall | F1 |
 | :-- | --: | --: | --: |
 | `LOW` | 85.37% | 74.47% | 79.55% |
-| `MEDIUM` | 77.50% | 70.45% | 73.81% |
-| `HIGH` | 90.91% | 95.24% | 93.02% |
-| `UNKNOWN` | 65.52% | 95.00% | 77.55% |
+| `MEDIUM` | 75.61% | 70.45% | 72.94% |
+| `HIGH` | 87.50% | 66.67% | 75.68% |
+| `UNKNOWN` | 55.88% | 95.00% | 70.37% |
+
+On the 72 non-synthetic holdout rows alone, accuracy is 66.67%; the
+[Trained Model Report](trained-model-report.md#4-holdout-by-source) splits every
+metric by dataset `source`. Synthetic rows share the rules the features encode,
+so the pooled numbers above are an upper bound for real ad URLs.
 
 ## 5. Runtime Contract
 
 Python training and the Kotlin runtime share feature names, feature order, and
-missing-value behavior, and `model/data/feature_parity_cases.csv` is tested by
+missing-value behavior, and `model/data/fixtures/feature_parity_cases.csv` is tested by
 both implementations to catch drift. Kotlin reads the generated JSON artifact
 directly from resources, so there is a single source of model parameters.
 Per-label distance thresholds decide whether the model emits a confident local
@@ -100,6 +105,7 @@ When changing data or features:
 
 1. Keep `source`, `reason`, `category`, `reviewed_by`, and `created_at` filled.
 2. Add Python/Kotlin feature parity rows for new URL patterns.
-3. Regenerate the trained model, baseline report, trained report, artifact, and
-   split files.
+3. Regenerate the trained model, baseline report, trained report,
+   `metrics.json`, artifact, and split files, then update the doc tables that
+   `scripts/check_doc_metrics.py` reports as stale.
 4. Run model documentation, Python, server, and Kotlin tests before committing.

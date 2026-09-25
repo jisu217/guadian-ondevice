@@ -60,6 +60,16 @@ class WebAccessibilityNodeRobolectricTest {
     }
 
     @Test
+    fun targetUrlKeepsThePathAndQuery() {
+        // Shield judges the full URL so path/query rules (APK, lure keywords) apply.
+        val node = chromeRoleNode(role = "link", targetUrl = "https://m.example.com/download/app.apk?x=1")
+
+        assertEquals("https://m.example.com/download/app.apk?x=1", WebAccessibilityNode.targetUrl(node))
+
+        node.recycle()
+    }
+
+    @Test
     fun targetHostIsNullWithoutATargetUrlExtra() {
         val node = chromeRoleNode(role = "link")
 

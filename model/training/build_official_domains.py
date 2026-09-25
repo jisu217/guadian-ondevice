@@ -1,18 +1,17 @@
-"""Rebuild model/data/official_domains.txt from a Tranco top-sites export.
+"""Rebuild model/runtime/official_domains.txt from a Tranco top-sites export.
 
     python3 build_official_domains.py --tranco /path/to/top-1m.csv
 
 Download the input from https://tranco-list.eu (top-1m.csv.zip, unzip
 first) — it isn't committed here because it's a third-party 1M-row file
 you can always re-fetch, and only the top `--rank-limit` rows are used
-anyway. The output replaces model/data/official_domains.txt, which both
-url_features.py (training) and UrlFeatureExtractor.kt (runtime, via the
-`resources.srcDir("model/data")` entry in build.gradle.kts) read directly.
+anyway. The output replaces model/runtime/official_domains.txt, which both
+url_features.py (training) and DomainAllowlist.kt (runtime, via the
+`model/runtime` resource directory in app/build.gradle.kts) read directly.
 
-BRAND_DOMAINS and SEED_DOMAINS below can't be imported from the Kotlin
-rule engine (app/.../rules/OfficialDomains.kt) or the pre-Tranco
-feature extractor, so they're kept here by hand — same pattern as the
-model centroids in OnDeviceModelJudge.kt.
+Brand domains come from model/runtime/brand_domains.tsv, the same file
+OfficialDomains.kt loads, so the rule engine and this allowlist cannot drift.
+SEED_DOMAINS below is the pre-Tranco allowlist and stays listed by hand.
 """
 from __future__ import annotations
 
@@ -20,17 +19,22 @@ import argparse
 import csv
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path(__file__).parents[1] / "data" / "official_domains.txt"
+DEFAULT_OUTPUT = Path(__file__).parents[1] / "runtime" / "official_domains.txt"
+DEFAULT_BRAND_DOMAINS = Path(__file__).parents[1] / "runtime" / "brand_domains.tsv"
 DEFAULT_RANK_LIMIT = 50_000
 
-# Mirrors app/src/main/kotlin/com/guardian/ondevice/rules/OfficialDomains.kt
-BRAND_DOMAINS = {
-    "coupang.com", "coupangeats.com",
-    "naver.com", "navercorp.com", "pay.naver.com",
-    "kakao.com", "kakaopay.com", "kakaocorp.com",
-    "kbstar.com", "kbcard.com", "kbfg.com",
-    "shinhan.com", "shinhancard.com",
-}
+
+def load_brand_domains(path: Path = DEFAULT_BRAND_DOMAINS) -> set[str]:
+    domains = set()
+    for line in path.read_text().splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        _brand, domain = line.split("\t")
+        domains.add(domain.strip().lower())
+    return domains
+
+
+BRAND_DOMAINS = load_brand_domains()
 
 # The original 27-domain allowlist (pre-Tranco), including the synthetic
 # ".test" domains used by seed fixture rows in sample_urls.csv — Tranco has

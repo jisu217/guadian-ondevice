@@ -1,6 +1,7 @@
 import unittest
 
 from train_model import (
+    MODEL_VERSION,
     accuracy,
     calibrate_certain_distance_thresholds,
     confusion_matrix,
@@ -92,11 +93,28 @@ class TrainModelTest(unittest.TestCase):
         report = render_report(train_rows, test_rows, predictions, predictions)
 
         self.assertIn("## 1. Validation Protocol", report)
-        self.assertIn("model/evaluation/test-split.csv", report)
+        self.assertIn("model/data/test-split.csv", report)
         self.assertIn("## 3. Precision and Recall", report)
         self.assertIn("macro F1", report)
-        self.assertIn("## 4. Error Buckets", report)
-        self.assertIn("## 5. Confusion Matrix", report)
+        self.assertIn("## 5. Error Buckets", report)
+        self.assertIn("## 6. Confusion Matrix", report)
+
+    def test_report_splits_holdout_by_source(self):
+        train_rows, test_rows = stratified_split(load_rows())
+        model = train_centroid_model(train_rows)
+        predictions = evaluate_model(model, test_rows)
+        sources = {row["url"]: row["source"] for row in test_rows}
+
+        report = render_report(train_rows, test_rows, predictions, predictions, sources=sources)
+
+        self.assertIn("## 4. Holdout by Source", report)
+        self.assertIn("| synthetic |", report)
+        self.assertIn("| non-synthetic (all but synthetic) |", report)
+
+    def test_trained_artifact_records_version(self):
+        model = train_centroid_model(load_rows()[:40])
+
+        self.assertEqual(model["version"], MODEL_VERSION)
 
     def test_groups_holdout_errors_into_actionable_buckets(self):
         predictions = [

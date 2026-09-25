@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import math
 from collections import Counter, defaultdict
@@ -17,10 +18,17 @@ LABELS = ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
 LENGTH_FEATURE_NAMES = {"url_length", "host_length", "path_length", "query_length"}
 LENGTH_FEATURE_INDICES = [FEATURE_NAMES.index(name) for name in LENGTH_FEATURE_NAMES]
 DEFAULT_DATASET = Path(__file__).parents[1] / "data" / "sample_urls.csv"
-DEFAULT_ARTIFACT = Path(__file__).parents[1] / "artifacts" / "url_risk_centroid_model.json"
+DEFAULT_ARTIFACT = Path(__file__).parents[1] / "runtime" / "url_risk_centroid_model.json"
 DEFAULT_REPORT = Path(__file__).parents[1] / "evaluation" / "trained-model-report.md"
-DEFAULT_TRAIN_SPLIT = Path(__file__).parents[1] / "evaluation" / "train-split.csv"
-DEFAULT_TEST_SPLIT = Path(__file__).parents[1] / "evaluation" / "test-split.csv"
+# Machine-readable copy of the report's headline numbers. It is the single
+# source that scripts/check_doc_metrics.py compares every hand-written doc
+# table against, so a retrain cannot leave a stale number in the docs.
+DEFAULT_METRICS = Path(__file__).parents[1] / "evaluation" / "metrics.json"
+DEFAULT_TRAIN_SPLIT = Path(__file__).parents[1] / "data" / "train-split.csv"
+DEFAULT_TEST_SPLIT = Path(__file__).parents[1] / "data" / "test-split.csv"
+# Bump when features, data, or training change. Stored in the artifact and
+# shown by the app, so a report can be tied to the model actually shipped.
+MODEL_VERSION = "v8-prep"
 DEFAULT_FOLDS = 5
 DEFAULT_CERTAIN_DISTANCE_THRESHOLD = 1.2
 
@@ -115,6 +123,7 @@ def train_centroid_model(
 
     return {
         "type": "nearest-centroid",
+        "version": MODEL_VERSION,
         "labels": LABELS,
         "feature_names": FEATURE_NAMES,
         "feature_min": mins,
@@ -265,6 +274,7 @@ def render_report(
     fold_evaluations: list[FoldEvaluation] | None = None,
     cross_validation_predictions: list[ModelPrediction] | None = None,
     certain_distance_thresholds: dict[str, float] | None = None,
+    sources: dict[str, str] | None = None,
 ) -> str:
     actual_counts = Counter(prediction.actual for prediction in predictions)
     predicted_counts = Counter(prediction.predicted for prediction in predictions)
@@ -296,14 +306,16 @@ def render_report(
         "1. [Validation Protocol](#1-validation-protocol)",
         "2. [Cross Validation](#2-cross-validation)",
         "3. [Precision and Recall](#3-precision-and-recall)",
-        "4. [Error Buckets](#4-error-buckets)",
-        "5. [Confusion Matrix](#5-confusion-matrix)",
-        "6. [Predictions](#6-predictions)",
+        "4. [Holdout by Source](#4-holdout-by-source)",
+        "5. [Error Buckets](#5-error-buckets)",
+        "6. [Confusion Matrix](#6-confusion-matrix)",
+        "7. [Predictions](#7-predictions)",
         "",
         "## 1. Validation Protocol",
         "",
+        f"Model version `{MODEL_VERSION}`. "
         "Final test metrics use a deterministic stratified holdout split, saved as "
-        "`model/evaluation/train-split.csv` and `model/evaluation/test-split.csv`. "
+        "`model/data/train-split.csv` and `model/data/test-split.csv`. "
         "`url_length`, `host_length`, `path_length`, and `query_length` are log1p-compressed before min-max "
         "scaling, so a few very long real tracking URLs do not stretch the scale for everyone.",
         "",
@@ -386,7 +398,9 @@ def render_report(
             f"{int(current['support'])} | {baseline['precision']:.2%} | {baseline['recall']:.2%} |"
         )
 
-    lines.extend(["", "## 4. Error Buckets", ""])
+    lines.extend(_source_section(predictions, sources or {}))
+
+    lines.extend(["", "## 5. Error Buckets", ""])
     if errors:
         buckets = error_buckets(predictions)
         lines.extend(
@@ -421,7 +435,7 @@ def render_report(
     lines.extend(
         [
             "",
-            "## 5. Confusion Matrix",
+            "## 6. Confusion Matrix",
             "",
             "Rows are actual labels and columns are predicted labels:",
             "",
@@ -439,7 +453,7 @@ def render_report(
     lines.extend(
         [
             "",
-            "## 6. Predictions",
+            "## 7. Predictions",
             "",
             f"All {len(predictions)} test-split predictions, in split order:",
             "",
@@ -454,6 +468,103 @@ def render_report(
         )
 
     return "\n".join(lines) + "\n"
+
+
+def _source_section(predictions: list[ModelPrediction], sources: dict[str, str]) -> list[str]:
+    """Holdout metrics per dataset source, plus everything except synthetic.
+
+    Synthetic rows are generated from the same rules the features encode, so
+    a pooled score can hide how the model does on real ad URLs.
+    """
+    groups: dict[str, list[ModelPrediction]] = defaultdict(list)
+    for prediction in predictions:
+        groups[sources.get(prediction.url, "unknown")].append(prediction)
+    non_synthetic = [p for p in predictions if sources.get(p.url) != "synthetic"]
+
+    lines = [
+        "",
+        "## 4. Holdout by Source",
+        "",
+        "The pooled holdout mixes synthetic rows with real ad landing URLs. Split by the dataset's "
+        "`source` column (per-label F1 with support in parentheses):",
+        "",
+        "| Source | Rows | Accuracy | Macro F1 | LOW F1 | MEDIUM F1 | HIGH F1 | UNKNOWN F1 |",
+        "| :-- | --: | --: | --: | --: | --: | --: | --: |",
+    ]
+    for name, group in [*sorted(groups.items()), ("non-synthetic (all but synthetic)", non_synthetic)]:
+        metrics = precision_recall_by_label(group)
+        per_label = " | ".join(
+            f"{metrics[label]['f1']:.2%} ({int(metrics[label]['support'])})" for label in LABELS
+        )
+        lines.append(f"| {name} | {len(group)} | {accuracy(group):.2%} | {macro_f1(group):.2%} | {per_label} |")
+    lines.extend(
+        [
+            "",
+            "Macro F1 averages all four labels, so a source with no rows for a label (support 0) "
+            "is pulled down by that label's 0% F1; compare per-label F1 where support is non-zero.",
+        ]
+    )
+    return lines
+
+
+def build_metrics(
+    model: dict,
+    rows: list[dict[str, str]],
+    predictions: list[ModelPrediction],
+    baseline_predictions,
+    full_baseline_predictions,
+    fold_evaluations: list[FoldEvaluation],
+    sources: dict[str, str],
+) -> dict:
+    """Headline numbers exactly as the reports compute them (unrounded)."""
+    per_label = precision_recall_by_label(predictions)
+    by_source: dict[str, list[ModelPrediction]] = defaultdict(list)
+    for prediction in predictions:
+        by_source[sources.get(prediction.url, "unknown")].append(prediction)
+    by_source["non_synthetic"] = [p for p in predictions if sources.get(p.url) != "synthetic"]
+
+    return {
+        "version": model["version"],
+        "dataset_sha256": model.get("dataset_sha256"),
+        "dataset_rows": len(rows),
+        "holdout": {
+            "rows": len(predictions),
+            "accuracy": accuracy(predictions),
+            "macro_f1": macro_f1(predictions),
+            "per_label": {
+                label: {
+                    "precision": per_label[label]["precision"],
+                    "recall": per_label[label]["recall"],
+                    "f1": per_label[label]["f1"],
+                    "support": int(per_label[label]["support"]),
+                }
+                for label in LABELS
+            },
+            "error_buckets": dict(error_buckets(predictions)),
+        },
+        "holdout_by_source": {
+            name: {"rows": len(group), "accuracy": accuracy(group)}
+            for name, group in sorted(by_source.items())
+        },
+        "baseline": {
+            "holdout_accuracy": baseline_accuracy(baseline_predictions),
+            "full_dataset_accuracy": baseline_accuracy(full_baseline_predictions),
+        },
+        "cv": {
+            "folds": len(fold_evaluations),
+            "accuracy": sum(fold.accuracy for fold in fold_evaluations) / len(fold_evaluations),
+            "macro_f1": sum(fold.macro_f1 for fold in fold_evaluations) / len(fold_evaluations),
+        },
+    }
+
+
+def save_metrics(metrics: dict, path: Path = DEFAULT_METRICS) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(metrics, indent=2, sort_keys=True) + "\n")
+
+
+def dataset_sha256(path: Path = DEFAULT_DATASET) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def save_model(model: dict, path: Path = DEFAULT_ARTIFACT) -> None:
@@ -592,8 +703,10 @@ def main() -> None:
     fold_evaluations, cross_validation_predictions = cross_validate_model(train_rows)
     certain_distance_thresholds = calibrate_certain_distance_thresholds(cross_validation_predictions)
     model = train_centroid_model(train_rows, certain_distance_thresholds=certain_distance_thresholds)
+    model["dataset_sha256"] = dataset_sha256()
     predictions = evaluate_model(model, test_rows)
     baseline_predictions = evaluate_baseline(test_rows)
+    sources = {row["url"]: row.get("source", "unknown") for row in rows}
     report = render_report(
         train_rows,
         test_rows,
@@ -602,10 +715,21 @@ def main() -> None:
         fold_evaluations=fold_evaluations,
         cross_validation_predictions=cross_validation_predictions,
         certain_distance_thresholds=certain_distance_thresholds,
+        sources=sources,
+    )
+    metrics = build_metrics(
+        model,
+        rows,
+        predictions,
+        baseline_predictions,
+        evaluate_baseline(rows),
+        fold_evaluations,
+        sources,
     )
 
     save_model(model)
     save_report(report)
+    save_metrics(metrics)
     print(report)
 
 

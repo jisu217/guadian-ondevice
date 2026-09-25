@@ -1,14 +1,15 @@
 package com.guardian.ondevice.shield
 
 import android.view.accessibility.AccessibilityNodeInfo
+import com.guardian.ondevice.util.PublicSuffixList
 import com.guardian.ondevice.util.UrlHost
 
 /**
  * Browser accessibility-tree helpers used by ShieldAccessibilityService.
  *
- * Adapted from `reference/WebNode.kt`
+ * Adapted from `reference/original-guadian/src/WebNode.kt`
  * (`SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/WebNode.kt`)
- * and reduced to link detection, target-host extraction, iframe detection, and
+ * and reduced to link detection, target-URL extraction, iframe detection, and
  * current-site inference. The original ad-network denylist and redirect
  * accounting helpers are intentionally not ported; this version detects
  * off-site or iframe link clicks and lets HybridJudge decide the risk.
@@ -28,11 +29,6 @@ object WebAccessibilityNode {
 
     private const val MAX_NODES_TO_SCAN = 500
     private const val MAX_ANCESTOR_HOPS = 20
-
-    // Minimal two-level suffix support for siteOf("m.news.nate.com") == "nate.com".
-    private val twoLevelSuffixes = setOf(
-        "co", "or", "ne", "go", "re", "pe", "ac", "hs", "ms", "es", "sc", "kg", "com", "net", "org"
-    )
 
     private fun str(node: AccessibilityNodeInfo, key: String): String? = try {
         node.extras?.getString(key)?.takeIf { it.isNotEmpty() }
@@ -57,8 +53,10 @@ object WebAccessibilityNode {
     /** Anchors only; image roles often point to CDN assets, not navigation targets. */
     fun isLink(node: AccessibilityNodeInfo): Boolean = role(node)?.lowercase() == "link"
 
-    fun targetHost(node: AccessibilityNodeInfo): String? =
-        str(node, TARGET_URL)?.let { hostOf(it) }
+    /** The full destination URL, so path/query rules still apply to Shield clicks. */
+    fun targetUrl(node: AccessibilityNodeInfo): String? = str(node, TARGET_URL)
+
+    fun targetHost(node: AccessibilityNodeInfo): String? = targetUrl(node)?.let { hostOf(it) }
 
     /** True for the node marking the boundary into an iframe's own document. */
     fun isNestedDoc(node: AccessibilityNodeInfo): Boolean = role(node) in nestedDocRoles
@@ -107,13 +105,8 @@ object WebAccessibilityNode {
 
     fun hostOf(raw: String?): String? = UrlHost.of(raw)
 
-    fun siteOf(host: String): String {
-        val parts = host.lowercase().trim('.').split('.')
-        if (parts.size <= 2) return parts.joinToString(".")
-        val secondLast = parts[parts.size - 2]
-        val take = if (parts.last().length <= 3 && secondLast in twoLevelSuffixes) 3 else 2
-        return parts.takeLast(minOf(take, parts.size)).joinToString(".")
-    }
+    /** Registrable domain via the Public Suffix List: "m.news.nate.com" -> "nate.com". */
+    fun siteOf(host: String): String = PublicSuffixList.default.registrableDomain(host) ?: host.lowercase()
 
     fun sameSite(a: String?, b: String?): Boolean {
         if (a == null || b == null) return false
