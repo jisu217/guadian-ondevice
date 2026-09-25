@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from typing import Any
@@ -36,7 +37,7 @@ class JudgeService:
         model: str | None = None,
     ) -> None:
         self.api_key = os.getenv("ANTHROPIC_API_KEY") if api_key is _UNSET else api_key
-        self.model = model or os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-latest")
+        self.model = model or os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
 
     def judge(self, url: str) -> Verdict:
         local = self._local_precheck(url)
@@ -71,8 +72,10 @@ class JudgeService:
                 type="apk",
             )
 
-        suspicious_tokens = ("free", "gift", "event", "loan", "verify", "account")
-        if any(token in normalized for token in suspicious_tokens):
+        # Whole-token match, like the app's URL features: a substring match
+        # would also flag hosts such as "prevent.com" or "freedom.org".
+        suspicious_tokens = {"free", "gift", "event", "loan", "verify", "account"}
+        if suspicious_tokens & set(re.split(r"[^a-z0-9]+", normalized)):
             return Verdict(
                 risk=Risk.MEDIUM,
                 reason="The URL contains a suspicious landing-page keyword.",

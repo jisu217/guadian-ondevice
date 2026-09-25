@@ -10,6 +10,18 @@ class JudgeServiceTest(unittest.TestCase):
         self.assertEqual(Risk.HIGH, verdict.risk)
         self.assertEqual("apk", verdict.type)
 
+    def test_local_precheck_matches_whole_suspicious_token(self):
+        verdict = JudgeService(api_key=None).judge("https://promo.example.com/free-gift")
+
+        self.assertEqual(Risk.MEDIUM, verdict.risk)
+        self.assertEqual("suspicious_url", verdict.type)
+
+    def test_local_precheck_ignores_suspicious_substring(self):
+        verdict = JudgeService(api_key=None).judge("https://prevent.example.org/freedom")
+
+        self.assertEqual(Risk.UNKNOWN, verdict.risk)
+        self.assertEqual("remote_not_configured", verdict.type)
+
     def test_missing_api_key_returns_unknown(self):
         verdict = JudgeService(api_key=None).judge("https://example.org/about")
 
