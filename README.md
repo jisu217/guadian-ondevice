@@ -3,67 +3,81 @@
 [![CI](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml/badge.svg)](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-active%20development-brightgreen)
 
-Study project that moves part of the SKT FLY AI bootcamp GUADIAN project's
-URL-risk judgment onto the Android device. Deterministic URL rules, a compact
-non-LLM model, local policy knowledge, and page-content inspection run before a
-remote fallback, to increase locally completed judgment and reduce remote-server
-calls.
+「GUADIAN」은 SKT FLY AI 부트캠프에서 개발한 악성 광고에서 시작되는
+디지털 피해 예방 서비스이며, 본 저장소는 「GUADIAN」의 기존 서버 판정
+구조를 하이브리드 온디바이스 방식으로 전환하는 구현을 담고 있다.
 
-> [!NOTE]
-> This is a personal study project in active development. The on-device
-> pipeline and model run locally and pass CI; physical-device validation and
-> server deployment are still in progress.
+본 저장소의 하이브리드 온디바이스 구조는 다음과 같다. ① Local Verdict
+Store는 이전 판정 결과를 확인해 반복 요청을 로컬에서 처리한다. ② Rule
+Engine은 명확한 규칙 기반 판정을 먼저 수행하고, 판정이 불확실한 경우
+`UNCERTAIN` 상태로 다음 단계에 넘긴다. ③ On-device Model은 URL feature를
+기반으로 기기 내부에서 위험도를 추론하며, confidence가 낮거나 결과가
+`UNKNOWN`인 경우 다음 단계로 넘긴다. ④ Local RAG는 로컬 근거 검색 기반의
+추가 판단 단계로 확장할 예정이다. ⑤ Remote Fallback은 로컬에서 여전히
+충분히 확신할 수 없는 경우 서버 판정을 요청한다. ⑥ Verdict는 앞선 단계의
+결과를 종합해 최종 위험도를 결정한다.
 
-- [x] On-device judgment pipeline (rules, model, local knowledge, page content)
-- [x] URL-feature model with Python/Kotlin parity tests (current: v7)
-- [x] CI for model, server, and Kotlin tests
-- [ ] Remote fallback server deployment
-- [ ] Physical-device validation
-- [ ] Redirect-chain resolution and `MEDIUM`/`UNKNOWN` labeling revisit
+- [history.md](reference/docs/history.md) — 「GUADIAN」 원본 프로젝트의 개발 이력
+- [model-evolution.md](model/docs/model-evolution.md) — 본 저장소의 모델 개선 이력
+
+모든 주요 변경은 측정한 효과와 함께 기록한다.
 
 ## 1. Performance History
 
-Except v2, every row is measured on the same 668-row dataset and the same
-132-row holdout test split, so those numbers are directly comparable. CV is
-5-fold cross-validation on the 536-row training split.
+**v1, rule-scoring baseline.** `train_baseline.py` sums hand-written feature
+scores (APK, login, brand, event, free, shortener, and suspicious-TLD signals)
+into a risk label. It is easy to explain but too coarse for mixed ad URLs,
+reaching 68.41% accuracy on the full 668-row dataset and 68.94% on the final
+holdout split. It is kept as the comparison baseline.
 
-| Stage | Change | Dataset | Accuracy | Holdout macro F1 | `MEDIUM` recall | CV acc. |
-| :-- | :-- | :-- | --: | --: | --: | --: |
-| v1 | rule-scoring baseline | 668 rows | 68.94% | — | 50.00% | — |
-| v2 | nearest-centroid classifier | synthetic only | 97.50% | — | — | — |
-| v3–v5 | real ad URLs added, per-label thresholds | 668 rows | 72.73% | 74.15% | 50.00% | 73.16% |
-| v6 | `log1p` on URL length features | 668 rows | 79.55% | 80.98% | 70.45% | 79.69% |
-| v6 + v7 (current) | tracking and nested-URL features | 668 rows | 79.55% | 80.98% | 70.45% | 81.19% |
+**v2, synthetic-only centroid.** A nearest-centroid classifier trained on
+balanced synthetic and policy-derived samples reached 97.50% accuracy, but the
+dataset was too controlled to represent real ad landing URLs. It is treated as
+an over-optimistic checkpoint, not a final claim.
 
-**v1** sums hand-written feature scores (APK, login, brand, event, free,
-shortener, suspicious TLD) into a risk label. It is kept as the comparison
-baseline.
+**v3, realistic data merge.** Adding 248 real ad landing rows from
+`reference/gold_251.jsonl`, then targeted banking, short-link, APK, and
+Korean-domain edge cases, produced the 668-row dataset. Holdout accuracy fell to
+72.73% (macro F1 74.15%), exposing that `MEDIUM` and `UNKNOWN` often require
+signals beyond URL text. This dataset was adopted as the evaluation basis.
 
-**v2** trained a nearest-centroid classifier on balanced synthetic and
-policy-derived samples only. Its 97.50% comes from that overly controlled
-dataset, not the 668-row set, so it is not comparable to the other rows; the
-drop to v3 reflects harder, more realistic data rather than a worse model.
+**v4–v5, confidence thresholds.** v4 used one distance threshold shared by all
+labels, so a boundary case in one label suppressed confidence for unrelated
+labels; in practice, a `LOW`/`MEDIUM` boundary issue collapsed confidence for
+well-separated `HIGH` cases. v5 replaced it with a separate threshold per
+predicted label, calibrated by 5-fold cross-validation on the training split.
+`HIGH` confidence recovered, but `MEDIUM` still needed separation from long
+benign ad/tracking URLs.
 
-**v3** added 248 real ad landing URLs from `reference/gold_251.jsonl` plus
-banking, short-link, APK, and Korean-domain edge cases, growing the dataset from
-400 to 668 rows. This became the evaluation basis. **v4–v5** replaced one shared
-confidence threshold with a separate threshold per label, so a boundary problem
-in one label no longer suppressed confidence for well-separated `HIGH` cases.
+**v6–v7, feature changes (current).** v6 applies `log1p` to URL, host, path,
+and query lengths before min-max scaling, so very long tracking URLs no longer
+dominate the scale. v7 adds query count, UTM/tracking parameter count, nested
+URL, encoded URL, ad-click host, and base64-like token features, which let the
+error buckets separate benign tracking over-risk from context-dependent
+`MEDIUM` misses.
 
-**v6** compresses URL, host, path, and query lengths with `log1p` before
-scaling, so very long tracking URLs no longer dominate. **v7** adds query count,
-UTM/tracking parameter count, nested URL, encoded URL, ad-click host, and
-base64-like token features. v6 and v7 were committed together; the v6 row comes
-from an ablation run that disables the v7 features. It shows that v6 accounts
-for the whole holdout gain, while v7 raises CV accuracy from 79.69% to 81.19%.
+Both were committed and retrained together in `a95b51b`. Their separate effect
+was measured by an ablation run (2026-09-25) on the same dataset, split, and
+training code, with v7 features dropped or `log1p` disabled:
 
-Sources: [Model Evolution](model/docs/model-evolution.md) and
-[Trained Model Report](model/evaluation/trained-model-report.md) (the v1
-`MEDIUM` recall is its rule-baseline column).
+| Variant | Source | Holdout acc. | Holdout macro F1 | `MEDIUM` recall | CV acc. | CV macro F1 |
+| :-- | :-- | --: | --: | --: | --: | --: |
+| v3–v5 (no `log1p`, no v7 features) | report at `a95b51b^`; ablation reproduces it | 72.73% | 74.15% | 50.00% | 73.16% | 74.95% |
+| v6 only (`log1p`, no v7 features) | ablation | 79.55% | 80.98% | 70.45% | 79.69% | 81.18% |
+| v7 only (v7 features, no `log1p`) | ablation | 79.55% | 80.72% | 65.91% | 80.63% | 82.04% |
+| v6 + v7 (current) | report at `a95b51b`; ablation reproduces it | 79.55% | 80.98% | 70.45% | 81.19% | 82.70% |
+
+v6 accounts for the whole holdout gain. Adding v7 on top leaves holdout
+accuracy unchanged and raises 5-fold CV from 79.69% to 81.19% accuracy and from
+81.18% to 82.70% macro F1.
+
+Sources: [Model Evolution](model/docs/model-evolution.md),
+[Trained Model Report](model/evaluation/trained-model-report.md) (v1 `MEDIUM`
+recall from its baseline column).
 
 ## 2. Current Results
 
-Per-label results of the current model on the holdout split:
+Holdout results per label:
 
 | Label | Precision | Recall | F1 |
 | :-- | --: | --: | --: |
@@ -72,35 +86,31 @@ Per-label results of the current model on the holdout split:
 | `HIGH` | 90.91% | 95.24% | 93.02% |
 | `UNKNOWN` | 65.52% | 95.00% | 77.55% |
 
-`HIGH` is strongest on clear APK and impersonation-like URL patterns. `MEDIUM`
-is the weakest label because many cases need page-level evidence, and `UNKNOWN`
-is overused.
+`HIGH` is strongest (clear APK and impersonation patterns). `MEDIUM` is weakest,
+since many cases need page-level evidence. `UNKNOWN` is overused.
 
 ## 3. How It Works
 
 ```text
 Browser link click
   -> ShieldAccessibilityService
-  -> InMemoryRiskStore
-  -> RuleBasedJudge
-  -> LocalReasoningJudge
-       -> OnDeviceModelJudge
-       -> LocalKnowledgeJudge
-       -> PageContentJudge
-  -> RemoteJudge
+  -> Local Verdict Store
+  -> Rule Engine
+  -> On-device Model
+  -> Local RAG / local evidence
+  -> Page Content Inspection
+  -> Remote Fallback
   -> Verdict
 ```
 
-Each stage resolves the request when its result is `CERTAIN`; otherwise the
-request falls through to the next stage, with `RemoteJudge` as the final
-fallback. The model is a URL-feature nearest-centroid classifier, not a
-fine-tuned LLM. Details are in [Architecture](docs/architecture.md).
+A stage returns its verdict if `CERTAIN`; otherwise the request passes to the
+next stage. `RemoteJudge` is the last resort. The model is a URL-feature
+nearest-centroid classifier, not an LLM. See [Architecture](docs/architecture.md).
 
 ### 3.1 Local Resolution
 
-On the 132-row holdout split (not seen in training), the JVM-runnable local
-layers resolve **53 cases (40.15%)** before page-content inspection or remote
-fallback; **34 of those 53** match the dataset label.
+On the 132-row holdout split, local layers resolve **53 cases (40.15%)** before
+page-content inspection or remote fallback; **34** match the dataset label.
 
 | Resolved by | Resolved | Correct |
 | :-- | --: | --: |
@@ -109,14 +119,13 @@ fallback; **34 of those 53** match the dataset label.
 | Local knowledge | 16 | 10 |
 | **Total local** | **53** | **34** |
 
-`PageContentJudge` is excluded because it needs a real WebView. The numbers come
-from the [Local Resolution Report](model/evaluation/local-resolution-report.md),
-generated by `LocalResolutionReportTest`, and are an evaluation-set
-measurement, not an estimate of production traffic or real-world remote-call
-reduction.
+`PageContentJudge` is excluded (needs a real WebView). Source:
+[Local Resolution Report](model/evaluation/local-resolution-report.md). These are
+evaluation-set numbers, not production estimates.
 
 ## 4. Limitations
 
-- Shield is limited to supported browser navigation surfaces.
-- The model dataset is small and partly synthetic.
-- Reported evaluation results are not production security guarantees.
+- Browser-triggered Shield coverage is limited to supported navigation surfaces.
+- The current dataset is small and includes synthetic and reference-derived rows.
+- Physical-device validation and production fallback-server deployment remain
+  future work.
