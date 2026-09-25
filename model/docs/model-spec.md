@@ -58,23 +58,23 @@ The contract covers six points:
 | Must agree | Python | Kotlin |
 | :-- | :-- | :-- |
 | Feature order | `FEATURE_NAMES` in `url_features.py` | `UrlFeatureExtractor.kt` |
-| URL parsing | `urllib.parse.urlparse` | `UrlFeatureExtractor.parse()` (matches `urlparse`) |
+| URL parsing | `urllib.parse.urlparse` | `UrlParts.parse()` (matches `urlparse`) |
 | Token lists | `url_features.py` constants | `UrlFeatureExtractor.kt` constants |
 | Missing-value defaults | empty host/path/query → `0` | same |
-| Official-domain allowlist | `model/data/official_domains.txt` | same file (classpath resource) |
+| Official-domain allowlist | `model/runtime/official_domains.txt` | same file (classpath resource, `DomainAllowlist`) |
 | Scaling parameters | written to artifact | read from artifact |
 
 A feature change therefore touches `model/training/url_features.py`,
-`app/src/main/kotlin/com/guardian/ondevice/model/UrlFeatureExtractor.kt`, the
-parity fixture `model/data/feature_parity_cases.csv`, the retrained artifact
-`model/artifacts/url_risk_centroid_model.json`, and the Python and Kotlin
+`core/judge/src/main/kotlin/com/guardian/ondevice/classifier/UrlFeatureExtractor.kt`, the
+parity fixture `model/data/fixtures/feature_parity_cases.csv`, the retrained artifact
+`model/runtime/url_risk_centroid_model.json`, and the Python and Kotlin
 feature tests together.
 
 The parity fixture holds 21 URLs with expected values for all 22 features.
 Python checks it in
 `test_url_features.py::test_feature_parity_fixture_matches_python_extractor`,
-and Kotlin in `UrlFeatureExtractorTest.kt`, which reads the fixture as a
-classpath resource.
+and Kotlin in `UrlFeatureExtractorTest.kt`, which reads the fixture from disk
+(fixtures are not packaged into the app).
 
 ## 3. Features
 
@@ -130,10 +130,10 @@ Python and Kotlin:
 | Login | `login`, `signin`, `auth`, `account`, `verify`, `verification` |
 | Event | `event`, `promo`, `promotion`, `reward`, `coupon` |
 | Free | `free`, `gift`, `prize`, `win`, `winner` |
-| Shortener hosts | `bit.ly`, `tinyurl.com`, `t.co`, `short.test` |
+| Shortener hosts | `bit.ly`, `tinyurl.com`, `t.co` |
 | Shortener tokens | `short`, `go`, `r`, `l` |
 | Brand | `bank`, `kakao`, `naver`, `google`, `samsung`, `sk`, `toss` |
-| Suspicious TLDs | `zip`, `top`, `xyz`, `click`, `test` |
+| Suspicious TLDs | `zip`, `top`, `xyz`, `click` (`test` removed in v8-prep: synthetic rows use it) |
 | Tracking parameters | `gclid`, `dclid`, `fbclid`, `msclkid`, `gad_source`, `gad_campaignid`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` |
 | Nested-URL parameters | `url`, `u`, `target`, `redirect`, `redirect_url`, `landing_url`, `dest`, `destination` |
 | Ad-network tokens | `ad`, `ads`, `adclick`, `adservice`, `adn`, `adscope`, `appier`, `criteo`, `dable`, `doubleclick`, `googlesyndication`, `haimlabs`, `mobon`, `outbrain`, `taboola`, `widerplanet` |
