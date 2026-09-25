@@ -21,7 +21,8 @@ class RemoteJudgeApiTest(unittest.TestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertEqual("UNKNOWN", response.json()["risk"])
-        self.assertEqual("remote_not_configured", response.json()["type"])
+        self.assertEqual("not_configured", response.json()["status"])
+        self.assertEqual("none", response.json()["category"])
 
     def test_judge_detects_apk_locally(self):
         response = self.client.post("/judge", json={"url": "https://example.com/app.apk"})
@@ -29,7 +30,8 @@ class RemoteJudgeApiTest(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         self.assertIn("application/json", response.headers["content-type"])
         self.assertEqual("HIGH", response.json()["risk"])
-        self.assertEqual("apk", response.json()["type"])
+        self.assertEqual("apk", response.json()["category"])
+        self.assertEqual("ok", response.json()["status"])
 
 
 if __name__ == "__main__":
