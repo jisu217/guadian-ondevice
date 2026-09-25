@@ -1,14 +1,14 @@
-package com.guardian.ondevice.webview
+package com.guardian.ondevice.pagecontent
 
 import androidx.test.platform.app.InstrumentationRegistry
+import com.guardian.ondevice.judge.ReasonCode
 import com.guardian.ondevice.judge.Risk
+import com.guardian.ondevice.judge.RiskCategory
 import com.guardian.ondevice.judge.Verdict
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.net.URLEncoder
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 /**
  * PageContentJudge needs a real WebView (local `test` unit tests run against
@@ -25,18 +25,28 @@ class PageContentJudgeTest {
         val verdict = judgeHtml("<html><body><form><input type=\"password\"></form></body></html>")
 
         assertEquals(Risk.MEDIUM, verdict.risk)
-        assertEquals("unverified_login_form", verdict.type)
+        assertEquals(RiskCategory.UNVERIFIED_LOGIN_FORM, verdict.category)
     }
 
     @Test
-    fun flagsBrandMismatchInPageTextAsHigh() {
+    fun flagsBrandLoginFormOnUnofficialHostAsHigh() {
         val verdict = judgeHtml(
             "<html><head><title>KakaoPay Login</title></head>" +
-                "<body>Sign in to kakaopay to continue.</body></html>"
+                "<body>Sign in to kakaopay to continue.<form><input type=\"password\"></form></body></html>"
         )
 
         assertEquals(Risk.HIGH, verdict.risk)
-        assertEquals("page_brand_impersonation", verdict.type)
+        assertEquals(RiskCategory.PAGE_BRAND_IMPERSONATION, verdict.category)
+    }
+
+    @Test
+    fun brandMentionWithoutLoginFormIsNotHigh() {
+        // Regression: a page that only names a brand ("Log in with Naver",
+        // a news article) used to be HIGH by itself.
+        val verdict = judgeHtml("<html><body>Log in with naver or read our kakao news.</body></html>")
+
+        assertEquals(Risk.UNKNOWN, verdict.risk)
+        assertEquals(ReasonCode.PAGE_BRAND_MENTION_ONLY, verdict.reason)
     }
 
     @Test
@@ -46,22 +56,20 @@ class PageContentJudgeTest {
         assertEquals(Risk.UNKNOWN, verdict.risk)
     }
 
+    @Test
+    fun rejectsDataUrlsByDefault() {
+        val verdict = runBlocking { PageContentJudge(context = context).judge("data:text/html,<p>x</p>") }
+
+        assertEquals(ReasonCode.PAGE_UNSUPPORTED_SCHEME, verdict.reason)
+    }
+
     private fun judgeHtml(html: String): Verdict {
         // URLEncoder is form-encoding (space -> "+"), not URI percent-encoding;
         // a literal "+" between e.g. "input" and "type=..." would corrupt the
         // tag itself, so space must become "%20" instead.
         val encoded = URLEncoder.encode(html, "UTF-8").replace("+", "%20")
         val dataUrl = "data:text/html;charset=utf-8,$encoded"
-        val judge = PageContentJudge(context = context)
-
-        val latch = CountDownLatch(1)
-        var result: Verdict? = null
-        judge.judge(dataUrl) {
-            result = it
-            latch.countDown()
-        }
-
-        assertTrue("judge() did not call back in time", latch.await(15, TimeUnit.SECONDS))
-        return result!!
+        val judge = PageContentJudge(context = context, allowedSchemes = setOf("data"))
+        return runBlocking { judge.judge(dataUrl) }
     }
 }
