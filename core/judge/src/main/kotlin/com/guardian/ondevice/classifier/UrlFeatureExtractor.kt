@@ -1,4 +1,7 @@
-package com.guardian.ondevice.model
+package com.guardian.ondevice.classifier
+
+import com.guardian.ondevice.util.DomainAllowlist
+import com.guardian.ondevice.util.UrlParts
 
 data class UrlFeatures(
     val values: Map<String, Double>,
@@ -8,12 +11,11 @@ data class UrlFeatures(
     }
 }
 
-private data class ParsedUrl(val host: String, val path: String, val query: String)
-
-class UrlFeatureExtractor {
+class UrlFeatureExtractor(
+    private val allowlist: DomainAllowlist = DomainAllowlist.default,
+) {
     fun extract(url: String): UrlFeatures {
-        val normalized = normalizeForParse(url)
-        val parsed = parse(normalized)
+        val parsed = UrlParts.parse(url)
         val host = parsed.host
         val path = parsed.path
         val query = parsed.query
@@ -36,7 +38,7 @@ class UrlFeatureExtractor {
                 "has_free" to containsAny(tokens, FREE_TOKENS),
                 "has_shortener_token" to hasShortenerSignal(host, tokens),
                 "brand_keyword_present" to containsAny(tokens, BRAND_KEYWORDS),
-                "official_domain_match" to if (isOfficialDomain(host)) 1.0 else 0.0,
+                "official_domain_match" to if (allowlist.coversHost(host)) 1.0 else 0.0,
                 "suspicious_tld" to if (lastLabel(host) in SUSPICIOUS_TLDS) 1.0 else 0.0,
                 "query_param_count" to queryParamCount(queryPairs, query).toDouble(),
                 "utm_param_count" to utmParamCount(queryPairs).toDouble(),
@@ -47,25 +49,6 @@ class UrlFeatureExtractor {
                 "has_base64_like_token" to hasBase64LikeToken(tokens),
             )
         )
-    }
-
-    private fun normalizeForParse(url: String): String {
-        val value = url.trim()
-        return if ("://" in value) value else "https://$value"
-    }
-
-    // Custom parsing keeps IDN hosts aligned with Python's training extractor.
-    private fun parse(normalized: String): ParsedUrl {
-        val afterScheme = normalized.substringAfter("://", normalized)
-        val authority = afterScheme.substringBefore("/").substringBefore("?").substringBefore("#")
-        val host = authority.substringAfterLast("@").substringBefore(":").lowercase()
-
-        val afterAuthority = afterScheme.substring(minOf(authority.length, afterScheme.length))
-        val pathAndQuery = afterAuthority.substringBefore("#")
-        val path = pathAndQuery.substringBefore("?")
-        val query = if ("?" in pathAndQuery) pathAndQuery.substringAfter("?") else ""
-
-        return ParsedUrl(host = host, path = path, query = query)
     }
 
     private fun tokenize(value: String): Set<String> {
@@ -201,10 +184,13 @@ class UrlFeatureExtractor {
         private val LOGIN_TOKENS = setOf("login", "signin", "auth", "account", "verify", "verification")
         private val EVENT_TOKENS = setOf("event", "promo", "promotion", "reward", "coupon")
         private val FREE_TOKENS = setOf("free", "gift", "prize", "win", "winner")
-        private val SHORTENER_HOSTS = setOf("bit.ly", "tinyurl.com", "t.co", "short.test")
+        private val SHORTENER_HOSTS = setOf("bit.ly", "tinyurl.com", "t.co")
         private val SHORTENER_TOKENS = setOf("short", "go", "r", "l")
         private val BRAND_KEYWORDS = setOf("bank", "kakao", "naver", "google", "samsung", "sk", "toss")
-        private val SUSPICIOUS_TLDS = setOf("zip", "top", "xyz", "click", "test")
+        // "test" is deliberately absent: the synthetic rows use the reserved
+        // .test TLD, so listing it let the model learn "synthetic" instead of
+        // "risky" (66 of 107 HIGH rows were .test).
+        private val SUSPICIOUS_TLDS = setOf("zip", "top", "xyz", "click")
         private val TRACKING_PARAM_KEYS = setOf(
             "gclid",
             "dclid",
@@ -238,21 +224,5 @@ class UrlFeatureExtractor {
             "widerplanet",
         )
         private val BASE64_LIKE_PATTERN = Regex("^[A-Za-z0-9_-]{32,}$")
-
-        // Shared resource also read by Python training.
-        private val OFFICIAL_DOMAINS: Set<String> by lazy { loadOfficialDomains() }
-
-        private fun loadOfficialDomains(): Set<String> {
-            val stream = UrlFeatureExtractor::class.java.getResourceAsStream("/official_domains.txt")
-                ?: return emptySet()
-            return stream.bufferedReader().useLines { lines ->
-                lines.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
-            }
-        }
-
-        private fun isOfficialDomain(host: String): Boolean {
-            if (host.isEmpty()) return false
-            return host in OFFICIAL_DOMAINS || OFFICIAL_DOMAINS.any { host.endsWith(".$it") }
-        }
     }
 }

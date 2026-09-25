@@ -1,4 +1,6 @@
-package com.guardian.ondevice.model
+package com.guardian.ondevice.classifier
+
+import java.io.File
 
 import kotlin.math.abs
 import kotlin.test.Test
@@ -10,11 +12,20 @@ class UrlFeatureExtractorTest {
 
     @Test
     fun `extracts apk risk features`() {
-        val features = extractor.extract("https://unknown-site.test/download/app.apk").values
+        val features = extractor.extract("https://unknown-site.top/download/app.apk").values
 
         assertEquals(1.0, features.getValue("has_apk"))
         assertEquals(1.0, features.getValue("suspicious_tld"))
         assertEquals(0.0, features.getValue("official_domain_match"))
+    }
+
+    @Test
+    fun `reserved test tld is not a risk signal`() {
+        // Synthetic rows use .test; treating it as suspicious leaked the
+        // "synthetic" source into the HIGH label.
+        val features = extractor.extract("https://unknown-site.test/download/app.apk").values
+
+        assertEquals(0.0, features.getValue("suspicious_tld"))
     }
 
     @Test
@@ -91,9 +102,8 @@ class UrlFeatureExtractorTest {
     }
 
     private fun readFeatureParityRows(): List<Pair<String, List<Double>>> {
-        val stream = javaClass.getResourceAsStream("/feature_parity_cases.csv")
-            ?: error("feature_parity_cases.csv resource is missing")
-        val lines = stream.bufferedReader().readLines().filter { it.isNotBlank() }
+        // Read from disk: fixtures are not packaged as app resources.
+        val lines = File("../../model/data/fixtures/feature_parity_cases.csv").readLines().filter { it.isNotBlank() }
         val header = lines.first().split(",")
 
         assertEquals(listOf("url") + UrlFeatureExtractor.FEATURE_NAMES, header)
