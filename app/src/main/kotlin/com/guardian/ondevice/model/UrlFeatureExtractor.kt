@@ -137,11 +137,11 @@ class UrlFeatureExtractor {
         return queryPairs.count { (key, _) -> key in TRACKING_PARAM_KEYS }
     }
 
-    // Mirrors url_features.py's _has_nested_url: NESTED_URL_PARAM_KEYS used
-    // to be checked, then checked again with no key restriction right below
-    // it, so the allowlist never actually did anything -- removed on both
-    // sides (verified against the full dataset: zero changed values, since
-    // the raw-query fallback always independently catches the same cases).
+    // Mirrors url_features.py's _has_nested_url. The key-restricted check is
+    // not redundant here: percentDecode() returns the input unchanged when
+    // URLDecoder rejects a malformed escape anywhere in the query, so the
+    // raw-query fallback can miss an encoded nested URL that the
+    // per-parameter decode still catches.
     private fun hasNestedUrl(queryPairs: List<Pair<String, String>>, rawQuery: String): Double {
         for ((key, value) in queryPairs) {
             if (key in NESTED_URL_PARAM_KEYS && looksLikeUrl(value.lowercase())) return 1.0

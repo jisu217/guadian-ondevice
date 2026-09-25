@@ -194,13 +194,12 @@ def _tracking_param_count(query_pairs: list[tuple[str, str]]) -> int:
 
 
 def _has_nested_url(query_pairs: list[tuple[str, str]], raw_query: str) -> float:
-    # NESTED_URL_PARAM_KEYS used to be checked, then checked again with no
-    # key restriction at all right below it -- the unconditional check always
-    # subsumed the key-restricted one, so the allowlist never actually did
-    # anything. Removed. (Verified against the full committed dataset that
-    # this changes zero has_nested_url values, since any value containing an
-    # http(s):// substring makes that same substring present in the raw
-    # query's decode too, which the fallback below still catches.)
+    # The key-restricted check below is redundant in Python: unquote() never
+    # fails, so any value that looks like a URL also appears in the decoded
+    # raw query that the fallback checks. It is kept to mirror Kotlin, where it
+    # is not redundant: URLDecoder rejects a malformed escape anywhere in the
+    # query, the fallback then sees the undecoded query, and only this
+    # per-parameter check still catches an encoded nested URL.
     for key, value in query_pairs:
         lowered_key = key.lower()
         lowered_value = value.lower()
