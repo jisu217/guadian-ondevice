@@ -91,12 +91,12 @@ class TrainModelTest(unittest.TestCase):
 
         report = render_report(train_rows, test_rows, predictions, predictions)
 
-        self.assertIn("## Validation Protocol", report)
+        self.assertIn("## 1. Validation Protocol", report)
         self.assertIn("model/evaluation/test-split.csv", report)
-        self.assertIn("## Precision And Recall", report)
+        self.assertIn("## 3. Precision and Recall", report)
         self.assertIn("macro F1", report)
-        self.assertIn("## Error Buckets", report)
-        self.assertIn("## Confusion Matrix", report)
+        self.assertIn("## 4. Error Buckets", report)
+        self.assertIn("## 5. Confusion Matrix", report)
 
     def test_groups_holdout_errors_into_actionable_buckets(self):
         predictions = [

@@ -1,36 +1,25 @@
 # Trained Model Evaluation
 
-Model: nearest-centroid classifier
-Train samples: 536
-Test samples: 132
-Model accuracy: 79.55%
-Model macro F1: 80.98%
-Baseline accuracy on same test split: 68.94%
+This report evaluates the nearest-centroid classifier on a deterministic stratified holdout split of 536 training and 132 test rows. The model reaches 79.55% accuracy and 80.98% macro F1, against 68.94% for the rule baseline on the same test split.
 
-## Validation Protocol
+## Table of Contents
 
-- Final test metrics use a deterministic stratified holdout split.
-- The exact holdout files are saved as `model/evaluation/train-split.csv` and `model/evaluation/test-split.csv`.
-- Threshold calibration uses 5-fold stratified cross-validation on the training split.
-- Each label gets its own certain-distance threshold instead of one shared scalar,
-  so one close call for label A can no longer collapse label B's threshold too.
-- Thresholds are intentionally conservative: uncertain cases should fall through to local knowledge matching or remote fallback.
-- url_length/host_length/path_length/query_length are log1p-compressed before min-max
-  scaling, so a few very long real tracking URLs no longer stretch the scale for everyone.
+1. [Validation Protocol](#1-validation-protocol)
+2. [Cross Validation](#2-cross-validation)
+3. [Precision and Recall](#3-precision-and-recall)
+4. [Error Buckets](#4-error-buckets)
+5. [Confusion Matrix](#5-confusion-matrix)
+6. [Predictions](#6-predictions)
 
-### Calibrated Certain-Distance Thresholds
+## 1. Validation Protocol
 
-| Label | Threshold |
-| :-- | --: |
-| LOW | 0.4395 |
-| MEDIUM | 0.9580 |
-| HIGH | 1.0449 |
-| UNKNOWN | 0.4040 |
+Final test metrics use a deterministic stratified holdout split, saved as `model/evaluation/train-split.csv` and `model/evaluation/test-split.csv`. `url_length`, `host_length`, `path_length`, and `query_length` are log1p-compressed before min-max scaling, so a few very long real tracking URLs do not stretch the scale for everyone.
 
-## Cross Validation
+Each label gets its own certain-distance threshold, calibrated by 5-fold stratified cross-validation on the training split, so one close call for one label cannot collapse another label's threshold. The thresholds are intentionally conservative, so uncertain cases fall through to local knowledge matching or remote fallback. The calibrated values are 0.4395 for `LOW`, 0.9580 for `MEDIUM`, 1.0449 for `HIGH`, 0.4040 for `UNKNOWN`.
 
-Average accuracy: 81.19%
-Average macro F1: 82.70%
+## 2. Cross Validation
+
+Across 5 folds of the training split, average accuracy is 81.19% and average macro F1 is 82.70%:
 
 | Fold | Train | Validation | Accuracy | Macro F1 |
 | :-- | --: | --: | --: | --: |
@@ -40,7 +29,7 @@ Average macro F1: 82.70%
 | 4 | 430 | 106 | 81.13% | 83.11% |
 | 5 | 431 | 105 | 85.71% | 86.72% |
 
-### Cross-Validation Label Metrics
+Pooled over all validation folds, per-label metrics are:
 
 | Label | Precision | Recall | F1 | Support |
 | :-- | --: | --: | --: | --: |
@@ -49,7 +38,9 @@ Average macro F1: 82.70%
 | HIGH | 97.62% | 95.35% | 96.47% | 86 |
 | UNKNOWN | 62.60% | 98.80% | 76.64% | 83 |
 
-## Label Distribution
+## 3. Precision and Recall
+
+On the holdout test split, actual and predicted label counts are:
 
 | Label | Actual | Predicted |
 | :-- | --: | --: |
@@ -58,7 +49,7 @@ Average macro F1: 82.70%
 | HIGH | 21 | 22 |
 | UNKNOWN | 20 | 29 |
 
-## Precision And Recall
+Per-label precision and recall, with the rule baseline on the same split for comparison:
 
 | Label | Precision | Recall | F1 | Support | Baseline Precision | Baseline Recall |
 | :-- | --: | --: | --: | --: | --: | --: |
@@ -67,7 +58,9 @@ Average macro F1: 82.70%
 | HIGH | 90.91% | 95.24% | 93.02% | 21 | 88.24% | 71.43% |
 | UNKNOWN | 65.52% | 95.00% | 77.55% | 20 | 44.19% | 95.00% |
 
-## Error Buckets
+## 4. Error Buckets
+
+27 of 132 test rows are misclassified. They fall into these buckets:
 
 | Bucket | Count |
 | :-- | --: |
@@ -78,7 +71,7 @@ Average macro F1: 82.70%
 | HIGH impersonation signal below threshold | 1 |
 | UNKNOWN over-classified by sparse URL signal | 1 |
 
-## Error Analysis
+Each misclassified row, with its distance to the predicted centroid:
 
 | Actual | Predicted | Distance | URL |
 | :-- | :-- | --: | :-- |
@@ -110,7 +103,9 @@ Average macro F1: 82.70%
 | HIGH | MEDIUM | 1.3195 | https://reward-bank-card.test/claim |
 | UNKNOWN | MEDIUM | 0.9673 | https://event-summary.test/report |
 
-## Confusion Matrix
+## 5. Confusion Matrix
+
+Rows are actual labels and columns are predicted labels:
 
 | Actual \ Predicted | LOW | MEDIUM | HIGH | UNKNOWN |
 | :-- | --: | --: | --: | --: |
@@ -119,7 +114,9 @@ Average macro F1: 82.70%
 | HIGH | 0 | 1 | 20 | 0 |
 | UNKNOWN | 0 | 1 | 0 | 19 |
 
-## Predictions
+## 6. Predictions
+
+All 132 test-split predictions, in split order:
 
 | Actual | Predicted | Distance | URL |
 | :-- | :-- | --: | :-- |

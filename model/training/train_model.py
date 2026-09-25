@@ -277,47 +277,52 @@ def render_report(
     cross_validation_predictions = cross_validation_predictions or []
     certain_distance_thresholds = certain_distance_thresholds or {}
 
+    errors = [prediction for prediction in predictions if prediction.actual != prediction.predicted]
+    thresholds_text = ", ".join(
+        f"{certain_distance_thresholds.get(label, DEFAULT_CERTAIN_DISTANCE_THRESHOLD):.4f} for `{label}`"
+        for label in LABELS
+    )
+
     lines = [
         "# Trained Model Evaluation",
         "",
-        "Model: nearest-centroid classifier",
-        f"Train samples: {len(train_rows)}",
-        f"Test samples: {len(test_rows)}",
-        f"Model accuracy: {model_acc:.2%}",
-        f"Model macro F1: {macro_f1(predictions):.2%}",
-        f"Baseline accuracy on same test split: {baseline_acc:.2%}",
+        f"This report evaluates the nearest-centroid classifier on a deterministic stratified holdout split of "
+        f"{len(train_rows)} training and {len(test_rows)} test rows. The model reaches {model_acc:.2%} accuracy "
+        f"and {macro_f1(predictions):.2%} macro F1, against {baseline_acc:.2%} for the rule baseline on the same "
+        "test split.",
         "",
-        "## Validation Protocol",
+        "## Table of Contents",
         "",
-        "- Final test metrics use a deterministic stratified holdout split.",
-        "- The exact holdout files are saved as `model/evaluation/train-split.csv` and `model/evaluation/test-split.csv`.",
-        f"- Threshold calibration uses {DEFAULT_FOLDS}-fold stratified cross-validation on the training split.",
-        "- Each label gets its own certain-distance threshold instead of one shared scalar,",
-        "  so one close call for label A can no longer collapse label B's threshold too.",
-        "- Thresholds are intentionally conservative: uncertain cases should fall through to local knowledge matching or remote fallback.",
-        "- url_length/host_length/path_length/query_length are log1p-compressed before min-max",
-        "  scaling, so a few very long real tracking URLs no longer stretch the scale for everyone.",
+        "1. [Validation Protocol](#1-validation-protocol)",
+        "2. [Cross Validation](#2-cross-validation)",
+        "3. [Precision and Recall](#3-precision-and-recall)",
+        "4. [Error Buckets](#4-error-buckets)",
+        "5. [Confusion Matrix](#5-confusion-matrix)",
+        "6. [Predictions](#6-predictions)",
         "",
-        "### Calibrated Certain-Distance Thresholds",
+        "## 1. Validation Protocol",
         "",
-        "| Label | Threshold |",
-        "| :-- | --: |",
+        "Final test metrics use a deterministic stratified holdout split, saved as "
+        "`model/evaluation/train-split.csv` and `model/evaluation/test-split.csv`. "
+        "`url_length`, `host_length`, `path_length`, and `query_length` are log1p-compressed before min-max "
+        "scaling, so a few very long real tracking URLs do not stretch the scale for everyone.",
+        "",
+        f"Each label gets its own certain-distance threshold, calibrated by {DEFAULT_FOLDS}-fold stratified "
+        "cross-validation on the training split, so one close call for one label cannot collapse another "
+        "label's threshold. The thresholds are intentionally conservative, so uncertain cases fall through to "
+        f"local knowledge matching or remote fallback. The calibrated values are {thresholds_text}.",
     ]
-
-    for label in LABELS:
-        lines.append(f"| {label} | {certain_distance_thresholds.get(label, DEFAULT_CERTAIN_DISTANCE_THRESHOLD):.4f} |")
-
-    lines.append("")
 
     if fold_evaluations:
         average_accuracy = sum(fold.accuracy for fold in fold_evaluations) / len(fold_evaluations)
         average_macro_f1 = sum(fold.macro_f1 for fold in fold_evaluations) / len(fold_evaluations)
         lines.extend(
             [
-                "## Cross Validation",
                 "",
-                f"Average accuracy: {average_accuracy:.2%}",
-                f"Average macro F1: {average_macro_f1:.2%}",
+                "## 2. Cross Validation",
+                "",
+                f"Across {len(fold_evaluations)} folds of the training split, average accuracy is "
+                f"{average_accuracy:.2%} and average macro F1 is {average_macro_f1:.2%}:",
                 "",
                 "| Fold | Train | Validation | Accuracy | Macro F1 |",
                 "| :-- | --: | --: | --: | --: |",
@@ -335,7 +340,7 @@ def render_report(
             lines.extend(
                 [
                     "",
-                    "### Cross-Validation Label Metrics",
+                    "Pooled over all validation folds, per-label metrics are:",
                     "",
                     "| Label | Precision | Recall | F1 | Support |",
                     "| :-- | --: | --: | --: | --: |",
@@ -348,14 +353,15 @@ def render_report(
                     f"{current['f1']:.2%} | {int(current['support'])} |"
                 )
 
-        lines.append("")
-
     lines.extend(
         [
-        "## Label Distribution",
-        "",
-        "| Label | Actual | Predicted |",
-        "| :-- | --: | --: |",
+            "",
+            "## 3. Precision and Recall",
+            "",
+            "On the holdout test split, actual and predicted label counts are:",
+            "",
+            "| Label | Actual | Predicted |",
+            "| :-- | --: | --: |",
         ]
     )
 
@@ -365,7 +371,7 @@ def render_report(
     lines.extend(
         [
             "",
-            "## Precision And Recall",
+            "Per-label precision and recall, with the rule baseline on the same split for comparison:",
             "",
             "| Label | Precision | Recall | F1 | Support | Baseline Precision | Baseline Recall |",
             "| :-- | --: | --: | --: | --: | --: | --: |",
@@ -380,13 +386,12 @@ def render_report(
             f"{int(current['support'])} | {baseline['precision']:.2%} | {baseline['recall']:.2%} |"
         )
 
-    errors = [prediction for prediction in predictions if prediction.actual != prediction.predicted]
+    lines.extend(["", "## 4. Error Buckets", ""])
     if errors:
         buckets = error_buckets(predictions)
         lines.extend(
             [
-                "",
-                "## Error Buckets",
+                f"{len(errors)} of {len(predictions)} test rows are misclassified. They fall into these buckets:",
                 "",
                 "| Bucket | Count |",
                 "| :-- | --: |",
@@ -399,7 +404,7 @@ def render_report(
         lines.extend(
             [
                 "",
-                "## Error Analysis",
+                "Each misclassified row, with its distance to the predicted centroid:",
                 "",
                 "| Actual | Predicted | Distance | URL |",
                 "| :-- | :-- | --: | :-- |",
@@ -410,11 +415,15 @@ def render_report(
             lines.append(
                 f"| {prediction.actual} | {prediction.predicted} | {prediction.distance:.4f} | {prediction.url} |"
             )
+    else:
+        lines.append("No test rows are misclassified.")
 
     lines.extend(
         [
             "",
-            "## Confusion Matrix",
+            "## 5. Confusion Matrix",
+            "",
+            "Rows are actual labels and columns are predicted labels:",
             "",
             "| Actual \\ Predicted | LOW | MEDIUM | HIGH | UNKNOWN |",
             "| :-- | --: | --: | --: | --: |",
@@ -430,7 +439,9 @@ def render_report(
     lines.extend(
         [
             "",
-            "## Predictions",
+            "## 6. Predictions",
+            "",
+            f"All {len(predictions)} test-split predictions, in split order:",
             "",
             "| Actual | Predicted | Distance | URL |",
             "| :-- | :-- | --: | :-- |",
