@@ -14,9 +14,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-// Automates the same 4-layer check that was done by hand on an emulator with
-// adb (rule engine, on-device model, local knowledge, remote fallback failure).
-// Run with: ./gradlew connectedDebugAndroidTest
+/**
+ * Automates the same 4-layer check that was done by hand on an emulator with
+ * adb (rule engine, on-device model, local knowledge, remote fallback failure).
+ * Run with: ./gradlew connectedDebugAndroidTest
+ */
 class JudgeActivityTest {
     @get:Rule
     val activityRule = ActivityScenarioRule(JudgeActivity::class.java)

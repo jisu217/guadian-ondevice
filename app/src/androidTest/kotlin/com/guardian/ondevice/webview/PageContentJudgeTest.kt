@@ -10,11 +10,13 @@ import java.net.URLEncoder
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-// PageContentJudge needs a real WebView (local `test` unit tests run against
-// a stub android.jar that no-ops WebView), so this runs only as an
-// instrumented test. Pages are loaded from data: URLs so the test needs no
-// network access and no fixture server.
-// Run with: ./gradlew connectedDebugAndroidTest
+/**
+ * PageContentJudge needs a real WebView (local `test` unit tests run against
+ * a stub android.jar that no-ops WebView), so this runs only as an
+ * instrumented test. Pages are loaded from data: URLs so the test needs no
+ * network access and no fixture server.
+ * Run with: ./gradlew connectedDebugAndroidTest
+ */
 class PageContentJudgeTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
