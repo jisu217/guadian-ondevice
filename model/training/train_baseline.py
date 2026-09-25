@@ -84,11 +84,24 @@ def render_report(predictions: list[Prediction]) -> str:
     lines = [
         "# Baseline Evaluation",
         "",
-        "Evaluation set: full committed dataset",
-        f"Samples: {len(predictions)}",
-        f"Accuracy: {accuracy(predictions):.2%}",
+        "This report evaluates the rule-scoring baseline in `train_baseline.py` on the full committed "
+        f"dataset of {len(predictions)} rows. It reaches {accuracy(predictions):.2%} accuracy.",
         "",
-        "## Label Distribution",
+        "## Table of Contents",
+        "",
+        "1. [Scoring Rule](#1-scoring-rule)",
+        "2. [Label Distribution](#2-label-distribution)",
+        "3. [Predictions](#3-predictions)",
+        "",
+        "## 1. Scoring Rule",
+        "",
+        "A host that matches the official-domain allowlist is `LOW` with score 0. Otherwise the score sums "
+        "feature weights: APK 4, login 2, brand keyword 2, and event, free, shortener, and suspicious TLD "
+        "1 each. A score of 4 or more is `HIGH`, 2 or 3 is `MEDIUM`, and anything lower is `UNKNOWN`.",
+        "",
+        "## 2. Label Distribution",
+        "",
+        "Actual and predicted label counts over the full dataset:",
         "",
         "| Label | Actual | Predicted |",
         "| :-- | --: | --: |",
@@ -100,7 +113,9 @@ def render_report(predictions: list[Prediction]) -> str:
     lines.extend(
         [
             "",
-            "## Predictions",
+            "## 3. Predictions",
+            "",
+            f"All {len(predictions)} predictions with their scores, in dataset order:",
             "",
             "| Actual | Predicted | Score | URL |",
             "| :-- | :-- | --: | :-- |",
