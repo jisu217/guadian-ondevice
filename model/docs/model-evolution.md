@@ -1,78 +1,104 @@
 # Model Evolution
 
-This document records how the local URL-risk model evolved. It is separate from
-the generated evaluation reports: the reports show the latest numbers, while
-this file explains why the current model shape was chosen.
+This document records how the local URL-risk model evolved and why the current
+model shape was chosen. Latest numbers are generated in
+[Trained Model Report](../evaluation/trained-model-report.md).
 
-## 1. Model Evolution
+## Table of Contents
 
-| Version | Approach | Measured issue | Result |
-| :-- | :-- | :-- | :-- |
-| v1 rule-scoring baseline | Hand-written feature scores from `train_baseline.py`. APK, login, brand, event, free, shortener, and suspicious TLD signals are summed into a risk label. | Easy to explain, but too coarse for mixed ad URLs. On the full 668-sample dataset it reaches 68.41% accuracy. On the final holdout split it reaches 68.94%. | Kept as the comparison baseline. |
-| v2 synthetic-only centroid | Nearest-centroid classifier trained on balanced synthetic/policy-derived samples. | Synthetic-only evaluation reached 97.50% accuracy, but the dataset was too controlled and did not represent real ad landing URLs. | Not used as the final claim; treated as an over-optimistic prototype checkpoint. |
-| v3 realistic data merge | Added 248 usable real ad landing references from `reference/gold_251.jsonl`, then added targeted banking, short-link, APK, and Korean-domain edge cases, producing 668 committed samples. | Holdout accuracy is 79.55% and macro F1 is 80.98% after log-compressing length features. This still shows the main weakness: `MEDIUM` and `UNKNOWN` often require signals beyond URL text. | Adopted as the current evaluation basis because it is more realistic. |
-| v4 global confidence threshold | Used one shared distance threshold for all labels. | A close boundary case in one label could suppress confidence for unrelated labels. In practice, a LOW/MEDIUM boundary issue collapsed confidence for `HIGH` cases that were otherwise well separated. | Replaced. |
-| v5 per-label confidence thresholds | Calibrates a separate distance threshold for each predicted label using 5-fold cross-validation on the training split. | `HIGH` confidence recovered, but `MEDIUM` still needed better separation from long benign ad/tracking URLs. | Kept. |
-| v6 log-compressed length features | Applies `log1p` compression to URL, host, path, and query lengths before scaling. | Very long tracking URLs no longer dominate the min-max scale. Holdout accuracy improved to 79.55%, macro F1 to 80.98%, and `MEDIUM` recall to 70.45%. | Kept. |
-| v7 redirect/ad-network URL features | Adds query count, UTM/tracking parameter count, nested URL, encoded URL, ad-click host, and base64-like token features. | Holdout accuracy stayed at 79.55%, while 5-fold CV improved to 81.19% accuracy and 82.70% macro F1. Error buckets now separate benign tracking over-risk from context-dependent `MEDIUM` misses. | Current approach. |
+1. [Version History](#1-version-history)
+2. [Dataset Milestones](#2-dataset-milestones)
+3. [Current Metrics](#3-current-metrics)
+4. [Confidence Calibration](#4-confidence-calibration)
+5. [Key Findings](#5-key-findings)
+6. [Current Model Definition](#6-current-model-definition)
+7. [Completed Runtime Improvements](#7-completed-runtime-improvements)
+8. [Next Experiments](#8-next-experiments)
+9. [Data Collection Priorities](#9-data-collection-priorities)
+
+## 1. Version History
+
+**v1, rule-scoring baseline.** `train_baseline.py` sums hand-written feature
+scores (APK, login, brand, event, free, shortener, and suspicious-TLD signals)
+into a risk label. It is easy to explain but too coarse for mixed ad URLs,
+reaching 68.41% accuracy on the full 668-row dataset and 68.94% on the final
+holdout split. It is kept as the comparison baseline.
+
+**v2, synthetic-only centroid.** A nearest-centroid classifier trained on
+balanced synthetic and policy-derived samples reached 97.50% accuracy, but the
+dataset was too controlled to represent real ad landing URLs. It is treated as
+an over-optimistic checkpoint, not a final claim.
+
+**v3, realistic data merge.** Adding 248 real ad landing rows from
+`reference/gold_251.jsonl`, then targeted banking, short-link, APK, and
+Korean-domain edge cases, produced the 668-row dataset. Holdout accuracy fell to
+72.73% (macro F1 74.15%), exposing that `MEDIUM` and `UNKNOWN` often require
+signals beyond URL text. This dataset was adopted as the evaluation basis.
+
+**v4–v5, confidence thresholds.** v4 used one distance threshold shared by all
+labels, so a boundary case in one label suppressed confidence for unrelated
+labels; in practice, a `LOW`/`MEDIUM` boundary issue collapsed confidence for
+well-separated `HIGH` cases. v5 replaced it with a separate threshold per
+predicted label, calibrated by 5-fold cross-validation on the training split.
+`HIGH` confidence recovered, but `MEDIUM` still needed separation from long
+benign ad/tracking URLs.
+
+**v6–v7, feature changes (current).** v6 applies `log1p` to URL, host, path, and
+query lengths before min-max scaling, so very long tracking URLs no longer
+dominate the scale. v7 adds query count, UTM/tracking parameter count, nested
+URL, encoded URL, ad-click host, and base64-like token features, which let the
+error buckets separate benign tracking over-risk from context-dependent
+`MEDIUM` misses.
+
+Both were committed and retrained together in `a95b51b`. Their separate effect
+was measured by an ablation run (2026-09-25) on the same dataset, split, and
+training code, with v7 features dropped or `log1p` disabled:
+
+| Variant | Source | Holdout acc. | Holdout macro F1 | `MEDIUM` recall | CV acc. | CV macro F1 |
+| :-- | :-- | --: | --: | --: | --: | --: |
+| v3–v5 (no `log1p`, no v7 features) | report at `a95b51b^`; ablation reproduces it | 72.73% | 74.15% | 50.00% | 73.16% | 74.95% |
+| v6 only (`log1p`, no v7 features) | ablation | 79.55% | 80.98% | 70.45% | 79.69% | 81.18% |
+| v7 only (v7 features, no `log1p`) | ablation | 79.55% | 80.72% | 65.91% | 80.63% | 82.04% |
+| v6 + v7 (current) | report at `a95b51b`; ablation reproduces it | 79.55% | 80.98% | 70.45% | 81.19% | 82.70% |
+
+v6 accounts for the whole holdout gain. Adding v7 on top leaves holdout
+accuracy unchanged and raises 5-fold CV from 79.69% to 81.19% accuracy and from
+81.18% to 82.70% macro F1.
 
 ## 2. Dataset Milestones
 
-| Stage | Samples | Composition | Role |
-| :-- | --: | :-- | :-- |
-| Seed | 120 | 30 samples per label | initial feature and pipeline validation |
-| Prototype | 400 | synthetic, policy-derived, and public-benign rows | baseline vs trained-model comparison |
-| Realistic | 668 | prototype rows plus 248 real ad landing references and targeted edge cases | current evaluation basis |
+The dataset grew in three stages. A 120-row seed set (30 per label) validated
+the initial features and pipeline. A 400-row prototype set of synthetic,
+policy-derived, and public-benign rows supported the baseline vs trained-model
+comparison. The current 668-row realistic set adds the 248 real ad landing rows
+and targeted edge cases, and is the evaluation basis today. It contains 301
+`synthetic`, 275 `reference-derived` (248 of them from
+`reference/gold_251.jsonl`), and 92 `public-benign` rows.
 
-The realistic stage intentionally lowered headline accuracy. The drop is useful:
-it shows that the model is being evaluated against cases closer to actual ad
-traffic instead of only controlled synthetic patterns.
-
-The committed 668-row dataset is not a single-source corpus. It currently
-contains 301 synthetic rows, 275 reference-derived rows, and 92 public-benign
-rows. The largest imported local source is `reference/gold_251.jsonl`, which
-contributed 248 usable real ad landing references.
+The realistic stage intentionally lowered headline accuracy: the model is now
+evaluated against cases closer to actual ad traffic, not only controlled
+synthetic patterns.
 
 ## 3. Current Metrics
 
-Latest trained-model report:
+On the holdout split (536 train / 132 test):
 
 | Metric | Value |
 | :-- | --: |
-| Train samples | 536 |
-| Test samples | 132 |
 | Holdout accuracy | 79.55% |
 | Holdout macro F1 | 80.98% |
-| Baseline accuracy on same split | 68.94% |
+| Baseline accuracy (same split) | 68.94% |
 | 5-fold CV accuracy | 81.19% |
 | 5-fold CV macro F1 | 82.70% |
 
-Holdout label metrics:
-
 | Label | Precision | Recall | F1 | Interpretation |
 | :-- | --: | --: | --: | :-- |
-| `LOW` | 85.37% | 74.47% | 79.55% | acceptable, but long ad/tracking URLs still cause misses |
-| `MEDIUM` | 77.50% | 70.45% | 73.81% | weakest label; often needs page-level evidence |
-| `HIGH` | 90.91% | 95.24% | 93.02% | strongest label; clear APK and impersonation-like patterns work well |
+| `LOW` | 85.37% | 74.47% | 79.55% | acceptable; long ad/tracking URLs still cause misses |
+| `MEDIUM` | 77.50% | 70.45% | 73.81% | weakest; often needs page-level evidence |
+| `HIGH` | 90.91% | 95.24% | 93.02% | strongest; clear APK and impersonation-like patterns |
 | `UNKNOWN` | 65.52% | 95.00% | 77.55% | intentionally conservative, but overused |
 
-## 4. Confidence Calibration
-
-The current model does not return every nearest-centroid label as a confident
-local verdict. It uses calibrated distance thresholds:
-
-| Label | Threshold |
-| :-- | --: |
-| `LOW` | 0.4395 |
-| `MEDIUM` | 0.9580 |
-| `HIGH` | 1.0449 |
-| `UNKNOWN` | 0.4040 |
-
-This matters because the local model sits inside a hybrid safety pipeline.
-If the nearest centroid is not confident enough, the result falls through to
-local knowledge matching or remote fallback instead of forcing a local decision.
-
-Current holdout error buckets:
+The 27 holdout errors fall into these buckets:
 
 | Bucket | Count |
 | :-- | --: |
@@ -83,76 +109,94 @@ Current holdout error buckets:
 | `HIGH` impersonation signal below threshold | 1 |
 | `UNKNOWN` over-classified by sparse URL signal | 1 |
 
+## 4. Confidence Calibration
+
+A nearest-centroid prediction becomes a `CERTAIN` local verdict only if its
+distance is within the calibrated threshold for the predicted label: 0.4395 for
+`LOW`, 0.9580 for `MEDIUM`, 1.0449 for `HIGH`, and 0.4040 for `UNKNOWN`.
+Otherwise the result is `UNKNOWN` / `UNCERTAIN` and falls through to local
+knowledge matching, page-content inspection, or remote fallback.
+
 ## 5. Key Findings
 
-| Finding | Evidence | Engineering decision |
-| :-- | :-- | :-- |
-| Synthetic-only results overstated quality. | Accuracy fell from 97.50% to 79.55% after realistic rows, edge cases, and current feature scaling were added. | Keep realistic rows in the main evaluation set. |
-| Rules remain useful as a baseline. | Full-dataset baseline accuracy is 68.41%; holdout baseline accuracy is 68.94%. | Keep `train_baseline.py` for comparison and sanity checks. |
-| `HIGH` is learnable from URL features. | Holdout `HIGH` recall is 95.24%, F1 is 93.02%. | Let the model short-circuit confident high-risk URL patterns. |
-| `MEDIUM` improved but remains context-sensitive. | Holdout `MEDIUM` recall improved to 70.45% after log-compressed length features, but many medium-risk cases still need page content or redirect context. | Treat uncertain `MEDIUM` cases as fallback candidates. |
-| One global threshold was too brittle. | A boundary case in one label affected confidence for other labels. | Use per-label thresholds. |
+- **Synthetic-only results overstated quality.** Accuracy fell from 97.50% to
+  79.55% once realistic rows, edge cases, and current feature scaling were in
+  place, so realistic rows stay in the main evaluation set.
+- **Rules remain useful as a baseline.** At 68.41% (full dataset) and 68.94%
+  (holdout), `train_baseline.py` is kept for comparison and sanity checks.
+- **`HIGH` is learnable from URL features.** Holdout `HIGH` recall is 95.24%
+  (F1 93.02%), so the model is allowed to short-circuit confident high-risk URL
+  patterns.
+- **`MEDIUM` improved but remains context-sensitive.** Holdout `MEDIUM` recall
+  rose from 50.00% to 70.45%, but many cases still need page content or
+  redirect context, so uncertain `MEDIUM` cases are treated as fallback
+  candidates.
+- **One global threshold was too brittle.** A boundary case in one label
+  affected confidence for others, which led to per-label thresholds.
 
 ## 6. Current Model Definition
 
-Current model type:
-
-```text
-nearest-centroid URL classifier
-```
-
-Runtime behavior:
+At runtime, the model turns a URL into a verdict as follows:
 
 ```text
 URL
-  -> deterministic feature vector
-  -> load generated JSON artifact
-  -> min/max scaling from model artifact
+  -> deterministic 22-feature vector        UrlFeatureExtractor
+  -> log(1 + x) on 4 length features
+  -> min-max scaling (artifact min/max)
   -> nearest label centroid
   -> per-label distance threshold
-  -> CERTAIN verdict or UNKNOWN fallback
+       distance <= threshold, label != UNKNOWN  -> CERTAIN verdict
+       otherwise                                -> UNKNOWN / UNCERTAIN
 ```
 
-Files involved:
+The same logic is split across Python training and Kotlin inference:
 
 | File | Role |
 | :-- | :-- |
 | `model/training/url_features.py` | Python feature extraction |
 | `model/training/train_baseline.py` | rule-scoring baseline |
-| `model/training/train_model.py` | model training, cross-validation, threshold calibration, report generation |
+| `model/training/train_model.py` | training, cross-validation, threshold calibration, report generation |
 | `model/artifacts/url_risk_centroid_model.json` | generated model parameters |
 | `app/src/main/kotlin/com/guardian/ondevice/model/UrlFeatureExtractor.kt` | Kotlin runtime feature extraction |
 | `app/src/main/kotlin/com/guardian/ondevice/model/OnDeviceModelJudge.kt` | Kotlin runtime inference |
 
-## 7. Completed Runtime Improvement
+## 7. Completed Runtime Improvements
 
-| Change | Reason | Result |
-| :-- | :-- | :-- |
-| Kotlin artifact loading | Remove manual duplication between Python artifact and Kotlin runtime. | `NearestCentroidUrlModel.default()` now reads `url_risk_centroid_model.json` from the classpath resource. |
-| Python/Kotlin feature parity fixture | Prevent training/runtime feature drift. | `feature_parity_cases.csv` is checked by both Python and Kotlin tests. |
-| Log-compressed length features | Prevent very long ad/tracking URLs from stretching feature scale. | Python training and Kotlin inference both apply the same compression before distance calculation. |
-| Redirect/ad-network features | Make tracking-heavy URLs explicit instead of hiding them inside raw length. | Python and Kotlin extract the same redirect/ad-click features and cover them with parity fixtures. |
-| `PageContentJudge` (runtime layer) | URL-only features still missed form, brand wording, and rendered-content evidence. | Added after model/knowledge fallback to inspect rendered page content on-device. It improves the runtime pipeline but does not change the URL-feature model itself. |
-| `ShieldAccessibilityService` (runtime trigger) | The pipeline previously depended on manual URL entry. | Added an Android accessibility trigger for browser link clicks. See `docs/architecture.md` for runtime details; it is tracked here only because it changes where the model is invoked. |
+On the model side, `NearestCentroidUrlModel.default()` now reads
+`url_risk_centroid_model.json` as a classpath resource, removing manual
+duplication between the Python artifact and the Kotlin runtime. To prevent
+training/runtime feature drift, `feature_parity_cases.csv` is checked by both
+Python and Kotlin tests. The log-compressed length features and the
+redirect/ad-network features are applied identically in Python training and
+Kotlin inference, and the parity fixture covers them.
+
+Two runtime changes sit outside the URL-feature model. `PageContentJudge` runs
+after the model and knowledge layers to inspect rendered page content
+on-device, covering form, brand-wording, and rendered-content evidence that URL
+features miss. `ShieldAccessibilityService` adds an accessibility trigger for
+browser link clicks, where the pipeline previously depended on manual URL
+entry; it is tracked here only because it changes where the model is invoked
+(see [Architecture](../../docs/architecture.md)).
 
 ## 8. Next Experiments
 
-1. Add real redirect-chain resolution -- current features can detect nested
-   URLs, but they do not follow the actual HTTP chain.
-2. Revisit `MEDIUM` and `UNKNOWN` labeling policy -- separate true uncertainty
-   from suspicious-but-not-severe flows.
+The next model experiments are real redirect-chain resolution, since current
+features detect nested URLs but do not follow the actual HTTP chain, and a
+revisit of the `MEDIUM` and `UNKNOWN` labeling policy to separate true
+uncertainty from suspicious-but-not-severe flows. Project-level runtime
+follow-up is tracked in
+[Technical Report](../../docs/technical-report.md#10-next-steps).
 
-Project-level runtime follow-up work is tracked in
-[Technical Report](../../docs/technical-report.md#next-steps).
+## 9. Data Collection Priorities
 
-## 9. Data Collection Rules
+Schema and safety rules are defined in
+[Model Specification](model-spec.md#1-dataset). Collection priorities, in
+order:
 
-The canonical dataset schema and safety rules live in
-[Model Specification](model-spec.md#dataset).
-
-Collection priorities, in order: more human-reviewed real ad-landing URLs;
-more `MEDIUM` examples with a clear page-level rationale; more benign
-tracking-heavy URLs to reduce false positives on normal ad flows; more
-redirect/ad-network cases with explicit categories; and keeping `HIGH`
-examples diverse, since realistic ad traffic surfaces few obvious high-risk
-samples.
+1. More human-reviewed real ad-landing URLs.
+2. More `MEDIUM` examples with a clear page-level rationale.
+3. More benign tracking-heavy URLs, to reduce false positives on normal ad
+   flows.
+4. More redirect/ad-network cases with explicit categories.
+5. Keep `HIGH` examples diverse; realistic ad traffic surfaces few obvious
+   high-risk samples.
