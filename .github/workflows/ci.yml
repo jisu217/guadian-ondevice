@@ -1,8 +1,11 @@
 name: CI
 
+# Pushes to feature branches are covered by their pull request; running on
+# both would test every PR commit twice.
 on:
   pull_request:
   push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -14,6 +17,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -38,8 +44,14 @@ jobs:
       - name: Test model training code
         run: python -m unittest discover model/training
 
+      - name: Test doc metric checker
+        run: python -m unittest discover scripts
+
       - name: Test server fallback
         run: python -m unittest discover server
 
       - name: Test Kotlin on-device runtime
         run: ./gradlew test
+
+      - name: Android lint
+        run: ./gradlew lint
