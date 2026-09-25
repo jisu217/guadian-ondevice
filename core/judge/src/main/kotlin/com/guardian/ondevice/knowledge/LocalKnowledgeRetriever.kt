@@ -2,6 +2,7 @@ package com.guardian.ondevice.knowledge
 
 import com.guardian.ondevice.judge.Confidence
 import com.guardian.ondevice.judge.Risk
+import com.guardian.ondevice.judge.RiskCategory
 
 data class KnowledgeSnippet(
     val id: String,
@@ -9,7 +10,7 @@ data class KnowledgeSnippet(
     val text: String,
     val keywords: Set<String> = emptySet(),
     val risk: Risk = Risk.UNKNOWN,
-    val advice: String = "Use remote fallback if local judgment remains uncertain.",
+    val category: RiskCategory = RiskCategory.NONE,
     val confidence: Confidence = Confidence.UNCERTAIN,
 )
 
@@ -53,47 +54,42 @@ class LocalKnowledgeRetriever(
         private const val KEYWORD_WEIGHT = 3
         private const val MIN_TOKEN_LENGTH = 2
 
-        // Snippet ids double as Verdict.type when this snippet wins, so they
-        // use the same snake_case taxonomy as the rule-based judges'
-        // types (e.g. BrandImpersonationRule's "brand_impersonation") --
-        // two of these previously used kebab-case and didn't line up with
-        // the rest of the field's values.
         fun defaultSnippets(): List<KnowledgeSnippet> {
             return listOf(
                 KnowledgeSnippet(
                     id = "apk",
+                    category = RiskCategory.APK,
                     title = "APK download risk",
                     text = "공식 앱스토어 외부의 APK 직접 다운로드는 기기 장악이나 악성 앱 설치로 이어질 수 있으므로 고위험 신호로 본다.",
                     keywords = setOf("apk", "download", "install", "app store", "앱", "설치"),
                     risk = Risk.HIGH,
-                    advice = "Block the navigation before installation.",
                     confidence = Confidence.CERTAIN,
                 ),
                 KnowledgeSnippet(
                     id = "brand_impersonation",
+                    category = RiskCategory.BRAND_IMPERSONATION,
                     title = "Brand impersonation",
                     text = "브랜드를 자처하지만 공식 도메인과 일치하지 않는 경우 사칭 가능성이 높은 위험 신호로 본다.",
                     keywords = setOf("brand", "impersonation", "official domain", "login", "사칭", "공식", "도메인"),
                     risk = Risk.HIGH,
-                    advice = "Block or strongly warn before opening.",
                     confidence = Confidence.CERTAIN,
                 ),
                 KnowledgeSnippet(
                     id = "personal_info",
+                    category = RiskCategory.PERSONAL_INFO,
                     title = "Personal information request",
                     text = "이름, 전화번호, 주민번호, 카드번호 등 민감정보 입력을 요구하는 흐름은 사용자 재확인이 필요한 신호로 본다.",
                     keywords = setOf("personal info", "phone", "card", "password", "개인정보", "전화번호", "카드", "비밀번호"),
                     risk = Risk.MEDIUM,
-                    advice = "Ask the user to confirm before entering personal information.",
                     confidence = Confidence.CERTAIN,
                 ),
                 KnowledgeSnippet(
                     id = "urgency",
+                    category = RiskCategory.URGENCY,
                     title = "Urgency and reward lure",
                     text = "무료, 당첨, 한정, 이벤트처럼 사용자의 즉시 행동을 유도하는 문구는 의심 신호로 본다.",
                     keywords = setOf("free", "gift", "event", "limited", "무료", "당첨", "한정", "이벤트"),
                     risk = Risk.MEDIUM,
-                    advice = "Ask the user to confirm before opening.",
                     confidence = Confidence.CERTAIN,
                 ),
                 KnowledgeSnippet(
