@@ -1,65 +1,67 @@
 # URL Risk Centroid Model Card
 
-## Overview
+This card defines what the local URL-risk model is, what it may be used for,
+and which claims about it are not supported.
 
-- Artifact: `model/artifacts/url_risk_centroid_model.json`
-- Type: nearest-centroid URL-feature classifier
-- Runtime: Android/Kotlin local inference inside the hybrid pipeline
-- Training code: `model/training/train_model.py`
-- Feature contract: `model/docs/model-spec.md`
-- Dataset: `model/data/sample_urls.csv`
+## Table of Contents
 
-This model is a compact local URL-risk classifier. It is not a fine-tuned LLM,
-not a TFLite/ONNX artifact, and not a production security detection service.
+1. [Overview](#1-overview)
+2. [Intended Use](#2-intended-use)
+3. [Data](#3-data)
+4. [Metrics](#4-metrics)
+5. [Runtime Contract](#5-runtime-contract)
+6. [Forbidden Claims](#6-forbidden-claims)
+7. [Update Rules](#7-update-rules)
 
-## Intended Use
+## 1. Overview
 
-The model provides an on-device advisory signal for URL risk judgment. It is
-intended to short-circuit clear URL-level patterns such as APK download lures
-and impersonation-like login or authentication URLs. When the URL-only signal is
-uncertain, the runtime falls through to local policy retrieval, page-content
-inspection, or remote fallback.
+The model is a compact nearest-centroid URL-feature classifier that runs as
+local Android/Kotlin inference (`OnDeviceModelJudge`) inside the hybrid
+pipeline. Its parameters are a JSON artifact,
+`model/artifacts/url_risk_centroid_model.json`, trained by
+`model/training/train_model.py` on `model/data/sample_urls.csv`; the feature
+contract is defined in [Model Specification](../docs/model-spec.md).
 
-The final user-facing verdict is owned by the full hybrid pipeline, not by this
-model alone.
+It is not a fine-tuned LLM and not a TFLite/ONNX artifact.
+This model is not a production security detection service.
 
-## Data
+## 2. Intended Use
 
-Current dataset size: 668 sanitized rows.
+The model provides an on-device advisory signal for URL risk judgment. For
+clear URL-level patterns, such as APK download lures and impersonation-like
+login or authentication URLs, it short-circuits the pipeline with a `CERTAIN`
+local verdict. When the URL-only signal is uncertain, it returns `UNKNOWN` /
+`UNCERTAIN`, and the runtime falls through to local policy retrieval,
+page-content inspection, or remote fallback. The final user-facing verdict is
+owned by the full hybrid pipeline, not by this model alone.
 
-| Source | Rows |
-| :-- | --: |
-| `synthetic` | 301 |
-| `reference-derived` | 275 |
-| `public-benign` | 92 |
+## 3. Data
 
-Review provenance:
+The dataset has 668 sanitized rows: 301 `synthetic`, 275 `reference-derived`,
+and 92 `public-benign`. Each row records how its label was reviewed:
 
-| `reviewed_by` value | Meaning |
-| :-- | :-- |
-| `rule-policy` | deterministic project policy label |
-| `manual-review` | manually assigned or checked during prototype construction |
-| `human-review` | human-reviewed row from the sibling gold data |
-| `llm-consensus-claude-gemini-openai` | label from sibling multi-model consensus data |
+| `reviewed_by` | Rows | Meaning |
+| :-- | --: | :-- |
+| `manual-review` | 337 | manually assigned or checked during prototype construction |
+| `llm-consensus-claude-gemini-openai` | 217 | label from sibling multi-model consensus data |
+| `rule-policy` | 83 | deterministic project policy label |
+| `human-review` | 31 | human-reviewed row from the sibling gold data |
 
 LLM-consensus labels are treated as prototype evidence, not audited production
-truth.
+truth. Lineage is documented in [Provenance](../../docs/provenance.md).
 
-## Metrics
+## 4. Metrics
 
-Latest deterministic holdout evaluation:
+Metrics come from a deterministic stratified holdout of 536 training and 132
+test rows ([Trained Model Report](trained-model-report.md)):
 
 | Metric | Value |
 | :-- | --: |
-| Train samples | 536 |
-| Test samples | 132 |
 | Holdout accuracy | 79.55% |
 | Holdout macro F1 | 80.98% |
 | Baseline accuracy on same split | 68.94% |
 | 5-fold CV accuracy | 81.19% |
 | 5-fold CV macro F1 | 82.70% |
-
-Label-level holdout metrics:
 
 | Label | Precision | Recall | F1 |
 | :-- | --: | --: | --: |
@@ -68,15 +70,18 @@ Label-level holdout metrics:
 | `HIGH` | 90.91% | 95.24% | 93.02% |
 | `UNKNOWN` | 65.52% | 95.00% | 77.55% |
 
-## Runtime Contract
+## 5. Runtime Contract
 
-Python training and Kotlin runtime share feature names, feature ordering, and
-missing-value behavior. `model/data/feature_parity_cases.csv` is tested by both
-implementations, and Kotlin reads the generated JSON artifact directly from
-resources. Per-label distance thresholds decide whether the model can emit a
-confident local signal or should let the hybrid pipeline continue.
+Python training and the Kotlin runtime share feature names, feature order, and
+missing-value behavior, and `model/data/feature_parity_cases.csv` is tested by
+both implementations to catch drift. Kotlin reads the generated JSON artifact
+directly from resources, so there is a single source of model parameters.
+Per-label distance thresholds decide whether the model emits a confident local
+signal or lets the hybrid pipeline continue.
 
-## Forbidden Claims
+## 6. Forbidden Claims
+
+The following claims are not supported:
 
 - The model is production-ready.
 - The model proves a URL is safe.
@@ -86,7 +91,7 @@ confident local signal or should let the hybrid pipeline continue.
 - The local model replaces page rendering, redirect analysis, domain reputation,
   accessibility-triggered judgment, or network security tooling.
 
-## Update Rules
+## 7. Update Rules
 
 When changing data or features:
 
