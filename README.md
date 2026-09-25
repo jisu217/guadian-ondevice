@@ -3,24 +3,25 @@
 [![CI](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml/badge.svg)](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-active%20development-brightgreen)
 
-「GUADIAN」은 SKT FLY AI 부트캠프에서 개발한 악성 광고에서 시작되는
-디지털 피해 예방 서비스이며, 본 저장소는 「GUADIAN」의 기존 서버 판정
-구조를 하이브리드 온디바이스 방식으로 전환하는 구현을 담고 있다.
+「GUADIAN」 is a digital-harm prevention service against malicious ads, built at
+the SKT FLY AI bootcamp. This repository focuses on the judgment stage of
+「GUADIAN」's detect-judge-intervene flow, turning the original server-centered
+risk judgment structure into a local-first hybrid on-device design.
 
-본 저장소의 하이브리드 온디바이스 구조는 다음과 같다. ① Local Verdict
-Store는 이전 판정 결과를 확인해 반복 요청을 로컬에서 처리한다. ② Rule
-Engine은 명확한 규칙 기반 판정을 먼저 수행하고, 판정이 불확실한 경우
-`UNCERTAIN` 상태로 다음 단계에 넘긴다. ③ On-device Model은 URL feature를
-기반으로 기기 내부에서 위험도를 추론하며, confidence가 낮거나 결과가
-`UNKNOWN`인 경우 다음 단계로 넘긴다. ④ Local RAG는 로컬 근거 검색 기반의
-추가 판단 단계로 확장할 예정이다. ⑤ Remote Fallback은 로컬에서 여전히
-충분히 확신할 수 없는 경우 서버 판정을 요청한다. ⑥ Verdict는 앞선 단계의
-결과를 종합해 최종 위험도를 결정한다.
+The hybrid on-device structure is as follows. Each stage returns its verdict
+when it is sufficiently certain; otherwise, it passes the request to the next
+stage. ① **Local Verdict Store** reuses previous judgments. ② **Rule Engine**
+performs clear rule-based judgment. ③ **On-device Model** performs the first
+local inference with a lightweight URL-feature model. ④ **Local RAG** is planned
+as an additional local evidence retrieval layer. ⑤ **Page Content Inspection**
+checks rendered-page signals to supplement risks that URL-only layers miss.
+⑥ **Remote Fallback** asks the server only when local judgment remains difficult.
+⑦ **Verdict** combines the preceding results into the final risk decision.
 
-- [history.md](reference/docs/history.md) — 「GUADIAN」 원본 프로젝트의 개발 이력
-- [model-evolution.md](model/docs/model-evolution.md) — 본 저장소의 모델 개선 이력
+- [history.md](reference/docs/history.md) — original 「GUADIAN」 project history
+- [model-evolution.md](model/docs/model-evolution.md) — model improvement history
 
-모든 주요 변경은 측정한 효과와 함께 기록한다.
+Every major change is recorded with its measured effect.
 
 ## 1. Performance History
 
@@ -92,20 +93,32 @@ since many cases need page-level evidence. `UNKNOWN` is overused.
 ## 3. How It Works
 
 ```text
-Browser link click
-  -> ShieldAccessibilityService
-  -> Local Verdict Store
-  -> Rule Engine
-  -> On-device Model
-  -> Local RAG / local evidence
-  -> Page Content Inspection
-  -> Remote Fallback
-  -> Verdict
+Ad / link destination candidate
+  ↓
+Local Verdict Store
+  ↓
+Rule Engine
+  ↓
+On-device Model              | model improving
+  ↓
+Local RAG / local evidence   | RAG planned
+  ↓
+Page Content Inspection
+  ↓
+Remote Fallback
+  ↓
+Verdict
 ```
 
+This flow corresponds to the judgment stage of 「GUADIAN」's
+detect-judge-intervene structure. Its input is a destination candidate, provided
+in the current implementation by manual URL entry (`JudgeActivity`) or a
+supported browser link click (`ShieldAccessibilityService`).
+
 A stage returns its verdict if `CERTAIN`; otherwise the request passes to the
-next stage. `RemoteJudge` is the last resort. The model is a URL-feature
-nearest-centroid classifier, not an LLM. See [Architecture](docs/architecture.md).
+next stage. `RemoteJudge` is the last resort. The local pipeline combines URL
+rules, a URL-feature nearest-centroid model, local evidence, and rendered-page
+inspection before using the remote fallback. See [Architecture](docs/architecture.md).
 
 ### 3.1 Local Resolution
 
@@ -123,9 +136,11 @@ page-content inspection or remote fallback; **34** match the dataset label.
 [Local Resolution Report](model/evaluation/local-resolution-report.md). These are
 evaluation-set numbers, not production estimates.
 
-## 4. Limitations
+## 4. Current Scope
 
-- Browser-triggered Shield coverage is limited to supported navigation surfaces.
-- The current dataset is small and includes synthetic and reference-derived rows.
-- Physical-device validation and production fallback-server deployment remain
-  future work.
+End-to-end protection effect and latency in real user environments require
+separate validation across Shield detection, page loading, and fallback-server
+response.
+
+Physical-device validation, production fallback deployment, and broader Shield
+coverage remain future work.
