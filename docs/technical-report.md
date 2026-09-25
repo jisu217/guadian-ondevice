@@ -1,41 +1,57 @@
 # Technical Report
 
-## Overview
+This report summarizes the problem, runtime design, model, dataset, and
+evaluation of GUADIAN On-device Judge. Runtime details are in
+[Architecture](architecture.md); source lineage is in
+[Provenance](provenance.md).
+
+## Table of Contents
+
+1. [Overview](#1-overview)
+2. [Problem](#2-problem)
+3. [Reference Basis](#3-reference-basis)
+4. [Runtime](#4-runtime)
+5. [Model](#5-model)
+6. [Dataset](#6-dataset)
+7. [Evaluation](#7-evaluation)
+8. [Verification](#8-verification)
+9. [Limitations](#9-limitations)
+10. [Next Steps](#10-next-steps)
+
+## 1. Overview
 
 GUADIAN On-device Judge is a local-first Android prototype for URL-risk
 judgment. It refactors the original GUADIAN ad-risk idea into an Android app
-module, Python model workspace, and FastAPI fallback server.
+module (`app/`) that runs the local judgment pipeline, a Python model workspace
+(`model/`) for training, evaluation, and the generated model artifact, and a
+FastAPI fallback server (`server/`).
 
-The prototype has two Android entry points:
+The app has two entry points: `JudgeActivity` for manual URL input, and
+`ShieldAccessibilityService`, which detects link clicks in supported browsers
+through Android accessibility APIs. As of 2026-09-24, the app builds and runs
+on an emulator; physical-device validation is pending.
 
-- `JudgeActivity`: manual URL input
-- `ShieldAccessibilityService`: supported-browser link-click detection through
-  Android accessibility APIs
-
-As of 2026-09-24, the app builds and runs on an emulator. Physical-device
-validation is still pending.
-
-## Problem
+## 2. Problem
 
 Ad landing URLs can lead to phishing, APK downloads, brand impersonation,
 credential capture, or payment lures. A server-only judge can inspect richer
 context, but it adds latency, cost, and privacy exposure. This project asks how
 far a conservative on-device pipeline can go before remote fallback is needed.
 
-## Reference Basis
+## 3. Reference Basis
 
 The project was developed with reference to the earlier GUADIAN project and a
 sibling model-comparison dataset. Preserved source material is stored under
 `reference/`; copied, derived, and reference-only boundaries are documented in
 [Provenance](provenance.md).
 
-The current repository is a new implementation rather than a direct port. The
-new work includes the local-first Kotlin judgment pipeline, generated
-URL-feature model artifact, local policy fallback, hidden-WebView page-content
-inspection, accessibility-triggered Shield flow, FastAPI fallback server, and
+The repository is a new implementation, not a direct port. The new work covers
+the local-first Kotlin judgment pipeline, the generated URL-feature model
+artifact, the local policy fallback, hidden-WebView page-content inspection,
+the accessibility-triggered Shield flow, the FastAPI fallback server, and the
 model documentation checks.
 
-## Runtime
+## 4. Runtime
 
 ```text
 URL
@@ -49,92 +65,123 @@ URL
   -> Verdict
 ```
 
-The order is intentional: cheap deterministic checks run first, URL-model
-confidence is calibrated, rendered-page inspection is delayed until local
-URL-only evidence is insufficient, and remote fallback remains the last layer.
+The order is intentional. Cheap deterministic checks (the store and rules) run
+first. The URL model's confidence is calibrated with per-label distance
+thresholds, so it only answers when it is close enough to a centroid.
+Rendered-page inspection is delayed until URL-only evidence is insufficient,
+and the remote fallback runs only when every local layer is uncertain. Control
+flow and the `Verdict` contract are described in [Architecture](architecture.md).
 
-## Model
+## 5. Model
 
-The model is a compact nearest-centroid URL-feature classifier, not a fine-tuned
-LLM. Python training and Kotlin runtime extraction share a feature contract and
-parity fixture. Kotlin loads the generated JSON artifact directly from
-`model/artifacts/url_risk_centroid_model.json`.
+The model is a nearest-centroid URL-feature classifier over four labels (`LOW`,
+`MEDIUM`, `HIGH`, `UNKNOWN`), not a fine-tuned LLM. The four length features are
+`log1p`-compressed before min-max scaling, and each label has its own
+certain-distance threshold, calibrated by 5-fold cross-validation on the
+training split. Kotlin loads the generated artifact
+(`model/artifacts/url_risk_centroid_model.json`) directly, and Python training
+and Kotlin inference share a feature contract checked by
+`model/data/feature_parity_cases.csv`.
 
-Feature groups include:
+The 22 features fall into six groups:
 
-- URL, host, path, and query length
-- digit and special-character ratios
-- subdomain count
-- APK, login, event, reward, brand, and shortener tokens
-- official-domain and suspicious-TLD signals
-- tracking, nested URL, encoded URL, ad-click host, and base64-like token signals
+| Group | Features |
+| :-- | :-- |
+| Length | `url_length`, `host_length`, `path_length`, `query_length` |
+| Character composition | `digit_ratio`, `special_char_ratio` |
+| Host structure | `subdomain_count` |
+| Risk tokens | `has_apk`, `has_login`, `has_event`, `has_free`, `has_shortener_token`, `brand_keyword_present` |
+| Domain signals | `official_domain_match`, `suspicious_tld` |
+| Redirect / ad-network | `query_param_count`, `utm_param_count`, `tracking_param_count`, `has_nested_url`, `has_encoded_url`, `has_ad_click_host`, `has_base64_like_token` |
 
-Detailed model history lives in
-[Model Evolution](../model/docs/model-evolution.md).
+Model history is in [Model Evolution](../model/docs/model-evolution.md).
 
-## Dataset
+## 6. Dataset
 
-The committed dataset is sanitized prototype data, not production traffic.
+The committed dataset, `model/data/sample_urls.csv`, holds 668 rows of
+sanitized prototype data, not production traffic. It mixes three sources:
 
-| Source | Count | Purpose |
+| Source | Rows | Content |
 | :-- | --: | :-- |
-| Synthetic and policy-derived samples | 420 | feature and pipeline validation |
-| Real ad landing references | 248 | realistic URL patterns and failure modes |
-| Total | 668 | prototype training and evaluation |
+| `synthetic` | 301 | controlled samples for feature and pipeline validation |
+| `reference-derived` | 275 | 248 real ad landing rows from `gold_251.jsonl` + 27 GUADIAN-policy-derived rows |
+| `public-benign` | 92 | public official/normal URLs |
 
-Some labels come from LLM-consensus data; they are treated as prototype
-evidence, not audited incident truth.
+By label, the dataset has 236 `LOW`, 222 `MEDIUM`, 107 `HIGH`, and 103
+`UNKNOWN` rows. 217 labels come from LLM consensus (Claude, Gemini, OpenAI);
+they are treated as prototype evidence, not audited incident truth. Row-level
+provenance is in [Provenance §5](provenance.md#5-committed-dataset-provenance).
 
-## Evaluation
+## 7. Evaluation
 
-Latest deterministic holdout evaluation:
+Evaluation uses a deterministic stratified holdout split of 536 training and
+132 test rows, committed as `model/evaluation/train-split.csv` and
+`model/evaluation/test-split.csv`. Numbers below come from
+`model/evaluation/trained-model-report.md`.
 
 | Metric | Value |
 | :-- | --: |
-| Train samples | 536 |
-| Test samples | 132 |
 | Holdout accuracy | 79.55% |
 | Holdout macro F1 | 80.98% |
-| Baseline accuracy on same split | 68.94% |
+| Rule baseline accuracy (same split) | 68.94% |
 | 5-fold CV accuracy | 81.19% |
 | 5-fold CV macro F1 | 82.70% |
 
-Holdout label metrics:
+Per label, `HIGH` is strongest and `MEDIUM` weakest:
 
-| Label | Precision | Recall | F1 | Interpretation |
-| :-- | --: | --: | --: | :-- |
-| `LOW` | 85.37% | 74.47% | 79.55% | affected by tracking-heavy benign URLs |
-| `MEDIUM` | 77.50% | 70.45% | 73.81% | weakest; often needs page context |
-| `HIGH` | 90.91% | 95.24% | 93.02% | strongest for clear URL-level risk |
-| `UNKNOWN` | 65.52% | 95.00% | 77.55% | conservative fallback-oriented label |
+| Label | Precision | Recall | F1 | Support | Interpretation |
+| :-- | --: | --: | --: | --: | :-- |
+| `LOW` | 85.37% | 74.47% | 79.55% | 47 | affected by tracking-heavy benign URLs |
+| `MEDIUM` | 77.50% | 70.45% | 73.81% | 44 | weakest; often needs page context |
+| `HIGH` | 90.91% | 95.24% | 93.02% | 21 | strongest for clear URL-level risk |
+| `UNKNOWN` | 65.52% | 95.00% | 77.55% | 20 | conservative fallback-oriented label |
 
-Main finding: realistic ad-landing rows lowered headline accuracy but exposed
-the true limits of URL-only inference. Redirect/ad-network features improved
-cross-validation stability, while page-content inspection addresses runtime
-blind spots that the URL model itself cannot own.
+The holdout errors fall into these buckets:
 
-## Android Verification
+| Bucket | Count |
+| :-- | --: |
+| `LOW` benign URL lacks enough local context | 7 |
+| `MEDIUM` needs page or interaction context | 7 |
+| `MEDIUM` under-risked by URL-only signal | 6 |
+| `LOW` tracking/ad URL over-risked | 5 |
+| `HIGH` impersonation signal below threshold | 1 |
+| `UNKNOWN` over-classified by sparse URL signal | 1 |
 
-Automated verification covers Kotlin unit tests, Robolectric tests for
-accessibility-node helper logic, Python model tests, server tests, and model
-documentation checks in CI.
+Adding realistic ad-landing rows lowered headline accuracy but exposed the
+limits of URL-only inference. The redirect/ad-network features left holdout
+accuracy at 79.55% and raised 5-fold CV to 81.19% accuracy and 82.70% macro F1.
+Page-content inspection addresses runtime blind spots that the URL model cannot
+cover.
+
+## 8. Verification
+
+Most checks run in CI; instrumented and emulator checks are manual:
+
+| Type | Scope | Run by |
+| :-- | :-- | :-- |
+| Kotlin unit tests | judges, rules, store, feature extraction, remote client | CI (`./gradlew test`) |
+| Robolectric tests | accessibility-node helper logic | CI (`./gradlew test`) |
+| Python model tests | training, features, allowlist build | CI |
+| Server tests | FastAPI app and judge service | CI |
+| Model documentation checks | `scripts/check-model-requirements.sh` | CI |
+| Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | manual (`./gradlew connectedDebugAndroidTest`, emulator/device required) |
 
 Manual emulator verification has covered URL judgment through `JudgeActivity`,
-safe `UNKNOWN` fallback when the remote server is unavailable, Shield overlay
-display on off-site browser link clicks, and no overlay on same-site browser
-navigation.
+the safe `UNKNOWN` fallback when the remote server is unavailable, the Shield
+overlay on off-site browser link clicks, and the absence of an overlay on
+same-site browser navigation.
 
-## Limitations
+## 9. Limitations
 
 - No physical-device validation yet.
 - Shield detects candidate browser clicks; it does not prove a click is an ad.
 - Arbitrary in-app WebViews and native ad surfaces are not covered.
 - Page-content inspection depends on WebView loading, timeout behavior, and
   simple DOM heuristics.
-- Dataset is small and partly synthetic.
+- The dataset is small and partly synthetic.
 - The project is a research prototype, not a production security product.
 
-## Next Steps
+## 10. Next Steps
 
 1. Run and document physical-device verification.
 2. Improve accessibility permission onboarding and risk-result UI.
