@@ -79,8 +79,11 @@ require_text "app/src/test/kotlin/com/guardian/ondevice/model/UrlFeatureExtracto
   "Kotlin tests must cover feature parity fixture"
 pass "Python/Kotlin parity checks are wired"
 
-reject_text "README.md" "fully production|guarantees? safe|proves? safe" \
+UNSUPPORTED_CLAIM_PATTERN='production[- ]ready|fully production|(guarantee|prove)s?\b.{0,40}\bsafe'
+reject_text "README.md" "$UNSUPPORTED_CLAIM_PATTERN" \
   "README contains unsupported production/safety claim"
-reject_text "model/README.md" "fully production|guarantees? safe|proves? safe" \
+reject_text "model/README.md" "$UNSUPPORTED_CLAIM_PATTERN" \
   "model README contains unsupported production/safety claim"
+reject_text "docs/technical-report.md" "$UNSUPPORTED_CLAIM_PATTERN" \
+  "technical report contains unsupported production/safety claim"
 pass "unsupported safety claims are absent from primary docs"
