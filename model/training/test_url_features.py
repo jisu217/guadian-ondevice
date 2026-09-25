@@ -7,11 +7,19 @@ from url_features import FEATURE_NAMES, extract_features, feature_vector
 
 class UrlFeatureTest(unittest.TestCase):
     def test_extracts_apk_risk_features(self):
-        features = extract_features("https://unknown-site.test/download/app.apk")
+        features = extract_features("https://unknown-site.top/download/app.apk")
 
         self.assertEqual(features["has_apk"], 1.0)
         self.assertEqual(features["suspicious_tld"], 1.0)
         self.assertEqual(features["official_domain_match"], 0.0)
+
+    def test_reserved_test_tld_is_not_a_risk_signal(self):
+        # Synthetic rows use .test; treating it as suspicious leaked the
+        # "synthetic" source into the HIGH label.
+        features = extract_features("https://unknown-site.test/download/app.apk")
+
+        self.assertEqual(features["suspicious_tld"], 0.0)
+        self.assertEqual(features["has_shortener_token"], 0.0)
 
     def test_extracts_login_brand_features(self):
         features = extract_features("https://bank-login-verification.test/account")
@@ -54,7 +62,7 @@ class UrlFeatureTest(unittest.TestCase):
         self.assertEqual(features["has_base64_like_token"], 1.0)
 
     def test_feature_parity_fixture_matches_python_extractor(self):
-        fixture_path = Path(__file__).parents[1] / "data" / "feature_parity_cases.csv"
+        fixture_path = Path(__file__).parents[1] / "data" / "fixtures" / "feature_parity_cases.csv"
         with fixture_path.open(newline="") as handle:
             rows = list(csv.DictReader(handle))
 
