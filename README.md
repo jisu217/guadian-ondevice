@@ -3,47 +3,80 @@
 [![CI](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml/badge.svg)](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-active%20development-brightgreen)
 
-On-device URL-risk judgment model and Android protection pipeline, evolved from
-the SKT FLY AI bootcamp GUADIAN project.
+Study project that moves part of the SKT FLY AI bootcamp GUADIAN project's
+URL-risk judgment onto the Android device. Deterministic URL rules, a compact
+non-LLM model, local policy knowledge, and page-content inspection run before a
+remote fallback, to increase locally completed judgment and reduce remote-server
+calls.
 
-The original GUADIAN intervenes in browsing flows: low-risk destinations
-continue, uncertain cases require confirmation, and clearly risky destinations
-are blocked before entry. This project moves part of that judgment onto the
-device: deterministic URL rules, a compact non-LLM model, local policy
-knowledge, and page-content inspection run before a remote fallback. The goal is
-to increase locally completed judgment and reduce remote-server calls while
-preserving the original protection flow.
+> [!NOTE]
+> This is a personal study project in active development. The on-device
+> pipeline and model run locally and pass CI; physical-device validation and
+> server deployment are still in progress.
 
-## Table of Contents
+- [x] On-device judgment pipeline (rules, model, local knowledge, page content)
+- [x] URL-feature model with Python/Kotlin parity tests (current: v7)
+- [x] CI for model, server, and Kotlin tests
+- [ ] Remote fallback server deployment
+- [ ] Physical-device validation
+- [ ] Redirect-chain resolution and `MEDIUM`/`UNKNOWN` labeling revisit
 
-1. [Overview](#1-overview)
-2. [Judgment Flow](#2-judgment-flow)
-3. [Model Snapshot](#3-model-snapshot)
-   - [3.1 Local Resolution](#31-local-resolution)
-4. [Repository Layout](#4-repository-layout)
-5. [Requirements](#5-requirements)
-6. [Run](#6-run)
-7. [Check](#7-check)
-8. [Train](#8-train)
-9. [Limitations](#9-limitations)
-10. [Documentation](#10-documentation)
+## 1. Performance History
 
-## 1. Overview
+Except v2, every row is measured on the same 668-row dataset and the same
+132-row holdout test split, so those numbers are directly comparable. CV is
+5-fold cross-validation on the 536-row training split.
 
-The repository has three parts: an Android app module (`:app`), a Python model
-workspace, and a FastAPI fallback server. The primary entry point is
-`ShieldAccessibilityService`, which reacts to link clicks in supported
-browsers; `JudgeActivity` accepts a URL manually for development and
-verification. The model is a URL-feature nearest-centroid classifier, not a
-fine-tuned LLM.
+| Stage | Change | Dataset | Accuracy | Holdout macro F1 | `MEDIUM` recall | CV acc. |
+| :-- | :-- | :-- | --: | --: | --: | --: |
+| v1 | rule-scoring baseline | 668 rows | 68.94% | — | 50.00% | — |
+| v2 | nearest-centroid classifier | synthetic only | 97.50% | — | — | — |
+| v3–v5 | real ad URLs added, per-label thresholds | 668 rows | 72.73% | 74.15% | 50.00% | 73.16% |
+| v6 | `log1p` on URL length features | 668 rows | 79.55% | 80.98% | 70.45% | 79.69% |
+| v6 + v7 (current) | tracking and nested-URL features | 668 rows | 79.55% | 80.98% | 70.45% | 81.19% |
 
-Model training, evaluation, provenance, the model card, and CI documentation
-checks live in the same repository so runtime behavior and model claims can be
-reviewed together. The project is under active development and verified by unit
-tests, Robolectric tests, CI, and manual emulator checks; it is not a
-production security service.
+**v1** sums hand-written feature scores (APK, login, brand, event, free,
+shortener, suspicious TLD) into a risk label. It is kept as the comparison
+baseline.
 
-## 2. Judgment Flow
+**v2** trained a nearest-centroid classifier on balanced synthetic and
+policy-derived samples only. Its 97.50% comes from that overly controlled
+dataset, not the 668-row set, so it is not comparable to the other rows; the
+drop to v3 reflects harder, more realistic data rather than a worse model.
+
+**v3** added 248 real ad landing URLs from `reference/gold_251.jsonl` plus
+banking, short-link, APK, and Korean-domain edge cases, growing the dataset from
+400 to 668 rows. This became the evaluation basis. **v4–v5** replaced one shared
+confidence threshold with a separate threshold per label, so a boundary problem
+in one label no longer suppressed confidence for well-separated `HIGH` cases.
+
+**v6** compresses URL, host, path, and query lengths with `log1p` before
+scaling, so very long tracking URLs no longer dominate. **v7** adds query count,
+UTM/tracking parameter count, nested URL, encoded URL, ad-click host, and
+base64-like token features. v6 and v7 were committed together; the v6 row comes
+from an ablation run that disables the v7 features. It shows that v6 accounts
+for the whole holdout gain, while v7 raises CV accuracy from 79.69% to 81.19%.
+
+Sources: [Model Evolution](model/docs/model-evolution.md) and
+[Trained Model Report](model/evaluation/trained-model-report.md) (the v1
+`MEDIUM` recall is its rule-baseline column).
+
+## 2. Current Results
+
+Per-label results of the current model on the holdout split:
+
+| Label | Precision | Recall | F1 |
+| :-- | --: | --: | --: |
+| `LOW` | 85.37% | 74.47% | 79.55% |
+| `MEDIUM` | 77.50% | 70.45% | 73.81% |
+| `HIGH` | 90.91% | 95.24% | 93.02% |
+| `UNKNOWN` | 65.52% | 95.00% | 77.55% |
+
+`HIGH` is strongest on clear APK and impersonation-like URL patterns. `MEDIUM`
+is the weakest label because many cases need page-level evidence, and `UNKNOWN`
+is overused.
+
+## 3. How It Works
 
 ```text
 Browser link click
@@ -60,27 +93,8 @@ Browser link click
 
 Each stage resolves the request when its result is `CERTAIN`; otherwise the
 request falls through to the next stage, with `RemoteJudge` as the final
-fallback. Every stage returns the same `Verdict`: `risk`, `reason`, `advice`,
-`source`, `confidence`, `type`, and optional `site`. Details are in
-[Architecture](docs/architecture.md).
-
-## 3. Model Snapshot
-
-The model is trained on 668 sanitized samples and evaluated on a holdout split
-of 536 training and 132 test rows:
-
-| Metric | Value |
-| :-- | --: |
-| Holdout accuracy | 79.55% |
-| Holdout macro F1 | 80.98% |
-| Rule baseline accuracy (same split) | 68.94% |
-| 5-fold CV accuracy | 81.19% |
-| 5-fold CV macro F1 | 82.70% |
-
-`HIGH` is strongest on clear APK and impersonation-like URL patterns, while
-`MEDIUM` and `UNKNOWN` remain context-sensitive. Methodology and dataset limits
-are in [Technical Report §7](docs/technical-report.md#7-evaluation) and
-[Model Workspace](model/README.md).
+fallback. The model is a URL-feature nearest-centroid classifier, not a
+fine-tuned LLM. Details are in [Architecture](docs/architecture.md).
 
 ### 3.1 Local Resolution
 
@@ -101,97 +115,8 @@ generated by `LocalResolutionReportTest`, and are an evaluation-set
 measurement, not an estimate of production traffic or real-world remote-call
 reduction.
 
-## 4. Repository Layout
+## 4. Limitations
 
-```text
-app/        Android runtime, Shield, UI, local judgment pipeline
-model/      Dataset, feature extraction, training, artifacts, reports
-server/     FastAPI remote fallback
-docs/       Architecture, technical report, provenance
-reference/  Preserved source/reference material
-scripts/    Repository and model checks
-```
-
-## 5. Requirements
-
-The build uses JDK 17 (Temurin 17 in CI), the Gradle 9.6.0 wrapper, and the
-Android SDK with `compileSdk` / `targetSdk` 37 and `minSdk` 26. The Python parts
-need Python 3 (3.11 in CI). Instrumented checks need an Android emulator or
-physical device.
-
-## 6. Run
-
-Install the debug build:
-
-```bash
-./gradlew installDebug
-```
-
-To exercise Shield, enable the GUADIAN On-device accessibility service in
-Android settings, then click a link in a supported browser. `JudgeActivity` can
-be launched directly for development:
-
-```bash
-adb shell am start -n com.guardian.ondevice/.JudgeActivity
-```
-
-The app uses the remote fallback only when local judgment remains unresolved;
-to run the server locally, see [server/README.md](server/README.md).
-
-## 7. Check
-
-CI runs these checks:
-
-```bash
-bash scripts/check-model-requirements.sh
-python3 -m unittest discover model/training
-python3 -m pip install -r server/requirements.txt
-python3 -m unittest discover server
-./gradlew test
-```
-
-Instrumented checks need a running emulator or device:
-
-```bash
-./gradlew connectedDebugAndroidTest
-```
-
-## 8. Train
-
-Retraining regenerates `model/artifacts/url_risk_centroid_model.json`,
-`model/evaluation/trained-model-report.md`, and the train/test split files:
-
-```bash
-python3 model/training/train_model.py
-```
-
-## 9. Limitations
-
-The main current limitations are:
-
-- Physical-device validation has not been completed.
 - Shield is limited to supported browser navigation surfaces.
 - The model dataset is small and partly synthetic.
 - Reported evaluation results are not production security guarantees.
-
-Details are in [Technical Report §9](docs/technical-report.md#9-limitations)
-and [Next Steps](docs/technical-report.md#10-next-steps).
-
-## 10. Documentation
-
-Project documentation, by topic:
-
-| Document | Content |
-| :-- | :-- |
-| [Architecture](docs/architecture.md) | pipeline, control flow, `Verdict` contract, entry points |
-| [Technical Report](docs/technical-report.md) | problem, runtime, model, dataset, evaluation, limitations, next steps |
-| [Provenance](docs/provenance.md) | reused, derived, and reference-only sources; dataset lineage |
-| [Model Workspace](model/README.md) | model layout, dataset, results, commands |
-| [Model Specification](model/docs/model-spec.md) | dataset schema, Python/Kotlin feature contract |
-| [Model Evolution](model/docs/model-evolution.md) | model version history and decisions |
-| [Model Card](model/evaluation/model-card.md) | intended use, metrics, runtime contract, forbidden claims |
-| [Trained Model Report](model/evaluation/trained-model-report.md) | generated holdout, CV, and error-bucket metrics |
-| [Baseline Report](model/evaluation/baseline-report.md) | generated rule-baseline metrics on the full dataset |
-| [Local Resolution Report](model/evaluation/local-resolution-report.md) | generated per-layer local resolution and correctness |
-| [Remote Fallback Server](server/README.md) | API, judgment flow, setup |
-| [Reference Materials](reference/README.md) | preserved original GUADIAN code, docs, and dataset |
