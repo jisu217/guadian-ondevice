@@ -3,47 +3,50 @@
 [![CI](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml/badge.svg)](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-active%20development-brightgreen)
 
-On-device URL-risk judgment model and Android protection pipeline evolved from the SKT FLY AI bootcamp GUADIAN project.
+On-device URL-risk judgment model and Android protection pipeline, evolved from
+the SKT FLY AI bootcamp GUADIAN project.
 
-* **Status:** Active development
-* **Runtime:** Android app module (`:app`) + Python model workspace + FastAPI fallback
-* **Protection path:** Browser-link navigation through the Shield accessibility service
-* **Model:** URL-feature nearest-centroid classifier, not a fine-tuned LLM
-* **Verification:** Unit tests, Robolectric tests, CI, and emulator manual checks
+The original GUADIAN intervenes in browsing flows: low-risk destinations
+continue, uncertain cases require confirmation, and clearly risky destinations
+are blocked before entry. This project moves part of that judgment onto the
+device: deterministic URL rules, a compact non-LLM model, local policy
+knowledge, and page-content inspection run before a remote fallback. The goal is
+to increase locally completed judgment and reduce remote-server calls while
+preserving the original protection flow.
 
-The original GUADIAN project was designed to protect users during potentially risky advertising and link-navigation flows. Rather than requiring users to inspect URLs themselves, GUADIAN intervenes in the normal browsing flow: low-risk destinations can continue, uncertain cases can require confirmation, and clearly risky destinations can be blocked before entry.
+## Table of Contents
 
-GUADIAN On-device develops the judgment layer further by moving part of that decision process onto the Android device. Instead of depending on a commercial LLM for every unresolved case, the project combines deterministic URL rules, a compact non-LLM model, local policy knowledge, and page-content inspection before using a remote fallback.
+1. [Overview](#1-overview)
+2. [Judgment Flow](#2-judgment-flow)
+3. [Model Snapshot](#3-model-snapshot)
+   - [3.1 Local Resolution](#31-local-resolution)
+4. [Repository Layout](#4-repository-layout)
+5. [Requirements](#5-requirements)
+6. [Run](#6-run)
+7. [Check](#7-check)
+8. [Train](#8-train)
+9. [Limitations](#9-limitations)
+10. [Documentation](#10-documentation)
 
-The goal is to increase the amount of judgment that can be completed locally, reduce unnecessary remote-server calls and communication overhead, and preserve the original GUADIAN protection flow while making the judgment architecture less dependent on remote inference.
+## 1. Overview
 
-## Scope
+The repository has three parts: an Android app module (`:app`), a Python model
+workspace, and a FastAPI fallback server. The primary entry point is
+`ShieldAccessibilityService`, which reacts to link clicks in supported
+browsers; `JudgeActivity` accepts a URL manually for development and
+verification. The model is a URL-feature nearest-centroid classifier, not a
+fine-tuned LLM.
 
-The repository contains three primary components:
+Model training, evaluation, provenance, the model card, and CI documentation
+checks live in the same repository so runtime behavior and model claims can be
+reviewed together. The project is under active development and verified by unit
+tests, Robolectric tests, CI, and manual emulator checks; it is not a
+production security service.
 
-* **Android runtime** — Shield, UI, and the local-first hybrid judgment pipeline
-* **Model workspace** — feature extraction, training, evaluation, model artifacts, and provenance
-* **Remote fallback server** — FastAPI-based fallback for cases that remain unresolved locally
-
-The primary runtime path begins when Shield observes a supported browser-link navigation. The destination then enters the shared `HybridJudge` pipeline, where local evidence is evaluated before the system falls back to the remote judge.
-
-`JudgeActivity` provides a direct judgment entry point for development and verification, but it is not the primary user interaction model.
-
-Model training, evaluation, provenance tracking, the model card, and CI documentation checks are kept in the same repository so that runtime behavior and model claims can be reviewed together.
-
-Current limitations include:
-
-* Physical-device validation has not been completed yet.
-* Shield is limited to supported browser navigation surfaces.
-* The model dataset is small and partly synthetic.
-* Reported evaluation results should not be interpreted as production security guarantees.
-
-See the [Technical Report](docs/technical-report.md#limitations) and [Next Steps](docs/technical-report.md#next-steps) for details.
-
-## Judgment Flow
+## 2. Judgment Flow
 
 ```text
-Browser link navigation
+Browser link click
   -> ShieldAccessibilityService
   -> InMemoryRiskStore
   -> RuleBasedJudge
@@ -55,41 +58,50 @@ Browser link navigation
   -> Verdict
 ```
 
-Each stage can resolve a request when sufficient evidence is available. Cases that remain unresolved fall through to the next stage, with `RemoteJudge` serving as the final fallback.
+Each stage resolves the request when its result is `CERTAIN`; otherwise the
+request falls through to the next stage, with `RemoteJudge` as the final
+fallback. Every stage returns the same `Verdict`: `risk`, `reason`, `advice`,
+`source`, `confidence`, `type`, and optional `site`. Details are in
+[Architecture](docs/architecture.md).
 
-Each `Verdict` contains `risk`, `reason`, `advice`, `source`, `confidence`, `type`, and optional `site` context.
+## 3. Model Snapshot
 
-## Model Snapshot
+The model is trained on 668 sanitized samples and evaluated on a holdout split
+of 536 training and 132 test rows:
 
-The current model evaluation uses **668 sanitized samples**.
+| Metric | Value |
+| :-- | --: |
+| Holdout accuracy | 79.55% |
+| Holdout macro F1 | 80.98% |
+| Rule baseline accuracy (same split) | 68.94% |
+| 5-fold CV accuracy | 81.19% |
+| 5-fold CV macro F1 | 82.70% |
 
-| Metric                    |  Value |
-| ------------------------- | -----: |
-| Holdout accuracy          | 79.55% |
-| Holdout macro F1          | 80.98% |
-| Baseline accuracy         | 68.94% |
-| Cross-validation accuracy | 81.19% |
-| Cross-validation macro F1 | 82.70% |
+`HIGH` is strongest on clear APK and impersonation-like URL patterns, while
+`MEDIUM` and `UNKNOWN` remain context-sensitive. Methodology and dataset limits
+are in [Technical Report §7](docs/technical-report.md#7-evaluation) and
+[Model Workspace](model/README.md).
 
-`HIGH` is strongest on clear APK and impersonation-like URL patterns. `MEDIUM` and `UNKNOWN` remain more context-sensitive.
+### 3.1 Local Resolution
 
-See the [Model Workspace](model/README.md) and [Technical Report](docs/technical-report.md#evaluation) for the evaluation methodology, dataset limitations, provenance, and model details.
+On the 132-row holdout split (not seen in training), the JVM-runnable local
+layers resolve **53 cases (40.15%)** before page-content inspection or remote
+fallback; **34 of those 53** match the dataset label.
 
-### Local Resolution
+| Resolved by | Resolved | Correct |
+| :-- | --: | --: |
+| Deterministic rules | 29 | 17 |
+| On-device model | 8 | 7 |
+| Local knowledge | 16 | 10 |
+| **Total local** | **53** | **34** |
 
-On the same 668-sample evaluation dataset used in the
-[Technical Report evaluation](docs/technical-report.md#evaluation), **39.82%**
-of cases resolve locally before reaching the remote fallback:
+`PageContentJudge` is excluded because it needs a real WebView. The numbers come
+from the [Local Resolution Report](model/evaluation/local-resolution-report.md),
+generated by `LocalResolutionReportTest`, and are an evaluation-set
+measurement, not an estimate of production traffic or real-world remote-call
+reduction.
 
-* 138 by deterministic rules
-* 110 by the model or local knowledge
-* 18 additional cases by page-content inspection
-
-This is an **evaluation-set measurement**, not an estimate of production traffic or real-world remote-call reduction.
-
-## Repository Layout
-
-The repository is split by concern so that the Android runtime, model workspace, and fallback server can be inspected and tested independently.
+## 4. Repository Layout
 
 ```text
 app/        Android runtime, Shield, UI, local judgment pipeline
@@ -100,18 +112,14 @@ reference/  Preserved source/reference material
 scripts/    Repository and model checks
 ```
 
-## Requirements
+## 5. Requirements
 
-Before running the project, ensure that the development environment provides:
+The build uses JDK 17 (Temurin 17 in CI), the Gradle 9.6.0 wrapper, and the
+Android SDK with `compileSdk` / `targetSdk` 37 and `minSdk` 26. The Python parts
+need Python 3 (3.11 in CI). Instrumented checks need an Android emulator or
+physical device.
 
-* Android SDK and Android development tooling
-* A compatible JDK for the Android build
-* Python 3
-* An Android emulator or physical device for instrumented checks
-
-Refer to the project build configuration for the exact Android, Gradle, JDK, and dependency versions used by the repository.
-
-## Run
+## 6. Run
 
 Install the debug build:
 
@@ -119,21 +127,20 @@ Install the debug build:
 ./gradlew installDebug
 ```
 
-To exercise the Shield path, enable the GUADIAN accessibility service in Android settings and navigate through a supported browser link.
-
-For direct development and verification of the judgment pipeline, `JudgeActivity` can be launched with:
+To exercise Shield, enable the GUADIAN On-device accessibility service in
+Android settings, then click a link in a supported browser. `JudgeActivity` can
+be launched directly for development:
 
 ```bash
 adb shell am start -n com.guardian.ondevice/.JudgeActivity
 ```
 
-The Android app uses the configured remote fallback only after local judgment
-remains unresolved. To run and inspect the fallback server locally, see
-[server/README.md](server/README.md).
+The app uses the remote fallback only when local judgment remains unresolved;
+to run the server locally, see [server/README.md](server/README.md).
 
-## Check
+## 7. Check
 
-The following checks cover the model requirements, Python model/server tests, and Kotlin/Android unit tests used by CI:
+CI runs these checks:
 
 ```bash
 bash scripts/check-model-requirements.sh
@@ -143,38 +150,48 @@ python3 -m unittest discover server
 ./gradlew test
 ```
 
-Instrumented Android checks require a running emulator or physical device:
+Instrumented checks need a running emulator or device:
 
 ```bash
 ./gradlew connectedDebugAndroidTest
 ```
 
-## Train
+## 8. Train
 
-Retrain the local model from the committed dataset:
+Retraining regenerates `model/artifacts/url_risk_centroid_model.json`,
+`model/evaluation/trained-model-report.md`, and the train/test split files:
 
 ```bash
 python3 model/training/train_model.py
 ```
 
-Training regenerates the relevant model outputs under `model/artifacts/` and `model/evaluation/`, including the model artifact, train/test split, and trained-model evaluation report.
+## 9. Limitations
 
-## Model Documentation
+The main current limitations are:
 
-Model development and evaluation evidence are maintained alongside the runtime implementation:
+- Physical-device validation has not been completed.
+- Shield is limited to supported browser navigation surfaces.
+- The model dataset is small and partly synthetic.
+- Reported evaluation results are not production security guarantees.
 
-- [Model Workspace](model/README.md) — `model/README.md` 「Model development structure · training · evaluation · artifact overview」
-- [Model Specification](model/docs/model-spec.md) — `model/docs/model-spec.md` 「URL features · classifier design · runtime integration specification」
-- [Model Card](model/evaluation/model-card.md) — `model/evaluation/model-card.md` 「Model performance · intended use · limitations · forbidden claims」
-- [Baseline Report](model/evaluation/baseline-report.md) — `model/evaluation/baseline-report.md` 「Baseline performance on the same split」
-- [Trained Model Report](model/evaluation/trained-model-report.md) — `model/evaluation/trained-model-report.md` 「Trained model evaluation · baseline comparison」
-- [Provenance](docs/provenance.md) — `docs/provenance.md` 「Data sources · labeling · synthetic data · artifact traceability」
-- [Technical Report](docs/technical-report.md) — `docs/technical-report.md` 「Architecture · evaluation · limitations · next steps · implementation status by `GuADian · FULL SERVICE FLOW v2` frame」
+Details are in [Technical Report §9](docs/technical-report.md#9-limitations)
+and [Next Steps](docs/technical-report.md#10-next-steps).
 
-The current model is under active development and evaluation. It is **not a production security detection service**.
+## 10. Documentation
 
-## Project Status
+Project documentation, by topic:
 
-GUADIAN On-device is under active development.
-
-Current work focuses on improving the on-device URL-risk model, increasing local judgment coverage, validating Python/Kotlin feature parity, strengthening evaluation evidence, expanding device-level verification, and reducing dependence on remote fallback.
+| Document | Content |
+| :-- | :-- |
+| [Architecture](docs/architecture.md) | pipeline, control flow, `Verdict` contract, entry points |
+| [Technical Report](docs/technical-report.md) | problem, runtime, model, dataset, evaluation, limitations, next steps |
+| [Provenance](docs/provenance.md) | reused, derived, and reference-only sources; dataset lineage |
+| [Model Workspace](model/README.md) | model layout, dataset, results, commands |
+| [Model Specification](model/docs/model-spec.md) | dataset schema, Python/Kotlin feature contract |
+| [Model Evolution](model/docs/model-evolution.md) | model version history and decisions |
+| [Model Card](model/evaluation/model-card.md) | intended use, metrics, runtime contract, forbidden claims |
+| [Trained Model Report](model/evaluation/trained-model-report.md) | generated holdout, CV, and error-bucket metrics |
+| [Baseline Report](model/evaluation/baseline-report.md) | generated rule-baseline metrics on the full dataset |
+| [Local Resolution Report](model/evaluation/local-resolution-report.md) | generated per-layer local resolution and correctness |
+| [Remote Fallback Server](server/README.md) | API, judgment flow, setup |
+| [Reference Materials](reference/README.md) | preserved original GUADIAN code, docs, and dataset |
