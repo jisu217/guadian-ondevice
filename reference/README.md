@@ -50,7 +50,7 @@ a source header on the first line:
 ```text
 Kotlin:   // 참고 출처: SKT-FLY-AI-TEAM-6/GUADIAN/<source path>
 Python:   # 참고 출처: SKT-FLY-AI-TEAM-6/GUADIAN/<source path>
-Markdown: > **참고 출처:** `SKT-FLY-AI-TEAM-6/GUADIAN/docs/<file>`
+Markdown: > 참고 출처: `SKT-FLY-AI-TEAM-6/GUADIAN/docs/<file>`
 ```
 
 `gold_251.jsonl` is stored unmodified.

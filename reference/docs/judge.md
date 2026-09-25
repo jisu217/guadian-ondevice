@@ -1,4 +1,4 @@
-> **참고 출처:** `SKT-FLY-AI-TEAM-6/GUADIAN/docs/judge.md`
+> 참고 출처: `SKT-FLY-AI-TEAM-6/GUADIAN/docs/judge.md`
 
 ## GuADian 광고 판정 기준
 

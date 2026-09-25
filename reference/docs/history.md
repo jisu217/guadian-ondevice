@@ -1,4 +1,4 @@
-> **참고 출처:** `SKT-FLY-AI-TEAM-6/GUADIAN/docs/history.md`
+> 참고 출처: `SKT-FLY-AI-TEAM-6/GUADIAN/docs/history.md`
 
 ## GuADian 개발 이력
 

@@ -1,4 +1,4 @@
-> **참고 출처:** `SKT-FLY-AI-TEAM-6/GUADIAN/docs/risk-grade-rationale.md`
+> 참고 출처: `SKT-FLY-AI-TEAM-6/GUADIAN/docs/risk-grade-rationale.md`
 
 ## 위험 등급 판정 근거와 적용 방식
 
