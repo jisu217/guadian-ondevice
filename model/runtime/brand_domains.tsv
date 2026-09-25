@@ -1,0 +1,19 @@
+# brand	official registrable domain
+# Single source for OfficialDomains.kt (runtime) and build_official_domains.py
+# (which merges these into official_domains.txt). A host is official for a
+# brand when it equals or is a subdomain of one of that brand's domains.
+coupang	coupang.com
+coupang	coupangeats.com
+naver	naver.com
+naver	navercorp.com
+naver	naver.me
+kakao	kakao.com
+kakao	kakaopay.com
+kakao	kakaocorp.com
+kakao	kakaobank.com
+kb	kbstar.com
+kb	kbcard.com
+kb	kbfg.com
+shinhan	shinhan.com
+shinhan	shinhancard.com
+shinhan	shinhansec.com
