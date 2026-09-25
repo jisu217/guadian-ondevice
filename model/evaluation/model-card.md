@@ -52,8 +52,9 @@ truth. Lineage is documented in [Provenance](../../docs/provenance.md).
 
 ## 4. Metrics
 
-Metrics come from a deterministic stratified holdout of 536 training and 132
-test rows ([Trained Model Report](trained-model-report.md)):
+Holdout metrics come from a deterministic stratified split of 536 training and
+132 test rows; 5-fold CV metrics are averaged over folds of the 536-row training
+split ([Trained Model Report](trained-model-report.md)):
 
 | Metric | Value |
 | :-- | --: |
@@ -62,6 +63,8 @@ test rows ([Trained Model Report](trained-model-report.md)):
 | Baseline accuracy on same split | 68.94% |
 | 5-fold CV accuracy | 81.19% |
 | 5-fold CV macro F1 | 82.70% |
+
+Per-label precision, recall, and F1 on the same 132-row holdout test split:
 
 | Label | Precision | Recall | F1 |
 | :-- | --: | --: | --: |
