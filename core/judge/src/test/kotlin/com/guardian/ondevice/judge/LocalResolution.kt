@@ -1,14 +1,13 @@
 package com.guardian.ondevice.judge
 
+import com.guardian.ondevice.classifier.OnDeviceModelJudge
 import com.guardian.ondevice.knowledge.LocalKnowledgeJudge
-import com.guardian.ondevice.model.OnDeviceModelJudge
 import com.guardian.ondevice.rules.ApkRule
 import com.guardian.ondevice.rules.BrandImpersonationRule
+import com.guardian.ondevice.rules.RuleBasedJudge
 import com.guardian.ondevice.rules.SuspiciousUrlRule
+import kotlinx.coroutines.runBlocking
 import java.io.File
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Measures how many dataset URLs the JVM-runnable local layers resolve
@@ -18,63 +17,69 @@ import kotlin.test.assertTrue
  * `PageContentJudge` needs a real WebView and is excluded; the store is
  * excluded because every URL is judged independently.
  *
- * Set `GUADIAN_WRITE_LOCAL_RESOLUTION_REPORT=1` to regenerate
- * `model/evaluation/local-resolution-report.md`.
+ * [LocalResolutionTest] checks the measurement's invariants on every test run;
+ * [LocalResolutionReportWriter] writes the report, only via
+ * `./gradlew :core:judge:writeLocalResolutionReport`.
  */
-class LocalResolutionReportTest {
-    private val ruleBasedJudge = RuleBasedJudge(
-        rules = listOf(ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule()),
+internal object LocalResolution {
+    const val REPORT_PATH = "../../model/evaluation/local-resolution-report.md"
+
+    private val stages: List<Pair<String, Judge>> = listOf(
+        "rules" to RuleBasedJudge(listOf(ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule())),
+        "model" to OnDeviceModelJudge(),
+        "knowledge" to LocalKnowledgeJudge(),
     )
-    private val modelJudge = OnDeviceModelJudge()
-    private val knowledgeJudge = LocalKnowledgeJudge()
 
-    @Test
-    fun `local resolution counts are consistent`() {
-        val results = datasets().map { it.name to measure(readRows(it.file)).copy(scope = it.scope) }
+    private val stageLabels = mapOf(
+        "rules" to "Deterministic rules",
+        "model" to "On-device model",
+        "knowledge" to "Local knowledge",
+    )
 
-        for ((_, result) in results) {
-            val resolved = result.stages.sumOf { it.resolved }
-            assertEquals(result.total, resolved + result.unresolved)
-            assertTrue(result.stages.all { it.correct <= it.resolved })
-        }
+    data class Row(val url: String, val label: String)
 
-        if (System.getenv(WRITE_ENV) == "1") {
-            File(REPORT_PATH).writeText(render(results))
-        }
-    }
+    class StageCount(val label: String, var resolved: Int = 0, var correct: Int = 0)
 
-    private fun measure(rows: List<Row>): Result {
-        val stages = linkedMapOf(
-            "rules" to StageCount("Deterministic rules"),
-            "model" to StageCount("On-device model"),
-            "knowledge" to StageCount("Local knowledge"),
-        )
+    data class Result(val total: Int, val stages: List<StageCount>, val unresolved: Int, val scope: String = "")
+
+    data class Dataset(val name: String, val scope: String, val file: File)
+
+    fun datasets(): List<Dataset> = listOf(
+        Dataset("Holdout Split", "The holdout split was not seen in training.", File("../../model/data/test-split.csv")),
+        Dataset("Full Dataset", "The full dataset includes the training rows, so model results here are optimistic.", File("../../model/data/sample_urls.csv")),
+    )
+
+    fun measureAll(): List<Pair<String, Result>> =
+        datasets().map { it.name to measure(readRows(it.file)).copy(scope = it.scope) }
+
+    fun measure(rows: List<Row>): Result {
+        val counts = stages.associate { (name, _) -> name to StageCount(stageLabels.getValue(name)) }
         var unresolved = 0
 
         for (row in rows) {
-            val (stage, verdict) = resolve(row.url) ?: run {
+            val resolved = resolve(row.url)
+            if (resolved == null) {
                 unresolved++
-                null to null
+                continue
             }
-            if (stage == null || verdict == null) continue
-            val count = stages.getValue(stage)
+            val (stage, verdict) = resolved
+            val count = counts.getValue(stage)
             count.resolved++
             if (verdict.risk.name == row.label) count.correct++
         }
 
-        return Result(total = rows.size, stages = stages.values.toList(), unresolved = unresolved)
+        return Result(total = rows.size, stages = counts.values.toList(), unresolved = unresolved)
     }
 
-    private fun resolve(url: String): Pair<String, Verdict>? {
-        val judges = listOf("rules" to ruleBasedJudge, "model" to modelJudge, "knowledge" to knowledgeJudge)
-        for ((stage, judge) in judges) {
-            val verdict = judgeNow(judge, url)
-            if (verdict.confidence == Confidence.CERTAIN) return stage to verdict
+    private fun resolve(url: String): Pair<String, Verdict>? = runBlocking {
+        for ((stage, judge) in stages) {
+            val verdict = judge.judge(url)
+            if (verdict.confidence == Confidence.CERTAIN) return@runBlocking stage to verdict
         }
-        return null
+        null
     }
 
-    private fun render(results: List<Pair<String, Result>>): String = buildString {
+    fun render(results: List<Pair<String, Result>>): String = buildString {
         appendLine("# Local Resolution Report")
         appendLine()
         appendLine("This report measures how many dataset URLs the local pipeline resolves before")
@@ -91,11 +96,10 @@ class LocalResolutionReportTest {
         appendLine("unresolved count is therefore what reaches page-content inspection or remote")
         appendLine("fallback.")
         appendLine()
-        appendLine("The report is generated by `LocalResolutionReportTest`:")
+        appendLine("The report is generated by `LocalResolutionReportWriter`:")
         appendLine()
         appendLine("```bash")
-        appendLine("GUADIAN_WRITE_LOCAL_RESOLUTION_REPORT=1 ./gradlew :app:testDebugUnitTest \\")
-        appendLine("  --tests com.guardian.ondevice.judge.LocalResolutionReportTest")
+        appendLine("./gradlew :core:judge:writeLocalResolutionReport")
         appendLine("```")
         results.forEachIndexed { index, (name, result) ->
             val resolved = result.stages.sumOf { it.resolved }
@@ -118,14 +122,9 @@ class LocalResolutionReportTest {
     }
 
     private fun percent(part: Int, whole: Int): String =
-        if (whole == 0) "0.00%" else "%.2f%%".format(part * 100.0 / whole)
+        if (whole == 0) "0.00%" else "%.2f%%".format(java.util.Locale.ROOT, part * 100.0 / whole)
 
-    private fun datasets(): List<Dataset> = listOf(
-        Dataset("Holdout Split", "The holdout split was not seen in training.", File("../model/evaluation/test-split.csv")),
-        Dataset("Full Dataset", "The full dataset includes the training rows, so model results here are optimistic.", File("../model/data/sample_urls.csv")),
-    )
-
-    private fun readRows(file: File): List<Row> {
+    fun readRows(file: File): List<Row> {
         val lines = file.readLines().filter { it.isNotBlank() }
         val header = parseCsvLine(lines.first())
         val urlIndex = header.indexOf("url")
@@ -159,24 +158,5 @@ class LocalResolutionReportTest {
         }
         fields.add(current.toString())
         return fields
-    }
-
-    private fun judgeNow(judge: Judge, url: String): Verdict {
-        var result: Verdict? = null
-        judge.judge(url) { result = it }
-        return result ?: error("Judge did not complete synchronously for $url")
-    }
-
-    private data class Row(val url: String, val label: String)
-
-    private class StageCount(val label: String, var resolved: Int = 0, var correct: Int = 0)
-
-    private data class Result(val total: Int, val stages: List<StageCount>, val unresolved: Int, val scope: String = "")
-
-    private data class Dataset(val name: String, val scope: String, val file: File)
-
-    private companion object {
-        const val WRITE_ENV = "GUADIAN_WRITE_LOCAL_RESOLUTION_REPORT"
-        const val REPORT_PATH = "../model/evaluation/local-resolution-report.md"
     }
 }
