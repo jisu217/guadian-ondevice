@@ -41,6 +41,10 @@ URL
   -> Verdict
 ```
 
+The README uses concept names for the judgment stages; this document names the
+concrete runtime classes. `LocalKnowledgeJudge` is the current local evidence
+layer, and Local RAG is planned as an extension of that layer.
+
 ### 2.1 Components
 
 Paths are relative to `app/src/main/kotlin/com/guardian/ondevice/`. The
