@@ -22,7 +22,8 @@ evaluation of GUADIAN On-device Judge. Runtime details are in
 
 GUADIAN On-device Judge is a local-first Android prototype for URL-risk
 judgment. It refactors the original GUADIAN ad-risk idea into an Android app
-module (`app/`) that runs the local judgment pipeline, a Python model workspace
+(`app/`, with the judgment engine in `core/judge` and WebView page inspection
+in `core/pagecontent`) that runs the local judgment pipeline, a Python model workspace
 (`model/`) for training, evaluation, and the generated model artifact, and a
 FastAPI fallback server (`server/`).
 
@@ -55,18 +56,17 @@ model documentation checks.
 
 ```text
 URL
-  -> InMemoryRiskStore
   -> RuleBasedJudge
-  -> LocalReasoningJudge
-       -> OnDeviceModelJudge
-       -> LocalKnowledgeJudge
-       -> PageContentJudge
+  -> InMemoryRiskStore (StoreJudge)
+  -> OnDeviceModelJudge
+  -> LocalKnowledgeJudge
+  -> PageContentJudge        (manual entry only; skipped for Shield clicks)
   -> RemoteJudge
   -> Verdict
 ```
 
-The order is intentional. Cheap deterministic checks (the store and rules) run
-first. The URL model's confidence is calibrated with per-label distance
+The order is intentional. Cheap deterministic checks run first; the rules come
+before the store so that a cached verdict can never skip them. The URL model's confidence is calibrated with per-label distance
 thresholds, so it only answers when it is close enough to a centroid.
 Rendered-page inspection is delayed until URL-only evidence is insufficient,
 and the remote fallback runs only when every local layer is uncertain. Control
@@ -79,9 +79,9 @@ The model is a nearest-centroid URL-feature classifier over four labels (`LOW`,
 `log1p`-compressed before min-max scaling, and each label has its own
 certain-distance threshold, calibrated by 5-fold cross-validation on the
 training split. Kotlin loads the generated artifact
-(`model/artifacts/url_risk_centroid_model.json`) directly, and Python training
-and Kotlin inference share a feature contract checked by
-`model/data/feature_parity_cases.csv`.
+(`model/runtime/url_risk_centroid_model.json`, version `v8-prep`) directly, and
+Python training and Kotlin inference share a feature contract checked by
+`model/data/fixtures/feature_parity_cases.csv`.
 
 The 22 features fall into six groups:
 
@@ -115,26 +115,26 @@ provenance is in [Provenance §5](provenance.md#5-committed-dataset-provenance).
 ## 7. Evaluation
 
 Evaluation uses a deterministic stratified holdout split of 536 training and
-132 test rows, committed as `model/evaluation/train-split.csv` and
-`model/evaluation/test-split.csv`. Numbers below come from
+132 test rows, committed as `model/data/train-split.csv` and
+`model/data/test-split.csv`. Numbers below come from
 `model/evaluation/trained-model-report.md`.
 
 | Metric | Value |
 | :-- | --: |
-| Holdout accuracy | 79.55% |
-| Holdout macro F1 | 80.98% |
-| Rule baseline accuracy (same split) | 68.94% |
-| 5-fold CV accuracy | 81.19% |
-| 5-fold CV macro F1 | 82.70% |
+| Holdout accuracy | 75.00% |
+| Holdout macro F1 | 74.63% |
+| Rule baseline accuracy (same split) | 64.39% |
+| 5-fold CV accuracy | 80.44% |
+| 5-fold CV macro F1 | 81.44% |
 
-Per label, `HIGH` is strongest and `MEDIUM` weakest:
+On the 72 non-synthetic holdout rows alone, accuracy is 66.67%. Per label:
 
 | Label | Precision | Recall | F1 | Support | Interpretation |
 | :-- | --: | --: | --: | --: | :-- |
 | `LOW` | 85.37% | 74.47% | 79.55% | 47 | affected by tracking-heavy benign URLs |
-| `MEDIUM` | 77.50% | 70.45% | 73.81% | 44 | weakest; often needs page context |
-| `HIGH` | 90.91% | 95.24% | 93.02% | 21 | strongest for clear URL-level risk |
-| `UNKNOWN` | 65.52% | 95.00% | 77.55% | 20 | conservative fallback-oriented label |
+| `MEDIUM` | 75.61% | 70.45% | 72.94% | 44 | often needs page context |
+| `HIGH` | 87.50% | 66.67% | 75.68% | 21 | APK misses are resolved by `ApkRule` first |
+| `UNKNOWN` | 55.88% | 95.00% | 70.37% | 20 | conservative fallback-oriented label |
 
 The holdout errors fall into these buckets:
 
@@ -143,33 +143,40 @@ The holdout errors fall into these buckets:
 | `LOW` benign URL lacks enough local context | 7 |
 | `MEDIUM` needs page or interaction context | 7 |
 | `MEDIUM` under-risked by URL-only signal | 6 |
+| `HIGH` malicious signal too weak in URL text | 6 |
 | `LOW` tracking/ad URL over-risked | 5 |
 | `HIGH` impersonation signal below threshold | 1 |
 | `UNKNOWN` over-classified by sparse URL signal | 1 |
 
 Adding realistic ad-landing rows lowered headline accuracy but exposed the
-limits of URL-only inference. The redirect/ad-network features left holdout
-accuracy at 79.55% and raised 5-fold CV to 81.19% accuracy and 82.70% macro F1.
+limits of URL-only inference. v8-prep removed a `.test` suspicious-TLD feature entry
+that leaked the synthetic source into `HIGH`; holdout accuracy fell from 79.55%
+to 75.00% and `HIGH` F1 from 93.02% to 75.68%
+([Model Evolution](../model/docs/model-evolution.md)).
 Page-content inspection addresses runtime blind spots that the URL model cannot
 cover.
 
 ## 8. Verification
 
-Most checks run in CI; instrumented and emulator checks are manual:
+Most checks run in CI on every pull request; instrumented tests run in a
+separate nightly/on-demand workflow:
 
 | Type | Scope | Run by |
 | :-- | :-- | :-- |
-| Kotlin unit tests | judges, rules, store, feature extraction, remote client | CI (`./gradlew test`) |
+| Kotlin unit tests | judges, rules, store, feature extraction, remote client, app/server rule parity | CI (`./gradlew test`) |
+| Android lint | app sources and resources | CI (`./gradlew lint`) |
 | Robolectric tests | accessibility-node helper logic | CI (`./gradlew test`) |
 | Python model tests | training, features, allowlist build | CI |
 | Server tests | FastAPI app and judge service | CI |
 | Model documentation checks | `scripts/check-model-requirements.sh` | CI |
-| Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | manual (`./gradlew connectedDebugAndroidTest`, emulator/device required) |
+| Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | `instrumented.yml` (nightly, on demand) or `./gradlew connectedDebugAndroidTest` |
 
 Manual emulator verification has covered URL judgment through `JudgeActivity`,
 the safe `UNKNOWN` fallback when the remote server is unavailable, the Shield
 overlay on off-site browser link clicks, and the absence of an overlay on
-same-site browser navigation.
+same-site browser navigation. That Shield check predates the current
+react-by-risk behavior (banner while judging, back navigation on `HIGH`,
+nothing on `LOW`/`UNKNOWN`), which has not yet been re-verified by hand.
 
 ## 9. Limitations
 
