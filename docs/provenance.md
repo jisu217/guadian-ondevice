@@ -4,30 +4,42 @@ This document records what this project reused, derived, or only referenced.
 The goal is to make the development lineage clear without overstating what was
 copied from earlier GUADIAN work.
 
-## Summary
+## Table of Contents
+
+1. [Summary](#1-summary)
+2. [Reference Code From The Original GUADIAN Project](#2-reference-code-from-the-original-guadian-project)
+   - [2.1 Consulted But Not Copied](#21-consulted-but-not-copied)
+3. [Reference Policy Documents](#3-reference-policy-documents)
+4. [Sibling Dataset Reference](#4-sibling-dataset-reference)
+5. [Committed Dataset Provenance](#5-committed-dataset-provenance)
+6. [Public Domain Allowlist Source](#6-public-domain-allowlist-source)
+7. [Implementation Boundaries](#7-implementation-boundaries)
+8. [Known Documentation Limitations](#8-known-documentation-limitations)
+
+## 1. Summary
 
 The current implementation in `app/`, `model/`, and `server/` is a new
 local-first prototype. It was developed while consulting earlier GUADIAN code,
 GUADIAN risk-policy documents, a sibling model-comparison dataset, and a public
 domain popularity list.
 
-## Reference Code From The Original GUADIAN Project
+## 2. Reference Code From The Original GUADIAN Project
 
 The files below are stored under `reference/` for auditability. They are not
 compiled or imported by the current Kotlin/Python runtime.
 
 | Current file | Source repo file | Original role | How it influenced this project |
 | :-- | :-- | :-- | :-- |
-| `reference/Judge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/Judge.kt` | original judge interface and verdict shape | informed the shared `Judge`/`Verdict` abstraction |
-| `reference/HttpJudge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/HttpJudge.kt` | original remote API judge client | informed `RemoteJudge` fallback shape |
-| `reference/WebNode.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/WebNode.kt` | URL, host, and site extraction helper | informed URL parsing concerns |
-| `reference/judge_agent.py` | `SKT-FLY-AI-TEAM-6/GUADIAN/judge_agent.py` | original server-side judge agent | informed the fallback server boundary |
+| `reference/Judge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/Judge.kt` | original judge interface and verdict shape | informed the shared `Judge`/`Verdict` abstraction |
+| `reference/HttpJudge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/HttpJudge.kt` | original remote API judge client | informed `RemoteJudge` fallback shape |
+| `reference/WebNode.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/WebNode.kt` | browser accessibility-node helper (roles, `targetUrl`, host/site extraction) | adapted into `shield/WebAccessibilityNode.kt`, reduced to link detection, target-host extraction, iframe detection, and current-site inference; ad-network denylist and redirect accounting helpers not ported |
+| `reference/judge_agent.py` | `SKT-FLY-AI-TEAM-6/GUADIAN/server/judge_agent.py` | original server-side judge agent | informed the fallback server boundary |
 
 The current implementation is not a direct port. The local-first sequence,
 Kotlin model runtime, Python training workflow, local knowledge fallback, and FastAPI
 server were implemented in this repository.
 
-### Consulted But Not Copied
+### 2.1 Consulted But Not Copied
 
 - `GuADian23-model-compare/domains.py` (`host_of`, `site_of`, both diagnostic
   helpers, not part of the merged gold dataset) was read to diagnose why
@@ -42,7 +54,7 @@ server were implemented in this repository.
   were merged into `model/data/sample_urls.csv` — only `gold_251.jsonl` (from
   the separate `GuADian23-model-compare` repo) was.
 
-## Reference Policy Documents
+## 3. Reference Policy Documents
 
 The original GUADIAN policy documents are preserved under `reference/docs/`.
 
@@ -56,7 +68,7 @@ The original GUADIAN policy documents are preserved under `reference/docs/`.
 These documents were used as policy background. Current runtime behavior is
 implemented in `app/src/main/kotlin/com/guardian/ondevice/`.
 
-## Sibling Dataset Reference
+## 4. Sibling Dataset Reference
 
 `GuADian23-model-compare` is a separate, independent experiment repository
 from the same team, not the GUADIAN app repository itself. It re-runs the same
@@ -98,7 +110,7 @@ This distinction matters: LLM-consensus labels are useful for prototype
 evaluation, but they are not equivalent to a fully human-audited production
 dataset.
 
-## Committed Dataset Provenance
+## 5. Committed Dataset Provenance
 
 The current `model/data/sample_urls.csv` contains 668 rows. Provenance is
 recorded row-by-row through `source`, `reviewed_by`, and `created_at`.
@@ -131,7 +143,7 @@ Important split:
 The exact row-level origin should be read from `sample_urls.csv`; the table
 above summarizes the committed dataset.
 
-## Public Domain Allowlist Source
+## 6. Public Domain Allowlist Source
 
 `model/data/official_domains.txt` was built from:
 
@@ -150,19 +162,20 @@ python3 model/training/build_official_domains.py --tranco /path/to/top-1m.csv
 The generated allowlist is committed because both Python feature extraction and
 Kotlin runtime tests read it as a shared resource.
 
-## Implementation Boundaries
+## 7. Implementation Boundaries
 
 | Area | New implementation in this repository | Reference influence |
 | :-- | :-- | :-- |
 | Android runtime | `app/src/main/kotlin/com/guardian/ondevice/*` | original app and judge concepts |
 | Local pipeline | `HybridJudge`, `LocalReasoningJudge` | original judge/fallback concept |
 | Rules | `rules/*` | GUADIAN risk policy docs |
+| Shield link detection | `shield/WebAccessibilityNode.kt` | adapted from `reference/WebNode.kt` (source cited in its KDoc) |
 | Model | `model/training/*`, `OnDeviceModelJudge` | new implementation |
 | Feature extraction | Python and Kotlin URL feature extractors | URL parsing concerns from reference code |
 | Remote fallback | `server/main.py`, `judge_service.py`, `RemoteJudge` | original remote-judge boundary |
 | Evaluation | `model/evaluation/*` | new implementation |
 
-## Known Documentation Limitations
+## 8. Known Documentation Limitations
 
 - Some reference files preserve their original wording and may not match the
   current architecture.
