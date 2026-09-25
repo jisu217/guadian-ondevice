@@ -41,16 +41,20 @@ require_file "docs/technical-report.md"
 require_file "model/README.md"
 require_file "model/docs/model-spec.md"
 require_file "model/data/sample_urls.csv"
-require_file "model/data/feature_parity_cases.csv"
+require_file "model/data/fixtures/feature_parity_cases.csv"
+require_file "model/data/fixtures/rule_parity_cases.csv"
 require_file "model/evaluation/model-card.md"
 require_file "model/evaluation/baseline-report.md"
 require_file "model/evaluation/trained-model-report.md"
-require_file "model/evaluation/train-split.csv"
-require_file "model/evaluation/test-split.csv"
-require_file "model/artifacts/url_risk_centroid_model.json"
+require_file "model/evaluation/metrics.json"
+require_file "model/data/train-split.csv"
+require_file "model/data/test-split.csv"
+require_file "model/runtime/url_risk_centroid_model.json"
+require_file "model/runtime/brand_domains.tsv"
+require_file "model/runtime/public_suffix_list.dat"
 require_file "model/training/train_model.py"
 require_file "model/training/test_url_features.py"
-require_file "app/src/test/kotlin/com/guardian/ondevice/model/UrlFeatureExtractorTest.kt"
+require_file "core/judge/src/test/kotlin/com/guardian/ondevice/classifier/UrlFeatureExtractorTest.kt"
 pass "required model files exist"
 
 require_text ".github/workflows/ci.yml" "scripts/check-model-requirements\\.sh" \
@@ -75,9 +79,25 @@ pass "model card includes required limits"
 
 require_text "model/training/test_url_features.py" "feature_parity_cases\\.csv" \
   "Python tests must cover feature parity fixture"
-require_text "app/src/test/kotlin/com/guardian/ondevice/model/UrlFeatureExtractorTest.kt" "matches python feature parity fixture" \
+require_text "core/judge/src/test/kotlin/com/guardian/ondevice/classifier/UrlFeatureExtractorTest.kt" "matches python feature parity fixture" \
   "Kotlin tests must cover feature parity fixture"
+require_text "server/test_judge_service.py" "rule_parity_cases\\.csv" \
+  "server tests must cover rule parity fixture"
+require_text "core/judge/src/test/kotlin/com/guardian/ondevice/rules/RuleParityTest.kt" "rule_parity_cases\\.csv" \
+  "Kotlin tests must cover rule parity fixture"
 pass "Python/Kotlin parity checks are wired"
+
+# The shipped artifact's version must be the one the trained report describes.
+ARTIFACT_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT_DIR/model/runtime/url_risk_centroid_model.json")"
+require_text "model/evaluation/trained-model-report.md" "Model version \`${ARTIFACT_VERSION}\`" \
+  "trained-model-report.md must describe artifact version ${ARTIFACT_VERSION}"
+require_text "model/evaluation/model-card.md" "version \`${ARTIFACT_VERSION}\`" \
+  "model-card.md must name artifact version ${ARTIFACT_VERSION}"
+pass "model artifact version ${ARTIFACT_VERSION} matches reports"
+
+# Every number in the docs' metric tables must match the generated metrics.
+python3 "$ROOT_DIR/scripts/check_doc_metrics.py" || fail "doc metric tables do not match model/evaluation/metrics.json"
+pass "doc metric tables match generated metrics"
 
 UNSUPPORTED_CLAIM_PATTERN='production[- ]ready|fully production|(guarantee|prove)s?\b.{0,40}\bsafe'
 reject_text "README.md" "$UNSUPPORTED_CLAIM_PATTERN" \
