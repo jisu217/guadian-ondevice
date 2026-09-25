@@ -4,6 +4,7 @@ import re
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from typing import Any
+from urllib.parse import urlsplit
 
 
 class Risk(StrEnum):
@@ -13,17 +14,25 @@ class Risk(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
+class Status(StrEnum):
+    OK = "ok"
+    NOT_CONFIGURED = "not_configured"
+    ERROR = "error"
+
+
 @dataclass
 class Verdict:
     risk: Risk
     reason: str
     advice: str
-    type: str = "none"
-    site: str | None = None
+    category: str = "none"
+    host: str | None = None
+    status: Status = Status.OK
 
     def to_dict(self) -> dict[str, Any]:
         out = asdict(self)
         out["risk"] = self.risk.value
+        out["status"] = self.status.value
         return out
 
 
@@ -49,7 +58,7 @@ class JudgeService:
                 risk=Risk.UNKNOWN,
                 reason="Remote judge is not configured.",
                 advice="Keep the user in the safe confirmation flow.",
-                type="remote_not_configured",
+                status=Status.NOT_CONFIGURED,
             )
 
         try:
@@ -59,30 +68,25 @@ class JudgeService:
                 risk=Risk.UNKNOWN,
                 reason=f"Remote judge failed: {exc.__class__.__name__}.",
                 advice="Keep the user in the safe confirmation flow.",
-                type="remote_error",
+                status=Status.ERROR,
             )
 
     def _local_precheck(self, url: str) -> Verdict | None:
-        normalized = url.lower()
-        if ".apk" in normalized:
+        category = precheck_category(url)
+        if category == "apk":
             return Verdict(
                 risk=Risk.HIGH,
                 reason="The URL appears to download an APK file outside a trusted app store.",
                 advice="Block the navigation before installation.",
-                type="apk",
+                category="apk",
             )
-
-        # Whole-token match, like the app's URL features: a substring match
-        # would also flag hosts such as "prevent.com" or "freedom.org".
-        suspicious_tokens = {"free", "gift", "event", "loan", "verify", "account"}
-        if suspicious_tokens & set(re.split(r"[^a-z0-9]+", normalized)):
+        if category == "suspicious_url":
             return Verdict(
                 risk=Risk.MEDIUM,
                 reason="The URL contains a suspicious landing-page keyword.",
                 advice="Ask the user to confirm before opening.",
-                type="suspicious_url",
+                category="suspicious_url",
             )
-
         return None
 
     def _ask_claude(self, url: str) -> Verdict:
@@ -112,6 +116,28 @@ class JudgeService:
         return parse_verdict_json(text)
 
 
+# Mirrors app/.../rules/UrlRuleSignals.kt; both are checked against
+# model/data/fixtures/rule_parity_cases.csv.
+SUSPICIOUS_TOKENS = {"free", "gift", "event", "loan", "verify", "account"}
+APK_PATTERN = re.compile(r"\.apk(?![a-z0-9])")
+
+
+def precheck_category(url: str) -> str:
+    """'apk', 'suspicious_url', or 'none', from the path and query only.
+
+    The host is ignored ("myaccount.google.com" is not a lure) and tokens are
+    matched whole ("/prevention" does not contain the token "event").
+    """
+    value = url.strip()
+    parts = urlsplit(value if "://" in value else f"https://{value}")
+    target = (parts.path + (f"?{parts.query}" if parts.query else "")).lower()
+    if APK_PATTERN.search(target):
+        return "apk"
+    if SUSPICIOUS_TOKENS & set(re.split(r"[^a-z0-9]+", target)):
+        return "suspicious_url"
+    return "none"
+
+
 def parse_verdict_json(text: str) -> Verdict:
     data = json.loads(extract_json(text))
     risk = Risk(data.get("risk", "UNKNOWN"))
@@ -119,8 +145,8 @@ def parse_verdict_json(text: str) -> Verdict:
         risk=risk,
         reason=str(data.get("reason") or "Remote judge did not provide a reason."),
         advice=str(data.get("advice") or "Keep the user in the safe confirmation flow."),
-        type=str(data.get("type") or "none"),
-        site=data.get("site") if data.get("site") else None,
+        category=str(data.get("category") or "none"),
+        host=data.get("host") if data.get("host") else None,
     )
 
 
@@ -144,8 +170,8 @@ Return a compact JSON object only:
   "risk": "LOW" | "MEDIUM" | "HIGH" | "UNKNOWN",
   "reason": "short user-facing reason",
   "advice": "short user-facing advice",
-  "type": "none | impersonation | credentials | apk | personal_info | payment | urgency | investment | contentfarm | unverifiable",
-  "site": "optional final site or domain"
+  "category": "none | brand_impersonation | credentials | apk | personal_info | payment | urgency | investment | contentfarm | unverifiable",
+  "host": "optional final host"
 }
 
 Use HIGH only when the risk is clear and serious, such as brand impersonation,
