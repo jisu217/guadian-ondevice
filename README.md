@@ -30,7 +30,7 @@ into a risk label. It is easy to explain but too coarse for mixed ad URLs,
 reaching 68.41% accuracy on the full 668-row dataset and 68.94% on the final
 holdout split. It is kept as the comparison baseline.
 
-**v2, synthetic-only centroid.** A nearest-centroid classifier trained on
+**Exception — v2, synthetic-only centroid.** A nearest-centroid classifier trained on
 balanced synthetic and policy-derived samples reached 97.50% accuracy, but the
 dataset was too controlled to represent real ad landing URLs. It is treated as
 an over-optimistic checkpoint, not a final claim.
