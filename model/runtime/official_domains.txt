@@ -22956,6 +22956,7 @@ kajabi-cdn.com
 kajabi.com
 kakaku.com
 kakao.com
+kakaobank.com
 kakaocdn.net
 kakaocorp.com
 kakaogames.com
@@ -38239,6 +38240,7 @@ shine.com
 shingakunet.com
 shinhan.com
 shinhancard.com
+shinhansec.com
 shinigami.asia
 shinigami.to
 shiningawards.com
