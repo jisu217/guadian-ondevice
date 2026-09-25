@@ -1,7 +1,10 @@
 /*
- * Root build file. The Android runtime lives in :app; model training and the
- * FastAPI fallback are managed outside Gradle.
+ * Root build file. Modules: :app (Android UI and Shield), :core:judge (pure
+ * Kotlin judgment engine), :core:pagecontent (WebView page inspection). Model
+ * training and the FastAPI fallback are managed outside Gradle.
  */
 plugins {
-    id("com.android.application") version "9.4.1" apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
 }
