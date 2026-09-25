@@ -1,7 +1,6 @@
 # GUADIAN On-device
 
-[![CI](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml/badge.svg)](https://github.com/jisu217/guadian-ondevice/actions/workflows/ci.yml)
-![Status](https://img.shields.io/badge/status-active%20development-brightgreen)
+![Status](https://img.shields.io/badge/status-in_progress-111111)
 
 「GUADIAN」 is a digital-harm prevention service against malicious ads, built at
 the SKT FLY AI bootcamp. This repository focuses on the judgment stage of
