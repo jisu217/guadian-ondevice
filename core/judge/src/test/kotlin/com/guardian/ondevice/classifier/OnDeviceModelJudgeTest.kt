@@ -1,10 +1,14 @@
-package com.guardian.ondevice.model
+package com.guardian.ondevice.classifier
 
 import com.guardian.ondevice.judge.Confidence
+import com.guardian.ondevice.judge.Layer
 import com.guardian.ondevice.judge.Risk
 import com.guardian.ondevice.judge.Verdict
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class OnDeviceModelJudgeTest {
     @Test
@@ -13,8 +17,7 @@ class OnDeviceModelJudgeTest {
 
         assertEquals(Risk.LOW, verdict.risk)
         assertEquals(Confidence.CERTAIN, verdict.confidence)
-        assertEquals("on-device-model", verdict.source)
-        assertEquals("nearest_centroid", verdict.type)
+        assertEquals(Layer.MODEL, verdict.layer)
     }
 
     @Test
@@ -40,7 +43,7 @@ class OnDeviceModelJudgeTest {
 
         assertEquals(Risk.UNKNOWN, verdict.risk)
         assertEquals(Confidence.UNCERTAIN, verdict.confidence)
-        assertEquals("HIGH", nearestLabel(url))
+        assertEquals(Risk.HIGH, nearestLabel(url))
     }
 
     @Test
@@ -50,7 +53,7 @@ class OnDeviceModelJudgeTest {
 
         assertEquals(Risk.UNKNOWN, verdict.risk)
         assertEquals(Confidence.UNCERTAIN, verdict.confidence)
-        assertEquals("MEDIUM", nearestLabel(url))
+        assertEquals(Risk.MEDIUM, nearestLabel(url))
     }
 
     // Documents the current URL-only limitation: the nearest centroid leans
@@ -61,7 +64,7 @@ class OnDeviceModelJudgeTest {
 
         assertEquals(Risk.UNKNOWN, verdict.risk)
         assertEquals(Confidence.UNCERTAIN, verdict.confidence)
-        assertEquals("MEDIUM", nearestLabel("https://promo-reward-event.test/free-gift"))
+        assertEquals(Risk.MEDIUM, nearestLabel("https://promo-reward-event.test/free-gift"))
     }
 
     @Test
@@ -72,14 +75,39 @@ class OnDeviceModelJudgeTest {
         assertEquals(Confidence.UNCERTAIN, verdict.confidence)
     }
 
-    private fun judgeNow(url: String): Verdict {
-        lateinit var verdict: Verdict
-        OnDeviceModelJudge().judge(url) { verdict = it }
-        return verdict
+    @Test
+    fun `bundled artifact carries a model version`() {
+        assertTrue(NearestCentroidUrlModel.default.version.startsWith("v"))
     }
 
-    private fun nearestLabel(url: String): String {
+    @Test
+    fun `rejects an artifact with an unknown label at load time`() {
+        val json = artifactJson(labels = listOf("LOW", "SEVERE"))
+
+        assertFailsWith<IllegalArgumentException> { NearestCentroidUrlModel.fromJson(json) }
+    }
+
+    @Test
+    fun `rejects an artifact missing a threshold for a centroid label`() {
+        val json = artifactJson(labels = listOf("LOW", "HIGH"), thresholdLabels = listOf("LOW"))
+
+        assertFailsWith<IllegalArgumentException> { NearestCentroidUrlModel.fromJson(json) }
+    }
+
+    private fun artifactJson(labels: List<String>, thresholdLabels: List<String> = labels): String {
+        val size = UrlFeatureExtractor.FEATURE_NAMES.size
+        val zeros = List(size) { 0.0 }.joinToString(",", "[", "]")
+        val names = UrlFeatureExtractor.FEATURE_NAMES.joinToString(",", "[", "]") { "\"$it\"" }
+        val centroids = labels.joinToString(",", "{", "}") { "\"$it\":$zeros" }
+        val thresholds = thresholdLabels.joinToString(",", "{", "}") { "\"$it\":1.0" }
+        return """{"type":"nearest-centroid","feature_names":$names,"feature_min":$zeros,"feature_max":$zeros,""" +
+            """"centroids":$centroids,"certain_distance_thresholds":$thresholds}"""
+    }
+
+    private fun judgeNow(url: String): Verdict = runBlocking { OnDeviceModelJudge().judge(url) }
+
+    private fun nearestLabel(url: String): Risk {
         val vector = UrlFeatureExtractor().extract(url).vector()
-        return NearestCentroidUrlModel.default().predict(vector).label
+        return NearestCentroidUrlModel.default.predict(vector).label
     }
 }
