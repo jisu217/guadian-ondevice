@@ -38,6 +38,11 @@ class WebAccessibilityNodeTest {
     }
 
     @Test
+    fun siteOfTreatsHostingPlatformSubdomainsAsSeparateSites() {
+        assertFalse(WebAccessibilityNode.sameSite("a.github.io", "b.github.io"))
+    }
+
+    @Test
     fun sameSiteIgnoresSubdomainDifferences() {
         assertTrue(WebAccessibilityNode.sameSite("m.news.nate.com", "www.nate.com"))
     }
