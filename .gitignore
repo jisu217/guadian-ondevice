@@ -1,37 +1,44 @@
-# Gradle/Kotlin build caches and outputs
+# Build outputs and incremental compilation caches (Gradle, Kotlin)
 .gradle/
 .kotlin/
 build/
 out/
 
-# Compiled artifacts -- keep the wrapper jar, it's what makes ./gradlew work
-# without Gradle installed
+# JVM bytecode and packaged archives (JAR/WAR/EAR)
+# Exception: gradle-wrapper.jar is version-controlled to bootstrap ./gradlew without a local Gradle install
 *.class
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 
-# IDE project files
+# IDE workspace metadata
 .idea/
 *.iml
 .vscode/
+
+# Java upgrade tooling artifacts
 .github/modernize/
 
-# JVM heap dumps written when a Gradle daemon runs out of memory
+# JVM heap dumps (HPROF), emitted on Gradle daemon OutOfMemoryError
 *.hprof
 
-# Android Studio's Espresso test screenshot/video output
+# Instrumented test artifacts (Espresso screenshots, screen recordings)
 captures/
 
 # macOS Finder metadata
 .DS_Store
 
-# Python (model/, server/)
+# Python bytecode cache and virtual environment (model/, server/)
 __pycache__/
 *.py[cod]
-.env
 .venv/
 
-# Local machine-specific Android SDK path, never shared
+# dotenv credentials (e.g. ANTHROPIC_API_KEY)
+.env
+
+# Machine-specific Android SDK location (sdk.dir)
 local.properties
+
+# Personal study notes
+docs/prefetch-parallelism.md
