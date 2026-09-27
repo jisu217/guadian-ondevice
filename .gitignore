@@ -45,3 +45,6 @@ docs/prefetch-parallelism.md
 
 # Collected LLM cases and labels (contain third-party page text and personal data)
 model/llm/data/
+
+# CMake working directories for native modules (NDK builds)
+.cxx/

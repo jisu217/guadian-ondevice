@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":core:judge"))
     implementation(project(":core:pagecontent"))
     implementation(project(":core:llm"))
+    implementation(project(":core:llamacpp"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
