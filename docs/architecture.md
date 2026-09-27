@@ -157,24 +157,44 @@ page. A new click cancels the previous judgment.
 
 ## 5. Runtime Boundary
 
-The Android runtime is split into four Gradle modules. `core/judge` is a
+The Android runtime is split into five Gradle modules. `core/judge` is a
 plain Kotlin/JVM library holding every layer that needs no Android API
 (`judge`, `rules`, `store`, `classifier`, `knowledge`, `util`) and
 the `model/runtime` resources; because it has no Android dependency, an
 `android.*` import there fails to compile and its tests run on the JVM.
 `core/pagecontent` is an Android library holding only `PageContentJudge`,
 the one layer that needs a WebView. `core/llm` is another plain Kotlin/JVM
-library, holding the on-device LLM stage and its prompt format; the model
-runtime it will call needs Android and will live outside it.
+library, holding the on-device LLM stage: its prompt format, chat template,
+and answer reading. `core/llamacpp` is an Android library that builds llama.cpp
+with the NDK and implements the stage's `LlmRuntime` on it. `app` holds the UI,
+the Shield service, `GuadianApp`, and `DefaultJudgeGraph`, which wires the
+layers together.
 
 The pipeline passes only a URL between stages, so `PageContentJudge` posts a
 `PageObservation` (title, visible text, form fields, APK links, status,
 redirects) to an `ObservationBoard`, and `OnDeviceLlmJudge` takes it for the
 same URL. The observation is read with the rules the training data was
-collected with, and `PromptBuilder` is a port of
-`model/llm/prompt_format.py`; parity tests hold both to Python fixtures. Until
-the model is integrated, the prompt is logged under the `GuadianLlm` tag. `app` holds the UI, the Shield service,
-`GuadianApp`, and `DefaultJudgeGraph`, which wires the layers together.
+collected with, and `PromptBuilder`, `ChatFormat`, and `AnswerReader` are ports
+of `model/llm`; parity tests hold them to Python fixtures. Every prompt is
+logged under the `GuadianLlm` tag, and model load and reply times under
+`GuadianLlama`.
+
+llama.cpp is fetched at build time from a pinned release (b11216, checked by
+SHA256) and compiled for arm64 with dot-product instructions, which made a
+verdict about four times faster on an arm64 emulator (21 s to 4–5 s with a
+4-bit 1.7B model). `CpuFeatures` keeps the library unloaded on older cores that
+lack those instructions. The model file is not bundled yet; for development it
+is copied into the app's private storage:
+
+```bash
+adb push guadian-qwen3-1.7b-Q4_K_M.gguf /data/local/tmp/guadian.gguf
+adb shell run-as com.guadian.ondevice sh -c 'mkdir -p files/models && cp /data/local/tmp/guadian.gguf files/models/guadian.gguf'
+adb shell rm /data/local/tmp/guadian.gguf
+```
+
+Without the file, the LLM stage answers "not loaded" and the pipeline behaves
+as before. Instrumented test runs uninstall the app afterwards, which removes
+the copied model.
 
 The implemented runtime therefore covers: the manual verdict screen, the
 Shield accessibility service with Logcat output, the local rule, model, knowledge, and

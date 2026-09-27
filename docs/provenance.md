@@ -15,8 +15,9 @@ copied from earlier GUADIAN work.
 6. [Public Domain Allowlist Source](#6-public-domain-allowlist-source)
 7. [Public Suffix List](#7-public-suffix-list)
 8. [Phishing and Malware Blocklist](#8-phishing-and-malware-blocklist)
-9. [Implementation Boundaries](#9-implementation-boundaries)
-10. [Known Documentation Limitations](#10-known-documentation-limitations)
+9. [On-device LLM Runtime and Model](#9-on-device-llm-runtime-and-model)
+10. [Implementation Boundaries](#10-implementation-boundaries)
+11. [Known Documentation Limitations](#11-known-documentation-limitations)
 
 ## 1. Summary
 
@@ -193,7 +194,16 @@ must be replaced before any commercial release. Because the license is
 share-alike, `blocklist.bloom` and `blocklist_filter_cases.csv`, which are
 derived from the lists, are distributed under CC BY-NC-SA 3.0 as well.
 
-## 9. Implementation Boundaries
+## 9. On-device LLM Runtime and Model
+
+`core/llamacpp` compiles llama.cpp (https://github.com/ggml-org/llama.cpp,
+MIT license) from release `b11216`, downloaded at build time and verified
+against SHA256 `2187f9643de609a3f269ee1ae3ef4717de290546b0a4f7fe608dab51f75c8c21`;
+its sources are not committed. The on-device model is fine-tuned from
+`Qwen/Qwen3-1.7B` (Apache-2.0) with `model/llm/train_qlora.ipynb`; neither the
+base weights nor the fine-tuned GGUF are committed.
+
+## 10. Implementation Boundaries
 
 | Area | New implementation in this repository | Reference influence |
 | :-- | :-- | :-- |
@@ -205,7 +215,7 @@ derived from the lists, are distributed under CC BY-NC-SA 3.0 as well.
 | Feature extraction | Python and Kotlin URL feature extractors | URL parsing concerns from reference code |
 | Evaluation | `model/evaluation/*` | new implementation |
 
-## 10. Known Documentation Limitations
+## 11. Known Documentation Limitations
 
 - Some reference files preserve their original wording and may not match the
   current architecture.
