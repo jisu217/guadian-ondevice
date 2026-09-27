@@ -9,8 +9,8 @@ Precedence, highest first:
                         - no evidence: a HIGH verdict on a page that returned no content
                           (fetch error or HTTP 4xx/5xx) and is not blocklisted becomes
                           MEDIUM unverifiable, unless the host rule says HIGH
-                        - host rule (host_rules.py): raises the label to the host verdict
-                          when that is higher; never lowers it
+                        - host rule (host_rules.grade_case, clicked URL and landing page):
+                          raises the label to the host verdict when that is higher; never lowers it
     4. Teacher        data/labels_*_addendum.jsonl when present (criteria plus label_cases.CRITERIA_ADDENDUM),
                       else data/labels_*.jsonl; both after the evidence check
 
@@ -33,7 +33,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from host_rules import grade_host  # noqa: E402
+from host_rules import grade_case  # noqa: E402
 
 DATA_DIR = os.path.join(HERE, "data")
 SOURCES = ("gold251_js", "openphish_20260926_js")
@@ -61,8 +61,9 @@ def apply_policy(case: dict, teacher: dict) -> tuple[str, str, str, str]:
     fetch = tools["fetch_page"][0]
     no_content = "error" in fetch or (fetch.get("status") or 0) >= 400
     blocklisted = any(r.get("listed") for r in tools["check_blocklist"])
-    origin_age = next((r.get("age_days") for r in tools["domain_age"]), None)
-    host = grade_host(case["url"], origin_age)
+    domain_ages = {r.get("domain"): r.get("age_days") for r in tools["domain_age"]}
+    final_url = None if "error" in fetch else fetch.get("final_url")
+    host = grade_case(case["url"], final_url, domain_ages)
 
     risk, type_, source, note = teacher["risk"], teacher["type"], "teacher", ""
     if risk == "HIGH" and type_ not in HIGH_TYPES:
