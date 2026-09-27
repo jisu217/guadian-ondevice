@@ -55,12 +55,16 @@ A host that imitates a brand is graded by how certain the imitation is:
 | Host | Label | Example |
 | :-- | :-- | :-- |
 | embeds a brand's official domain under another registrable domain | `HIGH impersonation` | `roblox.com.mu` |
-| contains a brand name and was registered less than 30 days ago | `HIGH impersonation` | `microsoftsteam.live` |
 | pairs a brand name with account words (login, verify) on a non-brand domain | `MEDIUM impersonation` | `xfinityuserverification.weebly.com` |
 | contains a brand name only | no rule; judged by page content | `meritzevent.com` |
 
 The last row matters: brands run campaign sites on separate domains, and
 treating every brand name as a warning sign would block them.
+
+The model only sees what the phone can observe without revealing the visit.
+The collector records blocklist membership and domain age for the teacher, but
+neither reaches the student's input or the policy rules: domain age needs a
+per-domain online lookup, and no blocklist ships with the app.
 
 Teacher labels that disagreed with the team's earlier gold labels were reviewed
 by hand (`data/review_*.csv`). Human review overrides every other source.

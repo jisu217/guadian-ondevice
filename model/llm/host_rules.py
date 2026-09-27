@@ -4,13 +4,13 @@ Implements the host table in README "Labeling policy":
 
     HIGH   the host embeds a brand's official domain under another registrable
            domain (roblox.com.mu, https-wvvw-roblox.com)
-    HIGH   the host contains a brand token and the domain is under 30 days old
-           (microsoftsteam.live registered yesterday)
     MEDIUM the host pairs a brand token with an account word on a non-brand
            domain (xfinityuserverification.weebly.com)
     none   a brand token alone (meritzevent.com); page content decides
 
-Hosts are compared with hyphens removed, so `kb-star.top` is read as `kbstar.top`.
+Hosts are compared with hyphens removed, so `kb-star.com.evil` is read as
+`kbstar.com.evil`. Domain age is deliberately not used: the phone would have to
+send each visited domain to an external lookup to learn it.
 Brand tokens shorter than five characters are ignored because they match
 unrelated words too often (for example "toss", "kt").
 """
@@ -29,7 +29,6 @@ sys.path.insert(0, os.path.join(HERE, "vendor"))
 import judge_agent as ja  # noqa: E402
 from split_dataset import PSL, PublicSuffixList  # noqa: E402
 
-YOUNG_DOMAIN_DAYS = 30
 MIN_TOKEN_LENGTH = 5
 
 # Global brands common in phishing feeds; the vendored BRANDS table covers Korean brands.
@@ -99,7 +98,7 @@ def _embeds(host: str, flat: str, domain: str) -> bool:
     return bool(re.search(pattern, host) or re.search(pattern, flat))
 
 
-def grade_host(url: str, domain_age_days: int | None) -> HostVerdict | None:
+def grade_host(url: str) -> HostVerdict | None:
     """Return the host-only verdict for `url`, or None when the host alone decides nothing."""
     host = (urlsplit(url).hostname or "").lower().removeprefix("www.")
     if not host:
@@ -119,9 +118,6 @@ def grade_host(url: str, domain_age_days: int | None) -> HostVerdict | None:
     if not tokens:
         return None
     token = max(tokens, key=len)
-    if domain_age_days is not None and domain_age_days < YOUNG_DOMAIN_DAYS:
-        return HostVerdict("HIGH", "impersonation",
-                           f"host {host} contains brand '{token}' and was registered {domain_age_days} days ago")
     word = next((w for w in ACCOUNT_WORDS if w in flat.replace(token, "")), None)
     if word:
         return HostVerdict("MEDIUM", "impersonation",
@@ -153,17 +149,11 @@ def global_brand_mismatches(text: str, host: str) -> list[tuple[str, str]]:
     return list(found.items())
 
 
-def grade_case(url: str, final_url: str | None, domain_ages: dict[str, int | None]) -> HostVerdict | None:
+def grade_case(url: str, final_url: str | None) -> HostVerdict | None:
     """Grade both the clicked URL and the page it landed on, and return the stronger verdict.
 
     Shorteners (tiny.cc, goo.su) hide the imitating host until the redirect lands, so
-    the origin alone is not enough. `domain_ages` maps the collector's site keys
-    (judge_agent.site_of) to age in days.
+    the origin alone is not enough.
     """
-    verdicts = []
-    for candidate in dict.fromkeys(u for u in (url, final_url) if u):
-        site = ja.site_of(urlsplit(candidate).hostname or "") or ""
-        verdict = grade_host(candidate, domain_ages.get(site))
-        if verdict:
-            verdicts.append(verdict)
+    verdicts = [v for v in (grade_host(u) for u in dict.fromkeys(u for u in (url, final_url) if u)) if v]
     return max(verdicts, key=lambda v: RISK_ORDER_HOST[v.risk], default=None)

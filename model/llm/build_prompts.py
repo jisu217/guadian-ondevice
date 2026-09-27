@@ -9,8 +9,11 @@ JSON. A 1.7B model on a phone reads that far too slowly, so the student gets:
     assistant  {"risk", "type", "evidence"} as compact JSON
 
 Every user line is something the app can compute on the phone from Page Content
-Inspection, the bundled official-domain and blocklist tables, and host_rules.py.
-The app's prompt builder must produce the same lines in the same order.
+Inspection, the bundled official-domain table, and host_rules.py. The collector
+also records blocklist membership and domain age, but they are left out: domain
+age needs a per-domain online lookup that would reveal the visit, and no
+blocklist ships with the app. The app's prompt builder must produce the same
+lines in the same order.
 
 `evidence` is filled only for HIGH, the one level the on-device grounding check
 verifies. It is the user-message line that supports the type (host imitation or
@@ -63,12 +66,6 @@ def ascii_host(url: str) -> str:
         return host
 
 
-def describe_age(result: dict | None) -> str:
-    if not result or result.get("age_days") is None:
-        return "모름"
-    return f"{result['age_days']}일"
-
-
 def user_message(case: dict, page_chars: int) -> str:
     tools = tools_of(case)
     url = case["url"]
@@ -108,13 +105,7 @@ def user_message(case: dict, page_chars: int) -> str:
     if signals.get("apk_links"):
         lines.append(f"APK 링크: {signals['apk_links'][0][:100]}")
 
-    blocklist = tools["check_blocklist"][0][1]
-    lines.append(f"차단 목록: {'있음 (' + blocklist['list'] + ')' if blocklist.get('listed') else '없음'}")
-    ages = [result for _, result in tools["domain_age"]]
-    lines.append(f"도메인 나이: {describe_age(ages[-1] if ages else None)}")
-
-    domain_ages = {args.get("host"): result.get("age_days") for args, result in tools["domain_age"]}
-    host_verdict = grade_case(url, final_url, domain_ages)
+    host_verdict = grade_case(url, final_url)
     if host_verdict:
         lines.append(f"주소 흉내: {host_verdict.reason}")
 

@@ -7,8 +7,9 @@ Precedence, highest first:
                         - HIGH types: HIGH is kept only for impersonation, credentials, and apk,
                           the three HIGH conditions in the criteria; other HIGH becomes MEDIUM
                         - no evidence: a HIGH verdict on a page that returned no content
-                          (fetch error or HTTP 4xx/5xx) and is not blocklisted becomes
-                          MEDIUM unverifiable, unless the host rule says HIGH
+                          (fetch error or HTTP 4xx/5xx) becomes MEDIUM unverifiable,
+                          unless the host rule says HIGH. Blocklist membership does not
+                          count: the student model never sees it
                         - host rule (host_rules.grade_case, clicked URL and landing page):
                           raises the label to the host verdict when that is higher; never lowers it
     4. Teacher        data/labels_*_addendum.jsonl when present (criteria plus label_cases.CRITERIA_ADDENDUM),
@@ -60,16 +61,14 @@ def apply_policy(case: dict, teacher: dict) -> tuple[str, str, str, str]:
     tools = tool_results(case)
     fetch = tools["fetch_page"][0]
     no_content = "error" in fetch or (fetch.get("status") or 0) >= 400
-    blocklisted = any(r.get("listed") for r in tools["check_blocklist"])
-    domain_ages = {r.get("domain"): r.get("age_days") for r in tools["domain_age"]}
     final_url = None if "error" in fetch else fetch.get("final_url")
-    host = grade_case(case["url"], final_url, domain_ages)
+    host = grade_case(case["url"], final_url)
 
     risk, type_, source, note = teacher["risk"], teacher["type"], "teacher", ""
     if risk == "HIGH" and type_ not in HIGH_TYPES:
         risk, source = "MEDIUM", "policy:high_type"
         note = f"HIGH is reserved for {sorted(HIGH_TYPES)}; {type_} is at most MEDIUM"
-    if risk == "HIGH" and no_content and not blocklisted and not (host and host.risk == "HIGH"):
+    if risk == "HIGH" and no_content and not (host and host.risk == "HIGH"):
         risk, type_, source = "MEDIUM", "unverifiable", "policy:no_evidence"
         note = "page returned no content; missing evidence cannot support HIGH"
     if host and RISK_RANK[host.risk] > RISK_RANK[risk]:
