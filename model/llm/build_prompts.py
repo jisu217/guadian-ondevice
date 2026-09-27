@@ -32,87 +32,22 @@ import collections
 import json
 import os
 import sys
-from urllib.parse import urlsplit
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from host_rules import global_brand_mismatches, grade_case  # noqa: E402
+import prompt_format  # noqa: E402
+from prompt_format import Brands, observation_from_case, user_message  # noqa: E402
 
 DATA_DIR = os.path.join(HERE, "data")
 SOURCES = ("gold251_js", "openphish_20260926_js")
 TOKENIZER = os.path.join(DATA_DIR, "tokenizer", "tokenizer.json")
 SYSTEM = "광고 도착 페이지의 위험도를 판정한다. JSON 한 줄로만 답한다."
-MAX_URL_CHARS = 200
 
 
 def read_jsonl(path: str) -> list[dict]:
     with open(path, encoding="utf-8") as f:
         return [json.loads(line) for line in f if line.strip()]
-
-
-def tools_of(case: dict) -> dict[str, list[dict]]:
-    tools: dict[str, list[dict]] = collections.defaultdict(list)
-    for item in case["input"]["tool_outputs"]:
-        tools[item["tool"]].append((item["args"], json.loads(item["output"])))
-    return tools
-
-
-def ascii_host(url: str) -> str:
-    host = (urlsplit(url).hostname or "").lower()
-    try:
-        return host.encode("idna").decode("ascii")
-    except UnicodeError:
-        return host
-
-
-def user_message(case: dict, page_chars: int) -> str:
-    tools = tools_of(case)
-    url = case["url"]
-    host = ascii_host(url)
-    fetch = tools["fetch_page"][0][1]
-    lines = [f"주소: {url[:MAX_URL_CHARS]}"]
-
-    if "error" in fetch:
-        lines.append("페이지: 열리지 않음")
-    else:
-        final_host = ascii_host(fetch.get("final_url") or url)
-        hops = max(0, len(fetch.get("chain") or []) - 1)
-        if final_host and final_host != host:
-            lines.append(f"도착: {final_host} (이동 {hops}회)")
-        lines.append(f"페이지: 상태 {fetch.get('status')}, 본문 {fetch.get('text_chars', 0)}자")
-
-    final_url = url if "error" in fetch else (fetch.get("final_url") or url)
-    signals = tools["page_signals"][0][1] if tools["page_signals"] else {}
-    if signals.get("title"):
-        lines.append(f"제목: {signals['title'][:80]}")
-
-    for args, result in tools["official_domain_of"]:
-        if "domain" in result:   # asked by domain: is the destination an official domain?
-            lines.append(f"공식 도메인: {result['domain']} = {result['brand']}" if result.get("known")
-                         else f"공식 도메인: {result['domain']} 표에 없음")
-    named = [(m["brand"], m["official"][0]) for m in signals.get("brand_domain_mismatch") or []]
-    page_words = (signals.get("title") or "") + " " + (fetch.get("text") or "")
-    named += global_brand_mismatches(page_words, ascii_host(final_url))
-    if named:
-        lines.append("브랜드 언급: " + ", ".join(f"{b}(공식 {d})" for b, d in named[:4])
-                     + f" / 실제 {ascii_host(final_url)}")
-
-    asks = sorted({a for form in signals.get("forms") or [] for a in form.get("asks") or []})
-    if signals.get("forms"):
-        external = any(form.get("external_action") for form in signals["forms"])
-        lines.append(f"입력 칸: {', '.join(asks) if asks else '일반'}" + (" (외부로 전송)" if external else ""))
-    if signals.get("apk_links"):
-        lines.append(f"APK 링크: {signals['apk_links'][0][:100]}")
-
-    host_verdict = grade_case(url, final_url)
-    if host_verdict:
-        lines.append(f"주소 흉내: {host_verdict.reason}")
-
-    text = (fetch.get("text") or "")[:page_chars]
-    if text:
-        lines.append(f"본문: {text}")
-    return "\n".join(lines)
 
 
 EVIDENCE_LINES = {
@@ -153,9 +88,10 @@ def main() -> int:
         tokenizer = Tokenizer.from_file(TOKENIZER)
 
     outputs = {split: [] for split in ("train", "validation", "test")}
+    brands = Brands.load()
     lengths, kept_evidence, missing = [], collections.Counter(), []
     for case_id, label in labels.items():
-        user = user_message(cases[case_id], args.page_chars)
+        user = user_message(observation_from_case(cases[case_id]), brands, args.page_chars)
         target = answer(label, user)
         if target["risk"] == "HIGH":
             kept_evidence[bool(target["evidence"])] += 1
@@ -173,6 +109,20 @@ def main() -> int:
         outputs[splits[case_id]].append(example)
         if tokenizer:
             lengths.append(len(tokenizer.encode(SYSTEM + "\n" + user).ids))
+
+    # Every collected observation with its prompt, for a stronger local-only parity
+    # check; it holds page text, so it stays in the git-ignored data directory.
+    with open(os.path.join(DATA_DIR, "llm_prompt_cases_full.jsonl"), "w", encoding="utf-8") as f:
+        for case_id in labels:
+            obs = observation_from_case(cases[case_id])
+            f.write(json.dumps({"observation": obs.to_json(), "prompt": user_message(obs, brands)},
+                               ensure_ascii=False) + "\n")
+
+    # Synthetic observations with their expected prompts, for core/llm's parity test.
+    with open(prompt_format.FIXTURE_PATH, "w", encoding="utf-8") as f:
+        for obs in prompt_format.fixture_observations():
+            f.write(json.dumps({"observation": obs.to_json(), "prompt": user_message(obs, brands)},
+                               ensure_ascii=False) + "\n")
 
     for split, rows in outputs.items():
         path = os.path.join(DATA_DIR, f"sft_{split}.jsonl")

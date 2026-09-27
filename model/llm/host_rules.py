@@ -67,12 +67,16 @@ class HostVerdict:
 
 
 def _brand_table() -> dict[str, tuple[str, ...]]:
-    """token -> official domains, from the vendored Korean table and GLOBAL_BRANDS."""
+    """token -> official domains, from the vendored Korean table and GLOBAL_BRANDS.
+
+    Insertion order is deterministic (table order, tokens sorted within a brand) because
+    it decides ties, and the app reads this exact order from llm_brands.json.
+    """
     table: dict[str, set[str]] = {}
     for aliases, domains in ja.BRANDS:
         tokens = {d.split(".")[0] for d in domains}
         tokens |= {re.sub(r"[\s\-]", "", a.lower()) for a in aliases if a.isascii()}
-        for token in tokens:
+        for token in sorted(tokens):
             if len(token) >= MIN_TOKEN_LENGTH:
                 table.setdefault(token, set()).update(domains)
     for token, domains in GLOBAL_BRANDS.items():
