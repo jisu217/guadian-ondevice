@@ -266,3 +266,81 @@ def fixture_observations() -> list[PageObservation]:
         PageObservation(url="https://tiny.cc/abc", loaded=True, final_url="https://www.roblox.com.bi/users/2",
                         status=200, redirects=1, title="Roblox", text="Roblox", text_chars=180),
     ]
+
+
+SIGNAL_FIXTURE_PATH = os.path.join(os.path.dirname(HERE), "data", "fixtures", "llm_page_signal_cases.json")
+
+
+def form_asks(fields: list[dict]) -> list[str]:
+    """What a form's fields request; the rules of judge_agent.page_signals, applied to one form.
+
+    Each field is {"type", "name", "id", "placeholder", "autocomplete"} as read from the DOM,
+    with "type" already defaulted to the tag name.
+    """
+    flags = set()
+    for field_ in fields[:20]:
+        t = (field_.get("type") or "").lower()
+        label = " ".join(filter(None, [field_.get(k) for k in ("name", "id", "placeholder", "autocomplete")]))
+        if t == "password":
+            flags.add("password")
+        if host_rules.ja._RRN.search(label):
+            flags.add("rrn")
+        if host_rules.ja._CARD.search(label):
+            flags.add("card")
+        if host_rules.ja._PHONE.search(label) or t == "tel":
+            flags.add("phone")
+        if host_rules.ja._ACCOUNT.search(label):
+            flags.add("account")
+    return sorted(flags)
+
+
+def external_action(final_url: str, resolved_action: str | None) -> bool:
+    """judge_agent.page_signals: the form posts to another site (by its co.kr-aware site_of)."""
+    host = host_rules.ja.host_of(final_url) or ""
+    my_site = host_rules.ja.site_of(host) if host else None
+    action_host = host_rules.ja.host_of(resolved_action) if resolved_action else host
+    return bool(action_host and my_site and host_rules.ja.site_of(action_host) != my_site)
+
+
+def collapse_text(raw: str) -> str:
+    """judge_agent._text_of after joining text nodes: runs of whitespace to one space, trimmed."""
+    return re.sub(r"\s+", " ", raw).strip()
+
+
+def signal_fixture() -> dict:
+    """Cases for core/llm PageSignals.kt, computed with the original rules."""
+    field_sets = [
+        [{"type": "password", "name": "pw"}],
+        [{"type": "text", "name": "jumin", "placeholder": "주민등록번호"}],
+        [{"type": "text", "placeholder": "주민 등록 번호 앞자리"}],
+        [{"type": "text", "id": "RRN"}],
+        [{"type": "text", "name": "cardNo", "placeholder": "카드 번호"}, {"type": "text", "name": "cvc"}],
+        [{"type": "tel", "name": "x"}],
+        [{"type": "text", "placeholder": "휴대폰 번호"}],
+        [{"type": "text", "name": "hotel"}],
+        [{"type": "text", "name": "tel_no"}],
+        [{"type": "text", "placeholder": "계좌번호"}, {"type": "text", "autocomplete": "account-number"}],
+        [{"type": "select", "name": "bank"}, {"type": "textarea", "name": "memo"}],
+        [{"type": "email", "name": "email", "placeholder": "이메일"}],
+        [{"type": "text", "name": "Resident_ID"}],
+        [{"type": "text", "name": "tel번호"}],
+        [{"type": "text", "name": "rrn_no"}],
+        [{"type": "text", "placeholder": "주민\u3000등록번호"}],
+        [{"type": "text", "name": "id-rrn"}],
+        [{"type": "text", "name": f"f{i}", "placeholder": "phone" if i == 20 else ""} for i in range(21)],
+    ]
+    actions = [
+        ("https://shop.example.com/a", None),
+        ("https://shop.example.com/a", "https://shop.example.com/submit"),
+        ("https://shop.example.com/a", "https://pay.example.com/submit"),
+        ("https://www.shop.co.kr/a", "https://login.shop.co.kr/post"),
+        ("https://www.shop.co.kr/a", "https://evil.co.kr/post"),
+        ("https://kb-star.top/login", "https://collect.attacker.net/p.php"),
+        ("https://a.b.example.org/", "https://example.org/x"),
+    ]
+    texts = ["  광고\n\n  안내\t\t입니다  ", "a b　c", "", "   ", "line1\r\nline2"]
+    return {
+        "forms": [{"fields": f, "asks": form_asks(f)} for f in field_sets],
+        "actions": [{"final_url": u, "action": a, "external": external_action(u, a)} for u, a in actions],
+        "texts": [{"raw": t, "collapsed": collapse_text(t)} for t in texts],
+    }

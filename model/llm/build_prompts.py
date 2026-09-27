@@ -124,6 +124,10 @@ def main() -> int:
             f.write(json.dumps({"observation": obs.to_json(), "prompt": user_message(obs, brands)},
                                ensure_ascii=False) + "\n")
 
+    with open(prompt_format.SIGNAL_FIXTURE_PATH, "w", encoding="utf-8") as f:
+        json.dump(prompt_format.signal_fixture(), f, ensure_ascii=False, indent=1)
+        f.write("\n")
+
     for split, rows in outputs.items():
         path = os.path.join(DATA_DIR, f"sft_{split}.jsonl")
         with open(path, "w", encoding="utf-8") as f:

@@ -1,0 +1,365 @@
+{
+ "forms": [
+  {
+   "fields": [
+    {
+     "type": "password",
+     "name": "pw"
+    }
+   ],
+   "asks": [
+    "password"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "jumin",
+     "placeholder": "주민등록번호"
+    }
+   ],
+   "asks": [
+    "rrn"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "placeholder": "주민 등록 번호 앞자리"
+    }
+   ],
+   "asks": [
+    "rrn"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "id": "RRN"
+    }
+   ],
+   "asks": [
+    "rrn"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "cardNo",
+     "placeholder": "카드 번호"
+    },
+    {
+     "type": "text",
+     "name": "cvc"
+    }
+   ],
+   "asks": [
+    "card"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "tel",
+     "name": "x"
+    }
+   ],
+   "asks": [
+    "phone"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "placeholder": "휴대폰 번호"
+    }
+   ],
+   "asks": [
+    "phone"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "hotel"
+    }
+   ],
+   "asks": [
+    "phone"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "tel_no"
+    }
+   ],
+   "asks": []
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "placeholder": "계좌번호"
+    },
+    {
+     "type": "text",
+     "autocomplete": "account-number"
+    }
+   ],
+   "asks": [
+    "account"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "select",
+     "name": "bank"
+    },
+    {
+     "type": "textarea",
+     "name": "memo"
+    }
+   ],
+   "asks": []
+  },
+  {
+   "fields": [
+    {
+     "type": "email",
+     "name": "email",
+     "placeholder": "이메일"
+    }
+   ],
+   "asks": []
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "Resident_ID"
+    }
+   ],
+   "asks": [
+    "rrn"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "tel번호"
+    }
+   ],
+   "asks": []
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "rrn_no"
+    }
+   ],
+   "asks": []
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "placeholder": "주민　등록번호"
+    }
+   ],
+   "asks": [
+    "rrn"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "id-rrn"
+    }
+   ],
+   "asks": [
+    "rrn"
+   ]
+  },
+  {
+   "fields": [
+    {
+     "type": "text",
+     "name": "f0",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f1",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f2",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f3",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f4",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f5",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f6",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f7",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f8",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f9",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f10",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f11",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f12",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f13",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f14",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f15",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f16",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f17",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f18",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f19",
+     "placeholder": ""
+    },
+    {
+     "type": "text",
+     "name": "f20",
+     "placeholder": "phone"
+    }
+   ],
+   "asks": []
+  }
+ ],
+ "actions": [
+  {
+   "final_url": "https://shop.example.com/a",
+   "action": null,
+   "external": false
+  },
+  {
+   "final_url": "https://shop.example.com/a",
+   "action": "https://shop.example.com/submit",
+   "external": false
+  },
+  {
+   "final_url": "https://shop.example.com/a",
+   "action": "https://pay.example.com/submit",
+   "external": false
+  },
+  {
+   "final_url": "https://www.shop.co.kr/a",
+   "action": "https://login.shop.co.kr/post",
+   "external": false
+  },
+  {
+   "final_url": "https://www.shop.co.kr/a",
+   "action": "https://evil.co.kr/post",
+   "external": true
+  },
+  {
+   "final_url": "https://kb-star.top/login",
+   "action": "https://collect.attacker.net/p.php",
+   "external": true
+  },
+  {
+   "final_url": "https://a.b.example.org/",
+   "action": "https://example.org/x",
+   "external": false
+  }
+ ],
+ "texts": [
+  {
+   "raw": "  광고\n\n  안내\t\t입니다  ",
+   "collapsed": "광고 안내 입니다"
+  },
+  {
+   "raw": "a b　c",
+   "collapsed": "a b c"
+  },
+  {
+   "raw": "",
+   "collapsed": ""
+  },
+  {
+   "raw": "   ",
+   "collapsed": ""
+  },
+  {
+   "raw": "line1\r\nline2",
+   "collapsed": "line1 line2"
+  }
+ ]
+}
