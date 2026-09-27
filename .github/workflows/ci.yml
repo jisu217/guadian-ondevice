@@ -32,23 +32,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: server/requirements.txt
 
       - name: Check model requirements
         run: bash scripts/check-model-requirements.sh
-
-      - name: Install server dependencies
-        run: python -m pip install -r server/requirements.txt
 
       - name: Test model training code
         run: python -m unittest discover model/training
 
       - name: Test doc metric checker
         run: python -m unittest discover scripts
-
-      - name: Test server fallback
-        run: python -m unittest discover server
 
       - name: Test Kotlin on-device runtime
         run: ./gradlew test

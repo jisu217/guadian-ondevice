@@ -13,8 +13,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Automates the same 4-layer check that was done by hand on an emulator with
- * adb (rule engine, on-device model, local knowledge, remote fallback).
+ * Automates the layer check that was done by hand on an emulator with adb
+ * (rule engine, on-device model, local knowledge, page content).
  * Judging runs on a background dispatcher, so each test polls the result
  * text instead of relying on Espresso's main-looper idling.
  * Run with: ./gradlew connectedDebugAndroidTest
@@ -51,14 +51,14 @@ class JudgeActivityTest {
     }
 
     @Test
-    fun remoteFallbackFailsSafelyToUnknown() {
+    fun unresolvableUrlEndsUnknownAtPageContent() {
         // .test is IANA-reserved (RFC 2606): guaranteed never to resolve, so
         // PageContentJudge's WebView load fails deterministically instead of
         // rendering whatever a real .org registrant happens to host there.
         val result = judge("https://plain-article.test/read")
 
         assertTrue(result, "(UNKNOWN)" in result)
-        assertTrue(result, "(remote)" in result)
+        assertTrue(result, "(page-content)" in result)
     }
 
     private fun judge(url: String): String {

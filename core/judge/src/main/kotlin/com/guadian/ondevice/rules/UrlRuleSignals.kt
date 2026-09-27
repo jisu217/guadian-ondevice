@@ -3,9 +3,9 @@ package com.guadian.ondevice.rules
 import com.guadian.ondevice.util.UrlParts
 
 /**
- * Path/query signals shared with server/judge_service.py's local precheck.
- * Both sides are checked against `model/data/fixtures/rule_parity_cases.csv`,
- * so a change here must be mirrored there.
+ * Path/query signals for the URL rules. Checked against
+ * `model/data/fixtures/rule_parity_cases.csv`, so a change here must be
+ * mirrored there.
  */
 internal object UrlRuleSignals {
     val SUSPICIOUS_TOKENS = setOf("free", "event", "gift", "loan", "verify", "account")

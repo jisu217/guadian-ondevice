@@ -5,7 +5,6 @@ import com.guadian.ondevice.classifier.OnDeviceModelJudge
 import com.guadian.ondevice.judge.HybridJudge
 import com.guadian.ondevice.knowledge.LocalKnowledgeJudge
 import com.guadian.ondevice.pagecontent.PageContentJudge
-import com.guadian.ondevice.remote.RemoteJudge
 import com.guadian.ondevice.rules.ApkRule
 import com.guadian.ondevice.rules.BrandImpersonationRule
 import com.guadian.ondevice.rules.RuleBasedJudge
@@ -24,11 +23,10 @@ class DefaultJudgeGraph(context: Context) {
     private val model = OnDeviceModelJudge()
     private val knowledge = LocalKnowledgeJudge()
     private val pageContent = PageContentJudge(context.applicationContext)
-    private val remote = RemoteJudge(BuildConfig.REMOTE_JUDGE_URL)
 
     /** Manual URL entry: every layer, in README order. */
     val full: HybridJudge = HybridJudge(
-        stages = listOf(rules, cached, model, knowledge, pageContent, remote),
+        stages = listOf(rules, cached, model, knowledge, pageContent),
         store = store,
     )
 
@@ -37,7 +35,7 @@ class DefaultJudgeGraph(context: Context) {
      * a second time in a hidden WebView would only add latency.
      */
     val shield: HybridJudge = HybridJudge(
-        stages = listOf(rules, cached, model, knowledge, remote),
+        stages = listOf(rules, cached, model, knowledge),
         store = store,
     )
 }

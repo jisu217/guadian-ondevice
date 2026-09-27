@@ -17,7 +17,7 @@ import kotlin.test.assertNull
 class HybridJudgeTest {
     @Test
     fun `returns the first certain verdict and skips later stages`() = runTest {
-        val later = CountingJudge(fixed(Layer.REMOTE, Risk.HIGH, Confidence.CERTAIN))
+        val later = CountingJudge(fixed(Layer.PAGE_CONTENT, Risk.HIGH, Confidence.CERTAIN))
         val judge = HybridJudge(
             stages = listOf(
                 CountingJudge(fixed(Layer.RULE, Risk.UNKNOWN, Confidence.UNCERTAIN)),
@@ -37,11 +37,11 @@ class HybridJudgeTest {
         val judge = HybridJudge(
             stages = listOf(
                 CountingJudge(fixed(Layer.RULE, Risk.UNKNOWN, Confidence.UNCERTAIN)),
-                CountingJudge(fixed(Layer.REMOTE, Risk.UNKNOWN, Confidence.UNCERTAIN)),
+                CountingJudge(fixed(Layer.PAGE_CONTENT, Risk.UNKNOWN, Confidence.UNCERTAIN)),
             ),
         )
 
-        assertEquals(Layer.REMOTE, judge.judge("https://example.com").layer)
+        assertEquals(Layer.PAGE_CONTENT, judge.judge("https://example.com").layer)
     }
 
     @Test
@@ -95,7 +95,7 @@ class HybridJudgeTest {
     fun `does not cache unknown results`() = runTest {
         val store = InMemoryRiskStore()
         val judge = HybridJudge(
-            stages = listOf(StoreJudge(store), CountingJudge(fixed(Layer.REMOTE, Risk.UNKNOWN, Confidence.UNCERTAIN))),
+            stages = listOf(StoreJudge(store), CountingJudge(fixed(Layer.PAGE_CONTENT, Risk.UNKNOWN, Confidence.UNCERTAIN))),
             store = store,
         )
 
@@ -105,41 +105,41 @@ class HybridJudgeTest {
     }
 
     @Test
-    fun `on-device model resolves a trusted support url before remote`() = runTest {
-        val remote = CountingJudge(fixed(Layer.REMOTE, Risk.HIGH, Confidence.CERTAIN))
+    fun `on-device model resolves a trusted support url before later stages`() = runTest {
+        val later = CountingJudge(fixed(Layer.PAGE_CONTENT, Risk.HIGH, Confidence.CERTAIN))
 
-        val verdict = actualLocalHybrid(remote).judge("https://docs.example.com/support/chat?lang=ko")
+        val verdict = actualLocalHybrid(later).judge("https://docs.example.com/support/chat?lang=ko")
 
         assertEquals(Risk.LOW, verdict.risk)
         assertEquals(Layer.MODEL, verdict.layer)
-        assertEquals(0, remote.calls)
+        assertEquals(0, later.calls)
     }
 
     @Test
     fun `local knowledge resolves when rules and model are uncertain`() = runTest {
-        val remote = CountingJudge(fixed(Layer.REMOTE, Risk.HIGH, Confidence.CERTAIN))
+        val later = CountingJudge(fixed(Layer.PAGE_CONTENT, Risk.HIGH, Confidence.CERTAIN))
 
-        val verdict = actualLocalHybrid(remote).judge(
+        val verdict = actualLocalHybrid(later).judge(
             "https://survey-form.unlisted-check.test/personal-info-phone-card?ref=abcdefghijklmnopqrstuvwxyz1234567890"
         )
 
         assertEquals(Risk.MEDIUM, verdict.risk)
         assertEquals(Layer.KNOWLEDGE, verdict.layer)
         assertEquals(RiskCategory.PERSONAL_INFO, verdict.category)
-        assertEquals(0, remote.calls)
+        assertEquals(0, later.calls)
     }
 
     @Test
-    fun `uses remote only when every local layer is uncertain`() = runTest {
-        val remote = CountingJudge(fixed(Layer.REMOTE, Risk.MEDIUM, Confidence.CERTAIN))
+    fun `reaches the last stage only when every URL layer is uncertain`() = runTest {
+        val later = CountingJudge(fixed(Layer.PAGE_CONTENT, Risk.MEDIUM, Confidence.CERTAIN))
 
-        val verdict = actualLocalHybrid(remote).judge("https://plain-article.org/read")
+        val verdict = actualLocalHybrid(later).judge("https://plain-article.org/read")
 
-        assertEquals(Layer.REMOTE, verdict.layer)
-        assertEquals(1, remote.calls)
+        assertEquals(Layer.PAGE_CONTENT, verdict.layer)
+        assertEquals(1, later.calls)
     }
 
-    private fun actualLocalHybrid(remote: Judge): HybridJudge {
+    private fun actualLocalHybrid(later: Judge): HybridJudge {
         val store = InMemoryRiskStore()
         return HybridJudge(
             stages = listOf(
@@ -147,7 +147,7 @@ class HybridJudgeTest {
                 StoreJudge(store),
                 OnDeviceModelJudge(),
                 LocalKnowledgeJudge(),
-                remote,
+                later,
             ),
             store = store,
         )

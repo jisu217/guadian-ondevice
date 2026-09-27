@@ -81,8 +81,6 @@ require_text "model/training/test_url_features.py" "feature_parity_cases\\.csv" 
   "Python tests must cover feature parity fixture"
 require_text "core/judge/src/test/kotlin/com/guadian/ondevice/classifier/UrlFeatureExtractorTest.kt" "matches python feature parity fixture" \
   "Kotlin tests must cover feature parity fixture"
-require_text "server/test_judge_service.py" "rule_parity_cases\\.csv" \
-  "server tests must cover rule parity fixture"
 require_text "core/judge/src/test/kotlin/com/guadian/ondevice/rules/RuleParityTest.kt" "rule_parity_cases\\.csv" \
   "Kotlin tests must cover rule parity fixture"
 pass "Python/Kotlin parity checks are wired"

@@ -35,16 +35,11 @@ class VerdictText(private val context: Context) {
             Layer.MODEL -> R.string.layer_model
             Layer.KNOWLEDGE -> R.string.layer_knowledge
             Layer.PAGE_CONTENT -> R.string.layer_page_content
-            Layer.REMOTE -> R.string.layer_remote
         }
     )
 
-    /** Remote verdicts show the server's own reason text when it sent one. */
     fun reason(verdict: Verdict): String {
         val detail = verdict.detail
-        if (verdict.reason == ReasonCode.REMOTE_VERDICT && !detail.isNullOrBlank()) {
-            return detail
-        }
         val text = context.getString(reasonRes(verdict.reason), detail.orEmpty())
         val showsDetail = verdict.reason in REASONS_WITH_DETAIL_ARG
         return if (!showsDetail && !detail.isNullOrBlank()) "$text ($detail)" else text
@@ -80,9 +75,6 @@ class VerdictText(private val context: Context) {
         ReasonCode.PAGE_LOAD_FAILED -> R.string.reason_page_load_failed
         ReasonCode.PAGE_TIMEOUT -> R.string.reason_page_timeout
         ReasonCode.PAGE_SCRIPT_FAILED -> R.string.reason_page_script_failed
-        ReasonCode.REMOTE_VERDICT -> R.string.reason_remote_verdict
-        ReasonCode.REMOTE_NOT_CONFIGURED -> R.string.reason_remote_not_configured
-        ReasonCode.REMOTE_FAILED -> R.string.reason_remote_failed
     }
 
     private companion object {

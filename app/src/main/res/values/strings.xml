@@ -26,7 +26,6 @@
     <string name="layer_model">온디바이스 모델</string>
     <string name="layer_knowledge">로컬 지식</string>
     <string name="layer_page_content">페이지 내용 검사</string>
-    <string name="layer_remote">원격 판정</string>
 
     <string name="reason_cache_miss">저장된 판정이 없습니다.</string>
     <string name="reason_apk_download">공식 앱스토어가 아닌 곳에서 APK 파일을 내려받는 주소입니다.</string>
@@ -47,9 +46,6 @@
     <string name="reason_page_load_failed">페이지를 불러오지 못했습니다.</string>
     <string name="reason_page_timeout">페이지 검사 시간이 초과되었습니다.</string>
     <string name="reason_page_script_failed">페이지 내용을 해석하지 못했습니다.</string>
-    <string name="reason_remote_verdict">원격 판정 결과입니다.</string>
-    <string name="reason_remote_not_configured">원격 판정 서버가 설정되지 않았습니다.</string>
-    <string name="reason_remote_failed">원격 판정에 실패했습니다.</string>
 
     <string name="advice_low">열어도 괜찮습니다.</string>
     <string name="advice_medium">열기 전에 주소와 내용을 다시 확인하세요.</string>

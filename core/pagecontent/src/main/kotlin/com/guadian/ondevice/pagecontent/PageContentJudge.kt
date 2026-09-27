@@ -35,7 +35,7 @@ import kotlin.coroutines.resume
  * sees a visit from the device. The WebView is locked down (no downloads,
  * popups, cookies, storage, images, or non-http(s) navigation, bounded
  * redirects), but JavaScript stays on because evaluateJavascript needs it.
- * No page content is sent to the remote fallback server.
+ * No page content leaves the device.
  */
 class PageContentJudge(
     private val context: Context,

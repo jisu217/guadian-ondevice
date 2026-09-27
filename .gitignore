@@ -29,7 +29,7 @@ captures/
 # macOS Finder metadata
 .DS_Store
 
-# Python bytecode cache and virtual environment (model/, server/)
+# Python bytecode cache and virtual environment (model/)
 __pycache__/
 *.py[cod]
 .venv/

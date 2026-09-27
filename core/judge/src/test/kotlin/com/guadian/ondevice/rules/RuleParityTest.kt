@@ -6,10 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * ApkRule and SuspiciousUrlRule must agree with server/judge_service.py's
- * precheck; server/test_judge_service.py reads the same fixture.
- */
+/** ApkRule and SuspiciousUrlRule must produce the categories in the rule fixture. */
 class RuleParityTest {
     private val rules = listOf(ApkRule(), SuspiciousUrlRule())
 

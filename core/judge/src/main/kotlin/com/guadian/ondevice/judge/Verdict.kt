@@ -19,12 +19,11 @@ enum class Layer(val wireName: String) {
     MODEL("on-device-model"),
     KNOWLEDGE("local-knowledge"),
     PAGE_CONTENT("page-content"),
-    REMOTE("remote"),
 }
 
 /**
- * What kind of risk a verdict describes. [wireName] is the snake_case value
- * shared with server/judge_service.py's `category` field.
+ * What kind of risk a verdict describes. [wireName] is the snake_case name
+ * used in fixtures and anywhere a category is read from text.
  */
 enum class RiskCategory(val wireName: String) {
     NONE("none"),
@@ -41,7 +40,7 @@ enum class RiskCategory(val wireName: String) {
     CONTENT_FARM("contentfarm"),
     UNVERIFIABLE("unverifiable"),
 
-    /** A server category this app version does not know yet. */
+    /** A category name this app version does not know. */
     OTHER("other");
 
     companion object {
@@ -74,9 +73,6 @@ enum class ReasonCode {
     PAGE_LOAD_FAILED,
     PAGE_TIMEOUT,
     PAGE_SCRIPT_FAILED,
-    REMOTE_VERDICT,
-    REMOTE_NOT_CONFIGURED,
-    REMOTE_FAILED,
 }
 
 data class Verdict(
@@ -86,6 +82,6 @@ data class Verdict(
     val reason: ReasonCode,
     val category: RiskCategory = RiskCategory.NONE,
     val host: String? = null,
-    /** Variable part of the reason: a brand, a distance, or remote free text. */
+    /** Variable part of the reason: a brand, a distance, or an error message. */
     val detail: String? = null,
 )
