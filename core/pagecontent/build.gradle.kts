@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.guardian.ondevice.pagecontent"
+    namespace = "com.guadian.ondevice.pagecontent"
     compileSdk = 37
 
     defaultConfig {

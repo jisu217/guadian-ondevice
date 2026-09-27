@@ -28,7 +28,7 @@ than promoted to an overconfident verdict.
 Every layer implements the same `Judge` interface (`suspend fun judge(url)`)
 and returns a `Verdict`. `DefaultJudgeGraph` wires the layers together, and
 `HybridJudge` runs them as one flat list, stopping at the first result whose
-confidence is `CERTAIN`. `GuardianApp` owns a single graph, so the manual
+confidence is `CERTAIN`. `GuadianApp` owns a single graph, so the manual
 screen and Shield share one store and one instance of every layer.
 
 ```text
@@ -48,7 +48,7 @@ layer, and Local RAG is planned as an extension of that layer.
 
 ### 2.1 Components
 
-Paths are relative to `<module>/src/main/kotlin/com/guardian/ondevice/`. The
+Paths are relative to `<module>/src/main/kotlin/com/guadian/ondevice/`. The
 `layer` value is what each component writes into the verdict it produces.
 
 | Component | Module | File | Role | `layer` |
@@ -80,7 +80,7 @@ on `Dispatchers.IO`, `PageContentJudge` moves to `Dispatchers.Main` for the
 WebView, and callers run the pipeline on `Dispatchers.Default`, so no layer
 blocks the UI thread. The large runtime resources (allowlist, Public Suffix
 List, model artifact) are preloaded off the main thread in
-`GuardianApp.onCreate`.
+`GuadianApp.onCreate`.
 
 ### 2.3 Layer Order
 
@@ -173,7 +173,7 @@ the `model/runtime` resources; because it has no Android dependency, an
 `android.*` import there fails to compile and its tests run on the JVM.
 `core/pagecontent` is an Android library holding only `PageContentJudge`,
 the one layer that needs a WebView. `app` holds the UI, the Shield service,
-`GuardianApp`, and `DefaultJudgeGraph`, which wires the layers together with
+`GuadianApp`, and `DefaultJudgeGraph`, which wires the layers together with
 the app's `BuildConfig`.
 
 The implemented runtime therefore covers: the manual verdict screen, the

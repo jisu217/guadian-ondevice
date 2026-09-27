@@ -141,7 +141,7 @@ inspection before using the remote fallback. See [Architecture](docs/architectur
 Each stage name above maps to one runtime class. The judgment engine is the
 pure-Kotlin `core/judge` module and page inspection is the Android
 `core/pagecontent` module; file paths are under
-`<module>/src/main/kotlin/com/guardian/ondevice/`:
+`<module>/src/main/kotlin/com/guadian/ondevice/`:
 
 | Stage | Class | Module | File |
 | :-- | :-- | :-- | :-- |

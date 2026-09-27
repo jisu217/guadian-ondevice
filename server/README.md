@@ -110,7 +110,7 @@ defaults to `claude-haiku-4-5`.
 ## 7. Client Integration
 
 The Android client is
-`core/judge/src/main/kotlin/com/guardian/ondevice/remote/RemoteJudge.kt`. It posts to
+`core/judge/src/main/kotlin/com/guadian/ondevice/remote/RemoteJudge.kt`. It posts to
 `{baseUrl}/judge`, where `baseUrl` is `BuildConfig.REMOTE_JUDGE_URL`, set with
 `guadian.remoteJudgeUrl=...` in `local.properties` or
 `-Pguadian.remoteJudgeUrl=...`. There is no default: with no URL configured the

@@ -54,7 +54,7 @@ require_file "model/runtime/brand_domains.tsv"
 require_file "model/runtime/public_suffix_list.dat"
 require_file "model/training/train_model.py"
 require_file "model/training/test_url_features.py"
-require_file "core/judge/src/test/kotlin/com/guardian/ondevice/classifier/UrlFeatureExtractorTest.kt"
+require_file "core/judge/src/test/kotlin/com/guadian/ondevice/classifier/UrlFeatureExtractorTest.kt"
 pass "required model files exist"
 
 require_text ".github/workflows/ci.yml" "scripts/check-model-requirements\\.sh" \
@@ -79,11 +79,11 @@ pass "model card includes required limits"
 
 require_text "model/training/test_url_features.py" "feature_parity_cases\\.csv" \
   "Python tests must cover feature parity fixture"
-require_text "core/judge/src/test/kotlin/com/guardian/ondevice/classifier/UrlFeatureExtractorTest.kt" "matches python feature parity fixture" \
+require_text "core/judge/src/test/kotlin/com/guadian/ondevice/classifier/UrlFeatureExtractorTest.kt" "matches python feature parity fixture" \
   "Kotlin tests must cover feature parity fixture"
 require_text "server/test_judge_service.py" "rule_parity_cases\\.csv" \
   "server tests must cover rule parity fixture"
-require_text "core/judge/src/test/kotlin/com/guardian/ondevice/rules/RuleParityTest.kt" "rule_parity_cases\\.csv" \
+require_text "core/judge/src/test/kotlin/com/guadian/ondevice/rules/RuleParityTest.kt" "rule_parity_cases\\.csv" \
   "Kotlin tests must cover rule parity fixture"
 pass "Python/Kotlin parity checks are wired"
 

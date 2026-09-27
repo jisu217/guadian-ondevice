@@ -50,7 +50,7 @@ tasks.register<Test>("writeLocalResolutionReport") {
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath
     useJUnitPlatform()
-    filter { includeTestsMatching("com.guardian.ondevice.judge.LocalResolutionReportWriter") }
+    filter { includeTestsMatching("com.guadian.ondevice.judge.LocalResolutionReportWriter") }
     environment("GUADIAN_WRITE_LOCAL_RESOLUTION_REPORT", "1")
     outputs.upToDateWhen { false }
 }

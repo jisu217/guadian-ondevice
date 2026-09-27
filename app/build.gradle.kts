@@ -21,11 +21,11 @@ val remoteJudgeUrl: String = run {
 }
 
 android {
-    namespace = "com.guardian.ondevice"
+    namespace = "com.guadian.ondevice"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.guardian.ondevice"
+        applicationId = "com.guadian.ondevice"
         minSdk = 26
         targetSdk = 37
         versionCode = 1

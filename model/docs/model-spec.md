@@ -65,7 +65,7 @@ The contract covers six points:
 | Scaling parameters | written to artifact | read from artifact |
 
 A feature change therefore touches `model/training/url_features.py`,
-`core/judge/src/main/kotlin/com/guardian/ondevice/classifier/UrlFeatureExtractor.kt`, the
+`core/judge/src/main/kotlin/com/guadian/ondevice/classifier/UrlFeatureExtractor.kt`, the
 parity fixture `model/data/fixtures/feature_parity_cases.csv`, the retrained artifact
 `model/runtime/url_risk_centroid_model.json`, and the Python and Kotlin
 feature tests together.

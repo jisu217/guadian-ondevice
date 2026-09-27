@@ -183,8 +183,8 @@ The same logic is split across Python training and Kotlin inference:
 | `model/training/train_baseline.py` | rule-scoring baseline |
 | `model/training/train_model.py` | training, cross-validation, threshold calibration, report generation |
 | `model/runtime/url_risk_centroid_model.json` | generated model parameters |
-| `core/judge/src/main/kotlin/com/guardian/ondevice/classifier/UrlFeatureExtractor.kt` | Kotlin runtime feature extraction |
-| `core/judge/src/main/kotlin/com/guardian/ondevice/classifier/OnDeviceModelJudge.kt` | Kotlin runtime inference |
+| `core/judge/src/main/kotlin/com/guadian/ondevice/classifier/UrlFeatureExtractor.kt` | Kotlin runtime feature extraction |
+| `core/judge/src/main/kotlin/com/guadian/ondevice/classifier/OnDeviceModelJudge.kt` | Kotlin runtime inference |
 
 ## 7. Completed Runtime Improvements
 
