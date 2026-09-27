@@ -57,6 +57,9 @@ ACCOUNT_WORDS = ("login", "logon", "signin", "verify", "verification", "account"
                  "secure", "auth", "wallet", "recover", "unlock")
 
 
+RISK_ORDER_HOST = {"MEDIUM": 1, "HIGH": 2}
+
+
 @dataclass(frozen=True)
 class HostVerdict:
     risk: str
@@ -124,3 +127,43 @@ def grade_host(url: str, domain_age_days: int | None) -> HostVerdict | None:
         return HostVerdict("MEDIUM", "impersonation",
                            f"host {host} pairs brand '{token}' with '{word}' on {registrable}")
     return None
+
+
+# Names that identify a global brand in page text. The vendored page_signals only
+# looks for Korean brands, so a page titled "... - Roblox" on roblox.ly went unnoticed.
+TEXT_MENTIONS: dict[str, str] = {
+    "roblox": "roblox", "microsoft": "microsoft", "office 365": "microsoft", "outlook": "microsoft",
+    "onedrive": "microsoft", "sharepoint": "microsoft", "instagram": "instagram", "facebook": "facebook",
+    "whatsapp": "whatsapp", "paypal": "paypal", "amazon": "amazon", "xfinity": "xfinity",
+    "coinbase": "coinbase", "binance": "binance", "metamask": "metamask", "telegram": "telegram",
+    "linkedin": "linkedin", "dropbox": "dropbox", "docusign": "docusign", "fedex": "fedex",
+}
+
+
+def global_brand_mismatches(text: str, host: str) -> list[tuple[str, str]]:
+    """(brand, first official domain) for global brands named in `text` whose domains do not cover `host`."""
+    found: dict[str, str] = {}
+    lowered = text.lower()
+    for name, token in TEXT_MENTIONS.items():
+        officials = GLOBAL_BRANDS[token]
+        if token in found or any(_under(host, d) for d in officials):
+            continue
+        if re.search(r"(?<![a-z])" + re.escape(name) + r"(?![a-z])", lowered):
+            found[token] = officials[0]
+    return list(found.items())
+
+
+def grade_case(url: str, final_url: str | None, domain_ages: dict[str, int | None]) -> HostVerdict | None:
+    """Grade both the clicked URL and the page it landed on, and return the stronger verdict.
+
+    Shorteners (tiny.cc, goo.su) hide the imitating host until the redirect lands, so
+    the origin alone is not enough. `domain_ages` maps the collector's site keys
+    (judge_agent.site_of) to age in days.
+    """
+    verdicts = []
+    for candidate in dict.fromkeys(u for u in (url, final_url) if u):
+        site = ja.site_of(urlsplit(candidate).hostname or "") or ""
+        verdict = grade_host(candidate, domain_ages.get(site))
+        if verdict:
+            verdicts.append(verdict)
+    return max(verdicts, key=lambda v: RISK_ORDER_HOST[v.risk], default=None)
