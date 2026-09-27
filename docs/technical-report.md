@@ -171,9 +171,8 @@ Manual emulator verification has covered URL judgment through `JudgeActivity`,
 the safe `UNKNOWN` result when every layer was uncertain (returned at the time
 by the remote fallback, since removed), the Shield
 overlay on off-site browser link clicks, and the absence of an overlay on
-same-site browser navigation. That Shield check predates the current
-react-by-risk behavior (banner while judging, back navigation on `HIGH`,
-nothing on `LOW`/`UNKNOWN`), which has not yet been re-verified by hand.
+same-site browser navigation. The overlay has since been replaced by Logcat
+output (tag `GuadianShield`), which has not yet been verified by hand.
 
 ## 9. Limitations
 

@@ -145,15 +145,12 @@ from a browser address-bar resource id. Sites are compared by registrable
 domain from the Public Suffix List, so `a.github.io` and `b.github.io` are
 different sites.
 
-A click event arrives after the browser has started navigating, so Shield
-cannot block the navigation; it reacts. While judging, it shows a small banner
-that does not take focus or touches. The whole judgment has a 3-second budget,
-and the Shield graph skips `PageContentJudge` because the browser is already
-loading the same page. A `HIGH` verdict triggers `GLOBAL_ACTION_BACK` and a
-full-screen warning explaining that the page was left; `MEDIUM` shows the
-warning without going back; `LOW`, `UNKNOWN`, and a timeout show nothing. A
-new click cancels the previous judgment, so a stale result can never reopen a
-dismissed warning.
+Shield does not intervene. It shows no overlay and leaves the navigation
+alone; each verdict is written to Logcat under the `GuadianShield` tag with its
+risk, confidence, layer, reason, category, elapsed time, and URL. The whole
+judgment has a 3-second budget, after which a timeout is logged, and the Shield
+graph skips `PageContentJudge` because the browser is already loading the same
+page. A new click cancels the previous judgment.
 
 ## 5. Runtime Boundary
 
@@ -167,7 +164,7 @@ the one layer that needs a WebView. `app` holds the UI, the Shield service,
 `GuadianApp`, and `DefaultJudgeGraph`, which wires the layers together.
 
 The implemented runtime therefore covers: the manual verdict screen, the
-Shield accessibility service and overlay, the local rule, model, knowledge, and
+Shield accessibility service with Logcat output, the local rule, model, knowledge, and
 page-content pipeline, and Kotlin loading of the
 generated model artifact. Local unit tests, Robolectric tests, and CI cover the
 main runtime and model documentation paths.
@@ -186,4 +183,4 @@ Each layer trades some accuracy or coverage for speed, privacy, or safety:
 | URL-feature model | cheap local inference | cannot see rendered behavior |
 | conservative thresholds | fewer overconfident mistakes | more cases reach slower, later layers |
 | page content late | catches forms and brand text | page load cost; the destination server sees a visit from the device |
-| accessibility Shield | protects browser clicks | permission and surface limits; reacts after navigation starts instead of blocking it |
+| accessibility Shield | judges browser clicks without touching the page | permission and surface limits; results are only logged |
