@@ -33,7 +33,7 @@ screen and Shield share one store and one instance of every layer.
 
 ```text
 URL
-  -> RuleBasedJudge          ApkRule -> BrandImpersonationRule -> SuspiciousUrlRule
+  -> RuleBasedJudge          BlocklistRule -> ApkRule -> BrandImpersonationRule -> SuspiciousUrlRule
   -> StoreJudge              InMemoryRiskStore lookup
   -> OnDeviceModelJudge
   -> LocalKnowledgeJudge
@@ -114,7 +114,7 @@ Each layer decides `CERTAIN` differently:
 
 | Layer | Returns `CERTAIN` when |
 | :-- | :-- |
-| `RuleBasedJudge` | `ApkRule` (`HIGH`, `.apk` in path/query), official-domain match (`LOW`), a brand label as its own host token on a non-official host (`HIGH`), or a whole-token lure keyword in path/query (`SuspiciousUrlRule`, `MEDIUM`). A brand label only embedded in a longer host token is an `UNCERTAIN` `MEDIUM` hint, and is ignored when the registrable domain is allowlisted |
+| `RuleBasedJudge` | `BlocklistRule` (`HIGH`, the host or a parent domain up to the registrable domain is on the bundled phishing/malware blocklist), `ApkRule` (`HIGH`, `.apk` in path/query), official-domain match (`LOW`), a brand label as its own host token on a non-official host (`HIGH`), or a whole-token lure keyword in path/query (`SuspiciousUrlRule`, `MEDIUM`). A brand label only embedded in a longer host token is an `UNCERTAIN` `MEDIUM` hint, and is ignored when the registrable domain is allowlisted |
 | `StoreJudge` | the normalized URL has a cached verdict |
 | `OnDeviceModelJudge` | centroid distance is within the per-label threshold from the model artifact and the label is not `UNKNOWN`; otherwise `risk` is forced to `UNKNOWN` |
 | `LocalKnowledgeJudge` | a snippet matches; `risk` and `confidence` come from the first snippet |

@@ -23,15 +23,18 @@ and is not a fine-tuned LLM.
 | `data/sample_urls.csv` | sanitized training/evaluation samples |
 | `data/fixtures/feature_parity_cases.csv` | Python/Kotlin feature parity fixture |
 | `data/fixtures/rule_parity_cases.csv` | expected categories for the Kotlin URL rules |
+| `data/fixtures/blocklist_filter_cases.csv` | Python/Kotlin blocklist filter parity fixture |
 | `training/url_features.py` | Python feature extraction |
 | `training/train_model.py` | nearest-centroid training, CV, threshold calibration, report |
 | `training/train_baseline.py` | rule-scoring baseline |
 | `training/build_official_domains.py` | allowlist builder |
+| `training/build_blocklist_filter.py` | blocklist Bloom filter builder |
 | `training/test_*.py` | unit tests |
 | `runtime/url_risk_centroid_model.json` | generated model parameters (with `version`) |
 | `runtime/official_domains.txt` | shared official-domain allowlist |
 | `runtime/brand_domains.tsv` | brand -> official domains, shared by app rules and allowlist builder |
 | `runtime/public_suffix_list.dat` | Mozilla Public Suffix List for registrable-domain lookup |
+| `runtime/blocklist.bloom`, `runtime/blocklist.meta.json` | phishing/malware blocklist as a Bloom filter, with its build record |
 | `evaluation/trained-model-report.md` | generated training report |
 | `evaluation/baseline-report.md` | generated baseline report |
 | `evaluation/local-resolution-report.md` | generated per-layer local resolution report (`LocalResolutionReportTest`) |

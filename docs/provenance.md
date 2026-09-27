@@ -14,8 +14,9 @@ copied from earlier GUADIAN work.
 5. [Committed Dataset Provenance](#5-committed-dataset-provenance)
 6. [Public Domain Allowlist Source](#6-public-domain-allowlist-source)
 7. [Public Suffix List](#7-public-suffix-list)
-8. [Implementation Boundaries](#8-implementation-boundaries)
-9. [Known Documentation Limitations](#9-known-documentation-limitations)
+8. [Phishing and Malware Blocklist](#8-phishing-and-malware-blocklist)
+9. [Implementation Boundaries](#9-implementation-boundaries)
+10. [Known Documentation Limitations](#10-known-documentation-limitations)
 
 ## 1. Summary
 
@@ -180,7 +181,20 @@ a179a48c465e818cfd8d626691cb317985da87fb`). It is licensed under MPL-2.0, as
 its header states. `util/PublicSuffixList.kt` uses it for registrable-domain
 lookup (site comparison in Shield, brand-label extraction, allowlist checks).
 
-## 8. Implementation Boundaries
+## 8. Phishing and Malware Blocklist
+
+`model/runtime/blocklist.bloom` is a Bloom filter over the ut1 phishing and
+malware domain lists (https://github.com/smed79/ut1), the same lists the
+original GUADIAN server checked. It was built on 2026-09-27 by
+`model/training/build_blocklist_filter.py`, which drops public suffixes and
+domains in `official_domains.txt` before inserting; `blocklist.meta.json`
+records the sources, counts, and parameters. The lists are licensed
+CC BY-NC-SA 3.0, so this file may be used for research and demonstration but
+must be replaced before any commercial release. Because the license is
+share-alike, `blocklist.bloom` and `blocklist_filter_cases.csv`, which are
+derived from the lists, are distributed under CC BY-NC-SA 3.0 as well.
+
+## 9. Implementation Boundaries
 
 | Area | New implementation in this repository | Reference influence |
 | :-- | :-- | :-- |
@@ -192,7 +206,7 @@ lookup (site comparison in Shield, brand-label extraction, allowlist checks).
 | Feature extraction | Python and Kotlin URL feature extractors | URL parsing concerns from reference code |
 | Evaluation | `model/evaluation/*` | new implementation |
 
-## 9. Known Documentation Limitations
+## 10. Known Documentation Limitations
 
 - Some reference files preserve their original wording and may not match the
   current architecture.

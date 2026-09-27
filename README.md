@@ -148,7 +148,7 @@ pure-Kotlin `core/judge` module and page inspection is the Android
 
 | Stage | Class | Module | File |
 | :-- | :-- | :-- | :-- |
-| Rule Engine | `RuleBasedJudge` (`ApkRule`, `BrandImpersonationRule`, `SuspiciousUrlRule`) | `core/judge` | `rules/` |
+| Rule Engine | `RuleBasedJudge` (`BlocklistRule`, `ApkRule`, `BrandImpersonationRule`, `SuspiciousUrlRule`) | `core/judge` | `rules/` |
 | Local Verdict Store | `InMemoryRiskStore` (run as `StoreJudge`) | `core/judge` | `store/InMemoryRiskStore.kt` |
 | On-device Model | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` |
 | Local RAG / local evidence | `LocalKnowledgeJudge` (keyword retrieval today) | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` |
