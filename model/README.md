@@ -24,6 +24,7 @@ and is not a fine-tuned LLM.
 | `data/fixtures/feature_parity_cases.csv` | Python/Kotlin feature parity fixture |
 | `data/fixtures/rule_parity_cases.csv` | expected categories for the Kotlin URL rules |
 | `data/fixtures/blocklist_filter_cases.csv` | Python/Kotlin blocklist filter parity fixture |
+| `data/fixtures/llm_prompt_cases.jsonl` | Python/Kotlin on-device LLM prompt parity fixture (synthetic pages) |
 | `training/url_features.py` | Python feature extraction |
 | `training/train_model.py` | nearest-centroid training, CV, threshold calibration, report |
 | `training/train_baseline.py` | rule-scoring baseline |
@@ -34,6 +35,7 @@ and is not a fine-tuned LLM.
 | `runtime/official_domains.txt` | shared official-domain allowlist |
 | `runtime/brand_domains.tsv` | brand -> official domains, shared by app rules and allowlist builder |
 | `runtime/public_suffix_list.dat` | Mozilla Public Suffix List for registrable-domain lookup |
+| `runtime/llm_brands.json` | brand data for the on-device LLM prompt, exported by `llm/prompt_format.py` |
 | `runtime/blocklist.bloom`, `runtime/blocklist.meta.json` | phishing/malware blocklist as a Bloom filter, with its build record |
 | `evaluation/trained-model-report.md` | generated training report |
 | `evaluation/baseline-report.md` | generated baseline report |
