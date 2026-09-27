@@ -43,6 +43,7 @@ DATA_DIR = os.path.join(HERE, "data")
 SOURCES = ("gold251_js", "openphish_20260926_js")
 TOKENIZER = os.path.join(DATA_DIR, "tokenizer", "tokenizer.json")
 SYSTEM = "광고 도착 페이지의 위험도를 판정한다. JSON 한 줄로만 답한다."
+CHAT_FIXTURE_PATH = os.path.join(os.path.dirname(os.path.dirname(HERE)), "model", "data", "fixtures", "llm_chat_cases.json")
 
 
 def read_jsonl(path: str) -> list[dict]:
@@ -127,6 +128,18 @@ def main() -> int:
     with open(prompt_format.SIGNAL_FIXTURE_PATH, "w", encoding="utf-8") as f:
         json.dump(prompt_format.signal_fixture(), f, ensure_ascii=False, indent=1)
         f.write("\n")
+
+    # How the model sees a prompt, rendered by the real tokenizer, for core/llm ChatFormat.
+    if os.path.exists(os.path.join(os.path.dirname(TOKENIZER), "tokenizer_config.json")):
+        from transformers import AutoTokenizer
+        chat = AutoTokenizer.from_pretrained(os.path.dirname(TOKENIZER))
+        samples = [user_message(obs, brands) for obs in prompt_format.fixture_observations()[:3]]
+        rendered = [{"user": u, "text": chat.apply_chat_template(
+            [{"role": "system", "content": SYSTEM}, {"role": "user", "content": u}],
+            tokenize=False, add_generation_prompt=True, enable_thinking=False)} for u in samples]
+        with open(CHAT_FIXTURE_PATH, "w", encoding="utf-8") as f:
+            json.dump({"system": SYSTEM, "rendered": rendered}, f, ensure_ascii=False, indent=1)
+            f.write("\n")
 
     for split, rows in outputs.items():
         path = os.path.join(DATA_DIR, f"sft_{split}.jsonl")
