@@ -7,6 +7,7 @@ import com.guadian.ondevice.knowledge.LocalKnowledgeJudge
 import com.guadian.ondevice.llm.OnDeviceLlmJudge
 import com.guadian.ondevice.pagecontent.PageContentJudge
 import com.guadian.ondevice.rules.ApkRule
+import com.guadian.ondevice.rules.BlocklistRule
 import com.guadian.ondevice.rules.BrandImpersonationRule
 import com.guadian.ondevice.rules.RuleBasedJudge
 import com.guadian.ondevice.rules.SuspiciousUrlRule
@@ -20,7 +21,7 @@ import com.guadian.ondevice.store.StoreJudge
  */
 class DefaultJudgeGraph(context: Context) {
     private val store = InMemoryRiskStore()
-    private val rules = RuleBasedJudge(listOf(ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule()))
+    private val rules = RuleBasedJudge(listOf(BlocklistRule(), ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule()))
     private val cached = StoreJudge(store)
     private val model = OnDeviceModelJudge()
     private val knowledge = LocalKnowledgeJudge()

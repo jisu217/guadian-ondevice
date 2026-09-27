@@ -28,6 +28,7 @@ enum class Layer(val wireName: String) {
  */
 enum class RiskCategory(val wireName: String) {
     NONE("none"),
+    BLOCKLISTED("blocklisted"),
     APK("apk"),
     BRAND_IMPERSONATION("brand_impersonation"),
     SUSPICIOUS_URL("suspicious_url"),
@@ -56,6 +57,7 @@ enum class RiskCategory(val wireName: String) {
  */
 enum class ReasonCode {
     CACHE_MISS,
+    BLOCKLISTED,
     APK_DOWNLOAD,
     OFFICIAL_DOMAIN,
     BRAND_TOKEN_IN_HOST,

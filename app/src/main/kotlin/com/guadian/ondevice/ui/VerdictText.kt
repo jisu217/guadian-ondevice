@@ -58,6 +58,7 @@ class VerdictText(private val context: Context) {
     @StringRes
     private fun reasonRes(code: ReasonCode): Int = when (code) {
         ReasonCode.CACHE_MISS -> R.string.reason_cache_miss
+        ReasonCode.BLOCKLISTED -> R.string.reason_blocklisted
         ReasonCode.APK_DOWNLOAD -> R.string.reason_apk_download
         ReasonCode.OFFICIAL_DOMAIN -> R.string.reason_official_domain
         ReasonCode.BRAND_TOKEN_IN_HOST -> R.string.reason_brand_token_in_host
@@ -82,6 +83,7 @@ class VerdictText(private val context: Context) {
     private companion object {
         // Codes whose string has a %1$s slot for Verdict.detail.
         val REASONS_WITH_DETAIL_ARG = setOf(
+            ReasonCode.BLOCKLISTED,
             ReasonCode.OFFICIAL_DOMAIN,
             ReasonCode.BRAND_TOKEN_IN_HOST,
             ReasonCode.BRAND_SUBSTRING_IN_HOST,

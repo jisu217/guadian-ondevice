@@ -3,6 +3,7 @@ package com.guadian.ondevice.judge
 import com.guadian.ondevice.classifier.OnDeviceModelJudge
 import com.guadian.ondevice.knowledge.LocalKnowledgeJudge
 import com.guadian.ondevice.rules.ApkRule
+import com.guadian.ondevice.rules.BlocklistRule
 import com.guadian.ondevice.rules.BrandImpersonationRule
 import com.guadian.ondevice.rules.RuleBasedJudge
 import com.guadian.ondevice.rules.SuspiciousUrlRule
@@ -25,7 +26,7 @@ internal object LocalResolution {
     const val REPORT_PATH = "../../model/evaluation/local-resolution-report.md"
 
     private val stages: List<Pair<String, Judge>> = listOf(
-        "rules" to RuleBasedJudge(listOf(ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule())),
+        "rules" to RuleBasedJudge(listOf(BlocklistRule(), ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule())),
         "model" to OnDeviceModelJudge(),
         "knowledge" to LocalKnowledgeJudge(),
     )

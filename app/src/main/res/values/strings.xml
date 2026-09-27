@@ -29,6 +29,7 @@
     <string name="layer_llm">온디바이스 LLM</string>
 
     <string name="reason_cache_miss">저장된 판정이 없습니다.</string>
+    <string name="reason_blocklisted">피싱·악성 사이트 목록에 있는 주소입니다: %1$s</string>
     <string name="reason_apk_download">공식 앱스토어가 아닌 곳에서 APK 파일을 내려받는 주소입니다.</string>
     <string name="reason_official_domain">%1$s의 공식 도메인입니다.</string>
     <string name="reason_brand_token_in_host">주소에 %1$s 브랜드명이 있지만 공식 도메인이 아닙니다.</string>

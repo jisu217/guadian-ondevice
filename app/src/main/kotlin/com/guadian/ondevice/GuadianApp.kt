@@ -3,6 +3,7 @@ package com.guadian.ondevice
 import android.app.Application
 import com.guadian.ondevice.classifier.NearestCentroidUrlModel
 import com.guadian.ondevice.rules.OfficialDomains
+import com.guadian.ondevice.util.BlocklistFilter
 import com.guadian.ondevice.util.DomainAllowlist
 import com.guadian.ondevice.util.PublicSuffixList
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +23,7 @@ class GuadianApp : Application() {
         // first judgment needs them.
         appScope.launch {
             DomainAllowlist.default
+            BlocklistFilter.default
             PublicSuffixList.default
             OfficialDomains.defaultBrandDomains
             NearestCentroidUrlModel.default
