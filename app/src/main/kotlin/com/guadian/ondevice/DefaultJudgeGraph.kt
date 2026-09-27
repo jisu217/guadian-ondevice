@@ -1,9 +1,11 @@
 package com.guadian.ondevice
 
 import android.content.Context
+import android.util.Log
 import com.guadian.ondevice.classifier.OnDeviceModelJudge
 import com.guadian.ondevice.judge.HybridJudge
 import com.guadian.ondevice.knowledge.LocalKnowledgeJudge
+import com.guadian.ondevice.llm.ObservationBoard
 import com.guadian.ondevice.llm.OnDeviceLlmJudge
 import com.guadian.ondevice.pagecontent.PageContentJudge
 import com.guadian.ondevice.rules.ApkRule
@@ -25,8 +27,12 @@ class DefaultJudgeGraph(context: Context) {
     private val cached = StoreJudge(store)
     private val model = OnDeviceModelJudge()
     private val knowledge = LocalKnowledgeJudge()
-    private val pageContent = PageContentJudge(context.applicationContext)
-    private val llm = OnDeviceLlmJudge()
+    private val observations = ObservationBoard()
+    private val pageContent = PageContentJudge(context.applicationContext, onObservation = observations::post)
+
+    // Until the model is integrated, the prompt it would read is logged so the
+    // on-device input can be checked against the training format.
+    private val llm = OnDeviceLlmJudge(observations, onPrompt = { url, prompt -> Log.d(LLM_LOG_TAG, "$url\n$prompt") })
 
     /** Manual URL entry: every layer, in README order. */
     val full: HybridJudge = HybridJudge(
@@ -43,4 +49,8 @@ class DefaultJudgeGraph(context: Context) {
         stages = listOf(rules, cached, model, knowledge),
         store = store,
     )
+
+    private companion object {
+        const val LLM_LOG_TAG = "GuadianLlm"
+    }
 }

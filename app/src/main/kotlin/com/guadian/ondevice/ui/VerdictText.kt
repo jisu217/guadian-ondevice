@@ -78,6 +78,7 @@ class VerdictText(private val context: Context) {
         ReasonCode.PAGE_TIMEOUT -> R.string.reason_page_timeout
         ReasonCode.PAGE_SCRIPT_FAILED -> R.string.reason_page_script_failed
         ReasonCode.LLM_NOT_LOADED -> R.string.reason_llm_not_loaded
+        ReasonCode.LLM_NO_OBSERVATION -> R.string.reason_llm_no_observation
     }
 
     private companion object {

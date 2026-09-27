@@ -8,8 +8,17 @@ import java.util.regex.Pattern
  * ones built by model/llm/prompt_format.py character for character.
  */
 internal object Text {
-    // Python's \s is Unicode-aware; Java's is ASCII-only unless asked.
-    private val WHITESPACE = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS)
+    /**
+     * Python's `\s` in a str pattern: every character for which `str.isspace()` is true.
+     * Spelled out because Java's `\s` is ASCII-only, and the flag that widens it
+     * (UNICODE_CHARACTER_CLASS) is unsupported on Android.
+     */
+    const val PY_WHITESPACE = "[\\t\\n\\x0B\\f\\r\\x1C-\\x1F \\x85\\xA0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]"
+
+    /** Python's `\w` for these patterns: letters, digits, underscore, in any script. */
+    const val PY_WORD = "[\\p{L}\\p{N}_]"
+
+    private val WHITESPACE = Pattern.compile("$PY_WHITESPACE+")
 
     /** `s[:n]` in Python: the first [n] code points, not UTF-16 units. */
     fun take(s: String, n: Int): String {

@@ -7,15 +7,44 @@ import com.guadian.ondevice.judge.Risk
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class OnDeviceLlmJudgeTest {
     @Test
-    fun `answers uncertain unknown until a model is loaded`() = runTest {
-        val verdict = OnDeviceLlmJudge().judge("https://example.com/login")
+    fun `builds the prompt from the posted observation and stays uncertain`() = runTest {
+        val board = ObservationBoard()
+        val prompts = mutableListOf<String>()
+        val judge = OnDeviceLlmJudge(board, onPrompt = { _, prompt -> prompts += prompt })
+        board.post("https://down.example/", PageObservation(url = "https://down.example/", loaded = false))
 
+        val verdict = judge.judge("https://down.example/")
+
+        assertEquals(listOf("주소: https://down.example/\n페이지: 열리지 않음"), prompts)
         assertEquals(Risk.UNKNOWN, verdict.risk)
         assertEquals(Confidence.UNCERTAIN, verdict.confidence)
         assertEquals(Layer.LLM, verdict.layer)
         assertEquals(ReasonCode.LLM_NOT_LOADED, verdict.reason)
+    }
+
+    @Test
+    fun `without an observation it does not build a prompt`() = runTest {
+        var built = false
+        val verdict = OnDeviceLlmJudge(onPrompt = { _, _ -> built = true }).judge("https://example.com/")
+
+        assertEquals(ReasonCode.LLM_NO_OBSERVATION, verdict.reason)
+        assertTrue(!built)
+    }
+
+    @Test
+    fun `an observation is taken once and old ones are dropped`() {
+        val board = ObservationBoard(capacity = 2)
+        board.post("a", PageObservation(url = "a", loaded = false))
+        board.post("b", PageObservation(url = "b", loaded = false))
+        board.post("c", PageObservation(url = "c", loaded = false))
+
+        assertNull(board.take("a"))
+        assertEquals("b", board.take("b")?.url)
+        assertNull(board.take("b"))
     }
 }

@@ -23,6 +23,7 @@ android {
 
 dependencies {
     api(project(":core:judge"))
+    api(project(":core:llm"))
     implementation(libs.kotlinx.coroutines.android)
 
     androidTestImplementation(libs.androidx.test.runner)

