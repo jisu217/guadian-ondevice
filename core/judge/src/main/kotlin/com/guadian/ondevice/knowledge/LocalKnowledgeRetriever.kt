@@ -95,7 +95,7 @@ class LocalKnowledgeRetriever(
                 KnowledgeSnippet(
                     id = "unknown",
                     title = "Unknown verdict handling",
-                    text = "판정 근거가 부족하거나 원격 fallback이 실패한 경우 UNKNOWN으로 두고 사용자에게 안전 확인 흐름을 제공한다.",
+                    text = "판정 근거가 부족한 경우 UNKNOWN으로 두고 사용자에게 안전 확인 흐름을 제공한다.",
                     keywords = setOf("unknown", "fallback", "uncertain", "확인", "실패", "불확실"),
                 ),
             )
