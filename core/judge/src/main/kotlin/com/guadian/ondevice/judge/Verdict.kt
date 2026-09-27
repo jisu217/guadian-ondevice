@@ -19,6 +19,7 @@ enum class Layer(val wireName: String) {
     MODEL("on-device-model"),
     KNOWLEDGE("local-knowledge"),
     PAGE_CONTENT("page-content"),
+    LLM("on-device-llm"),
 }
 
 /**
@@ -73,6 +74,7 @@ enum class ReasonCode {
     PAGE_LOAD_FAILED,
     PAGE_TIMEOUT,
     PAGE_SCRIPT_FAILED,
+    LLM_NOT_LOADED,
 }
 
 data class Verdict(

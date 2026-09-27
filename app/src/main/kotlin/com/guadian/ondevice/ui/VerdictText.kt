@@ -35,6 +35,7 @@ class VerdictText(private val context: Context) {
             Layer.MODEL -> R.string.layer_model
             Layer.KNOWLEDGE -> R.string.layer_knowledge
             Layer.PAGE_CONTENT -> R.string.layer_page_content
+            Layer.LLM -> R.string.layer_llm
         }
     )
 
@@ -75,6 +76,7 @@ class VerdictText(private val context: Context) {
         ReasonCode.PAGE_LOAD_FAILED -> R.string.reason_page_load_failed
         ReasonCode.PAGE_TIMEOUT -> R.string.reason_page_timeout
         ReasonCode.PAGE_SCRIPT_FAILED -> R.string.reason_page_script_failed
+        ReasonCode.LLM_NOT_LOADED -> R.string.reason_llm_not_loaded
     }
 
     private companion object {
