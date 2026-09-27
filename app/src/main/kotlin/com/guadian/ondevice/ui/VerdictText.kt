@@ -79,6 +79,9 @@ class VerdictText(private val context: Context) {
         ReasonCode.PAGE_SCRIPT_FAILED -> R.string.reason_page_script_failed
         ReasonCode.LLM_NOT_LOADED -> R.string.reason_llm_not_loaded
         ReasonCode.LLM_NO_OBSERVATION -> R.string.reason_llm_no_observation
+        ReasonCode.LLM_VERDICT -> R.string.reason_llm_verdict
+        ReasonCode.LLM_MALFORMED_OUTPUT -> R.string.reason_llm_malformed_output
+        ReasonCode.LLM_UNSUPPORTED_HIGH -> R.string.reason_llm_unsupported_high
     }
 
     private companion object {

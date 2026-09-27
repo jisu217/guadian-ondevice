@@ -28,6 +28,21 @@ class OnDeviceLlmJudgeTest {
     }
 
     @Test
+    fun `reads the model's reply against the prompt`() = runTest {
+        val board = ObservationBoard()
+        val obs = PageObservation(url = "https://roblox.com.mu/x", loaded = false)
+        val evidence = PromptBuilder().build(obs).lines().first { it.startsWith("주소 흉내:") }
+        val runtime = LlmRuntime { """{"risk": "HIGH", "type": "impersonation", "evidence": "$evidence"}""" }
+        board.post(obs.url, obs)
+
+        val verdict = OnDeviceLlmJudge(board, runtime).judge(obs.url)
+
+        assertEquals(Risk.HIGH, verdict.risk)
+        assertEquals(ReasonCode.LLM_VERDICT, verdict.reason)
+        assertEquals("roblox.com.mu", verdict.host)
+    }
+
+    @Test
     fun `without an observation it does not build a prompt`() = runTest {
         var built = false
         val verdict = OnDeviceLlmJudge(onPrompt = { _, _ -> built = true }).judge("https://example.com/")

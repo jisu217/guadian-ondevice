@@ -78,6 +78,9 @@ enum class ReasonCode {
     PAGE_SCRIPT_FAILED,
     LLM_NOT_LOADED,
     LLM_NO_OBSERVATION,
+    LLM_VERDICT,
+    LLM_MALFORMED_OUTPUT,
+    LLM_UNSUPPORTED_HIGH,
 }
 
 data class Verdict(

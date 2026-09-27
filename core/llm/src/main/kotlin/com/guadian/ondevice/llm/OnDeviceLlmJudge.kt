@@ -10,21 +10,23 @@ import com.guadian.ondevice.judge.Verdict
 /**
  * The on-device LLM stage, placed after page-content inspection.
  *
- * It takes the observation page inspection posted to [observations] and builds
- * the model's prompt from it. No model is loaded yet, so the prompt goes to
- * [onPrompt] (the app logs it) and the verdict stays an uncertain `UNKNOWN`.
- * Output parsing, the grounding check, and the llama.cpp runtime replace this
- * behavior in later steps.
+ * It takes the observation page inspection posted to [observations], builds the
+ * model's prompt from it, runs the model, and reads the reply with [AnswerReader].
+ * With no model loaded ([LlmRuntime.NONE]) it stays an uncertain `UNKNOWN`.
+ * [onPrompt] sees every prompt; the app logs it.
  */
 class OnDeviceLlmJudge(
     private val observations: ObservationBoard = ObservationBoard(),
+    private val runtime: LlmRuntime = LlmRuntime.NONE,
     private val prompts: PromptBuilder = PromptBuilder(),
     private val onPrompt: (url: String, prompt: String) -> Unit = { _, _ -> },
 ) : Judge {
     override suspend fun judge(url: String): Verdict {
         val observation = observations.take(url) ?: return uncertain(ReasonCode.LLM_NO_OBSERVATION)
-        onPrompt(url, prompts.build(observation))
-        return uncertain(ReasonCode.LLM_NOT_LOADED)
+        val prompt = prompts.build(observation)
+        onPrompt(url, prompt)
+        val reply = runtime.complete(prompt) ?: return uncertain(ReasonCode.LLM_NOT_LOADED)
+        return AnswerReader.read(reply, prompt, host = Text.hostname(observation.finalUrl ?: url))
     }
 
     private fun uncertain(reason: ReasonCode) = Verdict(
