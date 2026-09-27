@@ -59,7 +59,7 @@ Paths are relative to `<module>/src/main/kotlin/com/guadian/ondevice/`. The
 | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` | nearest-centroid URL-feature model | `MODEL` |
 | `LocalKnowledgeJudge` | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` | matches local policy snippets | `KNOWLEDGE` |
 | `PageContentJudge` | `core/pagecontent` | `pagecontent/PageContentJudge.kt` | inspects the rendered page in a hidden WebView | `PAGE_CONTENT` |
-| `OnDeviceLlmJudge` | `core/llm` | `llm/OnDeviceLlmJudge.kt` | placeholder for the fine-tuned on-device model; always uncertain | `LLM` |
+| `OnDeviceLlmJudge` | `core/llm` | `llm/OnDeviceLlmJudge.kt` | builds the on-device model's prompt from page inspection's observation (`PromptBuilder`); no model yet, so it logs the prompt and stays uncertain | `LLM` |
 
 ### 2.2 Control Flow
 
@@ -164,8 +164,16 @@ the `model/runtime` resources; because it has no Android dependency, an
 `android.*` import there fails to compile and its tests run on the JVM.
 `core/pagecontent` is an Android library holding only `PageContentJudge`,
 the one layer that needs a WebView. `core/llm` is another plain Kotlin/JVM
-library, holding the on-device LLM stage (a placeholder for now); the model
-runtime it will call needs Android and will live outside it. `app` holds the UI, the Shield service,
+library, holding the on-device LLM stage and its prompt format; the model
+runtime it will call needs Android and will live outside it.
+
+The pipeline passes only a URL between stages, so `PageContentJudge` posts a
+`PageObservation` (title, visible text, form fields, APK links, status,
+redirects) to an `ObservationBoard`, and `OnDeviceLlmJudge` takes it for the
+same URL. The observation is read with the rules the training data was
+collected with, and `PromptBuilder` is a port of
+`model/llm/prompt_format.py`; parity tests hold both to Python fixtures. Until
+the model is integrated, the prompt is logged under the `GuadianLlm` tag. `app` holds the UI, the Shield service,
 `GuadianApp`, and `DefaultJudgeGraph`, which wires the layers together.
 
 The implemented runtime therefore covers: the manual verdict screen, the
