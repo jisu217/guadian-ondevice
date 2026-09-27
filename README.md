@@ -15,7 +15,9 @@ cached verdict never skips them. ③ **On-device Model** performs the first
 local inference with a lightweight URL-feature model. ④ **Local RAG** is planned
 as an additional local evidence retrieval layer. ⑤ **Page Content Inspection**
 checks rendered-page signals to supplement risks that URL-only layers miss.
-⑥ **Verdict** combines the preceding results into the final risk decision.
+⑥ **On-device LLM** reads the inspected page with a small fine-tuned model;
+it is a placeholder that answers `UNKNOWN` until the model is integrated.
+⑦ **Verdict** combines the preceding results into the final risk decision.
 
 - [history.md](reference/original-guadian/docs/history.md) — original 「GUADIAN」 project history
 - [model-evolution.md](model/docs/model-evolution.md) — model improvement history
@@ -122,6 +124,8 @@ Local RAG / local evidence   | RAG planned
   ↓
 Page Content Inspection
   ↓
+On-device LLM                | placeholder until the model is integrated
+  ↓
 Verdict
 ```
 
@@ -133,7 +137,8 @@ supported browser link click (`ShieldAccessibilityService`).
 A stage returns its verdict if `CERTAIN`; otherwise the request passes to the
 next stage, and if no stage is certain the last stage's verdict is returned.
 The pipeline combines URL rules, a URL-feature nearest-centroid model, local
-evidence, and rendered-page inspection, all on the device. See
+evidence, rendered-page inspection, and an on-device LLM stage, all on the
+device. See
 [Architecture](docs/architecture.md).
 
 Each stage name above maps to one runtime class. The judgment engine is the
@@ -148,6 +153,7 @@ pure-Kotlin `core/judge` module and page inspection is the Android
 | On-device Model | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` |
 | Local RAG / local evidence | `LocalKnowledgeJudge` (keyword retrieval today) | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` |
 | Page Content Inspection | `PageContentJudge` | `core/pagecontent` | `pagecontent/PageContentJudge.kt` |
+| On-device LLM | `OnDeviceLlmJudge` (placeholder) | `core/llm` | `llm/OnDeviceLlmJudge.kt` |
 | Verdict | `Verdict`, assembled by `HybridJudge` | `core/judge` | `judge/` |
 
 ### 3.1 Local Resolution

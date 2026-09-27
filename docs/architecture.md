@@ -38,6 +38,7 @@ URL
   -> OnDeviceModelJudge
   -> LocalKnowledgeJudge
   -> PageContentJudge        manual entry only
+  -> OnDeviceLlmJudge        manual entry only; placeholder
   -> Verdict
 ```
 
@@ -58,6 +59,7 @@ Paths are relative to `<module>/src/main/kotlin/com/guadian/ondevice/`. The
 | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` | nearest-centroid URL-feature model | `MODEL` |
 | `LocalKnowledgeJudge` | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` | matches local policy snippets | `KNOWLEDGE` |
 | `PageContentJudge` | `core/pagecontent` | `pagecontent/PageContentJudge.kt` | inspects the rendered page in a hidden WebView | `PAGE_CONTENT` |
+| `OnDeviceLlmJudge` | `core/llm` | `llm/OnDeviceLlmJudge.kt` | placeholder for the fine-tuned on-device model; always uncertain | `LLM` |
 
 ### 2.2 Control Flow
 
@@ -68,8 +70,8 @@ parameters removed, path and remaining query kept), so a verdict for one path
 is never reused for another path on the same host. It is a thread-safe LRU
 bounded at 500 entries.
 
-After the store, the model, local knowledge, and page content layers run in
-turn. If none is certain, `HybridJudge` returns the last layer's
+After the store, the model, local knowledge, page content, and LLM layers run
+in turn. If none is certain, `HybridJudge` returns the last layer's
 verdict. Every certain verdict whose `risk` is not `UNKNOWN` is saved to the
 store, so failed or inconclusive judgments are never cached.
 
@@ -117,6 +119,7 @@ Each layer decides `CERTAIN` differently:
 | `OnDeviceModelJudge` | centroid distance is within the per-label threshold from the model artifact and the label is not `UNKNOWN`; otherwise `risk` is forced to `UNKNOWN` |
 | `LocalKnowledgeJudge` | a snippet matches; `risk` and `confidence` come from the first snippet |
 | `PageContentJudge` | a password field on a host that is neither an official brand domain nor allowlisted: `HIGH` if the page names a known brand, otherwise `MEDIUM`. A brand name without a password field stays `UNCERTAIN` |
+| `OnDeviceLlmJudge` | never, until the model is integrated |
 
 Brand-to-domain data lives in `model/runtime/brand_domains.tsv`, shared with the
 allowlist builder, and registrable domains come from the bundled Public Suffix
@@ -154,13 +157,15 @@ page. A new click cancels the previous judgment.
 
 ## 5. Runtime Boundary
 
-The Android runtime is split into three Gradle modules. `core/judge` is a
+The Android runtime is split into four Gradle modules. `core/judge` is a
 plain Kotlin/JVM library holding every layer that needs no Android API
 (`judge`, `rules`, `store`, `classifier`, `knowledge`, `util`) and
 the `model/runtime` resources; because it has no Android dependency, an
 `android.*` import there fails to compile and its tests run on the JVM.
 `core/pagecontent` is an Android library holding only `PageContentJudge`,
-the one layer that needs a WebView. `app` holds the UI, the Shield service,
+the one layer that needs a WebView. `core/llm` is another plain Kotlin/JVM
+library, holding the on-device LLM stage (a placeholder for now); the model
+runtime it will call needs Android and will live outside it. `app` holds the UI, the Shield service,
 `GuadianApp`, and `DefaultJudgeGraph`, which wires the layers together.
 
 The implemented runtime therefore covers: the manual verdict screen, the

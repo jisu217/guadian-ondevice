@@ -59,6 +59,7 @@ URL
   -> OnDeviceModelJudge
   -> LocalKnowledgeJudge
   -> PageContentJudge        (manual entry only; skipped for Shield clicks)
+  -> OnDeviceLlmJudge        (manual entry only; placeholder until the model is integrated)
   -> Verdict
 ```
 
