@@ -2,16 +2,13 @@
 
 ![Status](https://img.shields.io/badge/status-in_progress-111111)
 
-「GUADIAN」 is a digital-harm prevention service against malicious ads, built at
-the SKT FLY AI bootcamp. This repository focuses on the judgment stage of
-「GUADIAN」's detect-judge-intervene flow, turning the original server-centered
-risk judgment structure into an on-device design.
+> 「GUADIAN」은 SKT FLY AI 부트캠프에서 개발한 악성 광고에서 시작되는 디지털 피해를 예방하는 서비스이다. 본 저장소는 「GUADIAN」의 “탐지 → 판정 → 개입” 흐름 중 판정 단계에 집중하여, 기존의 판정 구조를 온디바이스로 전환한다.
 
-The hybrid on-device structure is as follows. Each stage returns its verdict
+The on-device judgment pipeline is as follows. Each stage returns its verdict
 when it is sufficiently certain; otherwise, it passes the request to the next
 stage. ① **Rule Engine** performs clear rule-based judgment. ② **Local Verdict
 Store** reuses previous judgments for the same URL; it runs after the rules so a
-cached verdict never skips them. ③ **On-device Model** performs the first
+cached verdict never skips them. ③ **On-device URL Model** performs the first
 local inference with a lightweight URL-feature model. ④ **Local RAG** is planned
 as an additional local evidence retrieval layer. ⑤ **Page Content Inspection**
 checks rendered-page signals to supplement risks that URL-only layers miss.
@@ -118,7 +115,7 @@ Rule Engine
   ↓
 Local Verdict Store
   ↓
-On-device Model              | model improving
+On-device URL Model          | model improving
   ↓
 Local RAG / local evidence   | RAG planned
   ↓
@@ -150,7 +147,7 @@ pure-Kotlin `core/judge` module and page inspection is the Android
 | :-- | :-- | :-- | :-- |
 | Rule Engine | `RuleBasedJudge` (`BlocklistRule`, `ApkRule`, `BrandImpersonationRule`, `SuspiciousUrlRule`) | `core/judge` | `rules/` |
 | Local Verdict Store | `InMemoryRiskStore` (run as `StoreJudge`) | `core/judge` | `store/InMemoryRiskStore.kt` |
-| On-device Model | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` |
+| On-device URL Model | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` |
 | Local RAG / local evidence | `LocalKnowledgeJudge` (keyword retrieval today) | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` |
 | Page Content Inspection | `PageContentJudge` | `core/pagecontent` | `pagecontent/PageContentJudge.kt` |
 | On-device LLM | `OnDeviceLlmJudge` (placeholder) | `core/llm` | `llm/OnDeviceLlmJudge.kt` |
