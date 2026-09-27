@@ -36,10 +36,10 @@ DATA_DIR = os.path.join(HERE, "data")
 TOKENIZER_DIR = os.path.join(DATA_DIR, "tokenizer")
 
 
-def notebook_namespace(split: str) -> dict:
+def notebook_namespace(split: str, path: str) -> dict:
     """Run the notebook's CONFIG, EXAMPLES, and SCORING cells against the local tokenizer."""
     from transformers import AutoTokenizer
-    with open(os.path.join(DATA_DIR, f"sft_{split}.jsonl"), encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         examples = [json.loads(line) for line in f if line.strip()]
     ns = {"data": {split: examples}, "AutoTokenizer": AutoTokenizer}
     exec(nb.CONFIG, ns)
@@ -84,12 +84,14 @@ def main() -> int:
     parser.add_argument("model", help="GGUF file")
     parser.add_argument("--name", required=True, help="label for the output files, e.g. finetuned-q4")
     parser.add_argument("--split", default="test", choices=("validation", "test"))
+    parser.add_argument("--examples", help="examples JSONL to score instead of data/sft_<split>.jsonl, "
+                                           "e.g. an older build a model was trained on")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--gpu-layers", type=int, default=0)
     args = parser.parse_args()
 
-    ns = notebook_namespace(args.split)
+    ns = notebook_namespace(args.split, args.examples or os.path.join(DATA_DIR, f"sft_{args.split}.jsonl"))
     examples = ns["data"][args.split][: args.limit]
 
     port = free_port()

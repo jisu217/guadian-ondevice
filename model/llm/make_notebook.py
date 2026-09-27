@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "train_qlora.ipynb")
 
 INTRO = """\
-# QLoRA fine-tuning of the on-device judge
+# LoRA fine-tuning of the on-device judge
 
 Fine-tunes `Qwen/Qwen3-1.7B` on the compact examples from `model/llm/build_prompts.py`
 and exports the merged model as an f16 GGUF. Quantize it to 4-bit on the Mac afterwards.
@@ -31,16 +31,23 @@ Steps: install → configure → upload data → build examples → load model �
 evaluate (zero-shot vs fine-tuned on the test set) → merge → export GGUF."""
 
 INSTALL = """\
-%pip install -q -U transformers peft bitsandbytes accelerate"""
+%pip install -q -U transformers peft bitsandbytes accelerate
+# Colab preinstalls an old torchao, which peft rejects when merging the adapter.
+%pip uninstall -q -y torchao"""
 
 CONFIG = """\
 MODEL_ID = "Qwen/Qwen3-1.7B"
 SEED = 20260926
+# Train on the full-precision base (plain LoRA) rather than a 4-bit one (QLoRA). An adapter
+# trained against 4-bit weights no longer fits once merged into the full-precision weights the
+# GGUF is made from: run 1 lost 6 points of accuracy in the merge alone. 1.7B fits a T4 either way.
+QUANTIZE_BASE = False
 MAX_LENGTH = 1024          # longest compact prompt is ~700 tokens
 LORA = dict(r=16, lora_alpha=32, lora_dropout=0.05,
             target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
 TRAIN = dict(num_train_epochs=3, learning_rate=2e-4, per_device_train_batch_size=4,
-             gradient_accumulation_steps=4, warmup_ratio=0.05, lr_scheduler_type="cosine")
+             gradient_accumulation_steps=4, lr_scheduler_type="cosine")
+WARMUP_FRACTION = 0.05     # of all optimizer steps
 MAX_NEW_TOKENS = 96        # the answer is one short JSON line
 RISKS = ["LOW", "MEDIUM", "HIGH"]"""
 
@@ -92,12 +99,18 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 torch.manual_seed(SEED)
 COMPUTE_DTYPE = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
 
-base = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID, device_map="auto", torch_dtype=COMPUTE_DTYPE,
-    quantization_config=BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
-                                           bnb_4bit_use_double_quant=True,
-                                           bnb_4bit_compute_dtype=COMPUTE_DTYPE))
-base = prepare_model_for_kbit_training(base, use_gradient_checkpointing=True)
+if QUANTIZE_BASE:
+    base = AutoModelForCausalLM.from_pretrained(
+        MODEL_ID, device_map="auto", torch_dtype=COMPUTE_DTYPE,
+        quantization_config=BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                                               bnb_4bit_use_double_quant=True,
+                                               bnb_4bit_compute_dtype=COMPUTE_DTYPE))
+    base = prepare_model_for_kbit_training(base, use_gradient_checkpointing=True)
+else:
+    # PEFT keeps the adapter weights in float32 on a half-precision base, so mixed precision works.
+    base = AutoModelForCausalLM.from_pretrained(MODEL_ID, device_map="auto", torch_dtype=COMPUTE_DTYPE)
+    base.gradient_checkpointing_enable()
+    base.enable_input_require_grads()
 model = get_peft_model(base, LoraConfig(task_type="CAUSAL_LM", bias="none", **LORA))
 model.print_trainable_parameters()"""
 
@@ -113,8 +126,12 @@ def collate(batch):
         "labels": torch.tensor([pad(f["labels"], -100) for f in batch]),
     }
 
+# Warmup as a step count: newer transformers dropped `warmup_ratio`, older ones take only ints here.
+import math
+total_steps = math.ceil(len(features["train"]) / (TRAIN["per_device_train_batch_size"]
+                                                   * TRAIN["gradient_accumulation_steps"])) * TRAIN["num_train_epochs"]
 args = TrainingArguments(
-    output_dir="checkpoints", seed=SEED, **TRAIN,
+    output_dir="checkpoints", seed=SEED, **TRAIN, warmup_steps=max(1, round(WARMUP_FRACTION * total_steps)),
     per_device_eval_batch_size=4, eval_strategy="epoch", save_strategy="epoch",
     load_best_model_at_end=True, metric_for_best_model="eval_loss", save_total_limit=2,
     logging_steps=10, gradient_checkpointing=True, report_to="none",
@@ -196,23 +213,37 @@ with open("test_metrics.json", "w") as f:
 
 MERGE = """\
 # Merge the adapter into full-precision weights; GGUF conversion needs a plain model.
-del model, base, trainer
+# Runs on its own after a session restart too: it only needs the saved "adapter" folder.
+import torch
+from transformers import AutoModelForCausalLM
+for name in ("model", "base", "trainer"):
+    globals().pop(name, None)
 torch.cuda.empty_cache()
+MODEL_ID = "Qwen/Qwen3-1.7B"
 from peft import PeftModel
 full = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.float16, device_map="auto")
 merged = PeftModel.from_pretrained(full, "adapter").merge_and_unload()
 merged.save_pretrained("merged", safe_serialization=True)
-tokenizer.save_pretrained("merged")"""
+
+# Training does not change the tokenizer. Copy the base model's files rather than
+# re-saving them: the GGUF converter pins an older transformers that cannot read
+# the tokenizer_config.json a newer one writes.
+import shutil
+from huggingface_hub import hf_hub_download
+for name in ["tokenizer.json", "tokenizer_config.json", "vocab.json", "merges.txt"]:
+    shutil.copy(hf_hub_download(MODEL_ID, name), f"merged/{name}")"""
 
 EXPORT = """\
-!git clone --depth 1 https://github.com/ggml-org/llama.cpp
+import os
+if not os.path.exists("llama.cpp"):
+    !git clone --depth 1 https://github.com/ggml-org/llama.cpp
 %pip install -q -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 !python llama.cpp/convert_hf_to_gguf.py merged --outtype f16 --outfile guadian-qwen3-1.7b-f16.gguf"""
 
 SAVE = """\
 # Copy results to Google Drive (the f16 GGUF is ~3.4 GB, too large for a browser download).
 from google.colab import drive
-import shutil
+import os, shutil
 drive.mount("/content/drive")
 target = "/content/drive/MyDrive/guadian-ondevice"
 os.makedirs(target, exist_ok=True)
