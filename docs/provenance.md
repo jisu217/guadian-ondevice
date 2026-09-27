@@ -85,8 +85,7 @@ provider-comparison code was copied here.
 `model/data/raw/gold_251.jsonl` comes from that local sibling project:
 
 ```text
-Repository name: GuADian23-model-compare
-Local source checkout: /Users/jisu/guadian23-model-compare-main
+Repository: SKT-FLY-AI-TEAM-6/GuADian23-model-compare
 Source file: gold/gold_251.jsonl
 Current stored file: model/data/raw/gold_251.jsonl
 ```
