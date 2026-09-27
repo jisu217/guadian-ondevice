@@ -25,6 +25,7 @@ and is not a fine-tuned LLM.
 | `data/fixtures/rule_parity_cases.csv` | expected categories for the Kotlin URL rules |
 | `data/fixtures/blocklist_filter_cases.csv` | Python/Kotlin blocklist filter parity fixture |
 | `data/fixtures/llm_prompt_cases.jsonl` | Python/Kotlin on-device LLM prompt parity fixture (synthetic pages) |
+| `data/fixtures/llm_answer_cases.jsonl` | Python/Kotlin parity fixture for reading and grounding model replies |
 | `data/fixtures/llm_page_signal_cases.json` | Python/Kotlin parity fixture for form, action, and text rules of page observation |
 | `training/url_features.py` | Python feature extraction |
 | `training/train_model.py` | nearest-centroid training, CV, threshold calibration, report |
