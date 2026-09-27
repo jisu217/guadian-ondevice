@@ -5,7 +5,7 @@
 「GUADIAN」 is a digital-harm prevention service against malicious ads, built at
 the SKT FLY AI bootcamp. This repository focuses on the judgment stage of
 「GUADIAN」's detect-judge-intervene flow, turning the original server-centered
-risk judgment structure into a local-first hybrid on-device design.
+risk judgment structure into an on-device design.
 
 The hybrid on-device structure is as follows. Each stage returns its verdict
 when it is sufficiently certain; otherwise, it passes the request to the next
@@ -15,8 +15,7 @@ cached verdict never skips them. ③ **On-device Model** performs the first
 local inference with a lightweight URL-feature model. ④ **Local RAG** is planned
 as an additional local evidence retrieval layer. ⑤ **Page Content Inspection**
 checks rendered-page signals to supplement risks that URL-only layers miss.
-⑥ **Remote Fallback** asks the server only when local judgment remains difficult.
-⑦ **Verdict** combines the preceding results into the final risk decision.
+⑥ **Verdict** combines the preceding results into the final risk decision.
 
 - [history.md](reference/original-guadian/docs/history.md) — original 「GUADIAN」 project history
 - [model-evolution.md](model/docs/model-evolution.md) — model improvement history
@@ -123,8 +122,6 @@ Local RAG / local evidence   | RAG planned
   ↓
 Page Content Inspection
   ↓
-Remote Fallback
-  ↓
 Verdict
 ```
 
@@ -134,9 +131,10 @@ in the current implementation by manual URL entry (`JudgeActivity`) or a
 supported browser link click (`ShieldAccessibilityService`).
 
 A stage returns its verdict if `CERTAIN`; otherwise the request passes to the
-next stage. `RemoteJudge` is the last resort. The local pipeline combines URL
-rules, a URL-feature nearest-centroid model, local evidence, and rendered-page
-inspection before using the remote fallback. See [Architecture](docs/architecture.md).
+next stage, and if no stage is certain the last stage's verdict is returned.
+The pipeline combines URL rules, a URL-feature nearest-centroid model, local
+evidence, and rendered-page inspection, all on the device. See
+[Architecture](docs/architecture.md).
 
 Each stage name above maps to one runtime class. The judgment engine is the
 pure-Kotlin `core/judge` module and page inspection is the Android
@@ -150,13 +148,12 @@ pure-Kotlin `core/judge` module and page inspection is the Android
 | On-device Model | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` |
 | Local RAG / local evidence | `LocalKnowledgeJudge` (keyword retrieval today) | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` |
 | Page Content Inspection | `PageContentJudge` | `core/pagecontent` | `pagecontent/PageContentJudge.kt` |
-| Remote Fallback | `RemoteJudge` | `core/judge` | `remote/RemoteJudge.kt` |
 | Verdict | `Verdict`, assembled by `HybridJudge` | `core/judge` | `judge/` |
 
 ### 3.1 Local Resolution
 
 On the 132-row holdout split, local layers resolve **54 cases (40.91%)** before
-page-content inspection or remote fallback; **34** match the dataset label.
+page-content inspection; **34** match the dataset label.
 
 | Resolved by | Resolved | Correct |
 | :-- | --: | --: |
@@ -172,8 +169,6 @@ evaluation-set numbers, not production estimates.
 ## 4. Current Scope
 
 End-to-end protection effect and latency in real user environments require
-separate validation across Shield detection, page loading, and fallback-server
-response.
+separate validation across Shield detection and page loading.
 
-Physical-device validation, production fallback deployment, and broader Shield
-coverage remain future work.
+Physical-device validation and broader Shield coverage remain future work.

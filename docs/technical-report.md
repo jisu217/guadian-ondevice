@@ -23,9 +23,8 @@ evaluation of GUADIAN On-device Judge. Runtime details are in
 GUADIAN On-device Judge is a local-first Android prototype for URL-risk
 judgment. It refactors the original GUADIAN ad-risk idea into an Android app
 (`app/`, with the judgment engine in `core/judge` and WebView page inspection
-in `core/pagecontent`) that runs the local judgment pipeline, a Python model workspace
-(`model/`) for training, evaluation, and the generated model artifact, and a
-FastAPI fallback server (`server/`).
+in `core/pagecontent`) that runs the local judgment pipeline, and a Python model
+workspace (`model/`) for training, evaluation, and the generated model artifact.
 
 The app has two entry points: `JudgeActivity` for manual URL input, and
 `ShieldAccessibilityService`, which detects link clicks in supported browsers
@@ -37,7 +36,7 @@ on an emulator; physical-device validation is pending.
 Ad landing URLs can lead to phishing, APK downloads, brand impersonation,
 credential capture, or payment lures. A server-only judge can inspect richer
 context, but it adds latency, cost, and privacy exposure. This project asks how
-far a conservative on-device pipeline can go before remote fallback is needed.
+far a conservative on-device pipeline can go without a server judge.
 
 ## 3. Reference Basis
 
@@ -49,8 +48,7 @@ sibling model-comparison dataset. Preserved source material is stored under
 The repository is a new implementation, not a direct port. The new work covers
 the local-first Kotlin judgment pipeline, the generated URL-feature model
 artifact, the local policy fallback, hidden-WebView page-content inspection,
-the accessibility-triggered Shield flow, the FastAPI fallback server, and the
-model documentation checks.
+the accessibility-triggered Shield flow, and the model documentation checks.
 
 ## 4. Runtime
 
@@ -61,15 +59,14 @@ URL
   -> OnDeviceModelJudge
   -> LocalKnowledgeJudge
   -> PageContentJudge        (manual entry only; skipped for Shield clicks)
-  -> RemoteJudge
   -> Verdict
 ```
 
 The order is intentional. Cheap deterministic checks run first; the rules come
 before the store so that a cached verdict can never skip them. The URL model's confidence is calibrated with per-label distance
 thresholds, so it only answers when it is close enough to a centroid.
-Rendered-page inspection is delayed until URL-only evidence is insufficient,
-and the remote fallback runs only when every local layer is uncertain. Control
+Rendered-page inspection is delayed until URL-only evidence is insufficient.
+Control
 flow and the `Verdict` contract are described in [Architecture](architecture.md).
 
 ## 5. Model
@@ -163,16 +160,16 @@ separate nightly/on-demand workflow:
 
 | Type | Scope | Run by |
 | :-- | :-- | :-- |
-| Kotlin unit tests | judges, rules, store, feature extraction, remote client, app/server rule parity | CI (`./gradlew test`) |
+| Kotlin unit tests | judges, rules, store, feature extraction, rule fixture | CI (`./gradlew test`) |
 | Android lint | app sources and resources | CI (`./gradlew lint`) |
 | Robolectric tests | accessibility-node helper logic | CI (`./gradlew test`) |
 | Python model tests | training, features, allowlist build | CI |
-| Server tests | FastAPI app and judge service | CI |
 | Model documentation checks | `scripts/check-model-requirements.sh` | CI |
 | Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | `instrumented.yml` (nightly, on demand) or `./gradlew connectedDebugAndroidTest` |
 
 Manual emulator verification has covered URL judgment through `JudgeActivity`,
-the safe `UNKNOWN` fallback when the remote server is unavailable, the Shield
+the safe `UNKNOWN` result when every layer was uncertain (returned at the time
+by the remote fallback, since removed), the Shield
 overlay on off-site browser link clicks, and the absence of an overlay on
 same-site browser navigation. That Shield check predates the current
 react-by-risk behavior (banner while judging, back navigation on `HIGH`,

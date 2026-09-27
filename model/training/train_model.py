@@ -322,7 +322,7 @@ def render_report(
         f"Each label gets its own certain-distance threshold, calibrated by {DEFAULT_FOLDS}-fold stratified "
         "cross-validation on the training split, so one close call for one label cannot collapse another "
         "label's threshold. The thresholds are intentionally conservative, so uncertain cases fall through to "
-        f"local knowledge matching or remote fallback. The calibrated values are {thresholds_text}.",
+        f"local knowledge matching or page-content inspection. The calibrated values are {thresholds_text}.",
     ]
 
     if fold_evaluations:

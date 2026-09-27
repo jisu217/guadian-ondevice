@@ -19,7 +19,7 @@ copied from earlier GUADIAN work.
 
 ## 1. Summary
 
-The current implementation in `app/`, `model/`, and `server/` is a new
+The current implementation in `app/` and `model/` is a new
 local-first prototype. It was developed while consulting earlier GUADIAN code,
 GUADIAN risk-policy documents, a sibling model-comparison dataset, and a public
 domain popularity list.
@@ -33,13 +33,13 @@ runtime.
 | Current file | Source repo file | Original role | How it influenced this project |
 | :-- | :-- | :-- | :-- |
 | `reference/original-guadian/src/Judge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/Judge.kt` | original judge interface and verdict shape | informed the shared `Judge`/`Verdict` abstraction |
-| `reference/original-guadian/src/HttpJudge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/HttpJudge.kt` | original remote API judge client | informed `RemoteJudge` fallback shape |
+| `reference/original-guadian/src/HttpJudge.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/HttpJudge.kt` | original remote API judge client | informed `RemoteJudge` fallback shape (removed 2026-09-27) |
 | `reference/original-guadian/src/WebNode.kt` | `SKT-FLY-AI-TEAM-6/GUADIAN/app/src/main/java/com/flyai/adalert/WebNode.kt` | browser accessibility-node helper (roles, `targetUrl`, host/site extraction) | adapted into `shield/WebAccessibilityNode.kt`, reduced to link detection, target-host extraction, iframe detection, and current-site inference; ad-network denylist and redirect accounting helpers not ported |
-| `reference/original-guadian/src/judge_agent.py` | `SKT-FLY-AI-TEAM-6/GUADIAN/server/judge_agent.py` | original server-side judge agent | informed the fallback server boundary |
+| `reference/original-guadian/src/judge_agent.py` | `SKT-FLY-AI-TEAM-6/GUADIAN/server/judge_agent.py` | original server-side judge agent | informed the fallback server boundary (removed 2026-09-27) |
 
 The current implementation is not a direct port. The local-first sequence,
-Kotlin model runtime, Python training workflow, local knowledge fallback, and FastAPI
-server were implemented in this repository.
+Kotlin model runtime, Python training workflow, local knowledge fallback, and a FastAPI
+server (removed 2026-09-27) were implemented in this repository.
 
 ### 2.1 Consulted But Not Copied
 
@@ -190,7 +190,6 @@ lookup (site comparison in Shield, brand-label extraction, allowlist checks).
 | Shield link detection | `shield/WebAccessibilityNode.kt` | adapted from `reference/original-guadian/src/WebNode.kt` (source cited in its KDoc) |
 | Model | `model/training/*`, `OnDeviceModelJudge` | new implementation |
 | Feature extraction | Python and Kotlin URL feature extractors | URL parsing concerns from reference code |
-| Remote fallback | `server/main.py`, `judge_service.py`, `RemoteJudge` | original remote-judge boundary |
 | Evaluation | `model/evaluation/*` | new implementation |
 
 ## 9. Known Documentation Limitations

@@ -138,7 +138,7 @@ A nearest-centroid prediction becomes a `CERTAIN` local verdict only if its
 distance is within the calibrated threshold for the predicted label: 0.4383 for
 `LOW`, 0.8128 for `MEDIUM`, 1.1989 for `HIGH`, and 0.0898 for `UNKNOWN`.
 Otherwise the result is `UNKNOWN` / `UNCERTAIN` and falls through to local
-knowledge matching, page-content inspection, or remote fallback.
+knowledge matching or page-content inspection.
 
 ## 5. Key Findings
 

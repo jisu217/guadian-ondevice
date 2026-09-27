@@ -22,7 +22,7 @@ and is not a fine-tuned LLM.
 | :-- | :-- |
 | `data/sample_urls.csv` | sanitized training/evaluation samples |
 | `data/fixtures/feature_parity_cases.csv` | Python/Kotlin feature parity fixture |
-| `data/fixtures/rule_parity_cases.csv` | app/server URL-rule parity fixture |
+| `data/fixtures/rule_parity_cases.csv` | expected categories for the Kotlin URL rules |
 | `training/url_features.py` | Python feature extraction |
 | `training/train_model.py` | nearest-centroid training, CV, threshold calibration, report |
 | `training/train_baseline.py` | rule-scoring baseline |

@@ -32,7 +32,7 @@ clear URL-level patterns, such as APK download lures and impersonation-like
 login or authentication URLs, it short-circuits the pipeline with a `CERTAIN`
 local verdict. When the URL-only signal is uncertain, it returns `UNKNOWN` /
 `UNCERTAIN`, and the runtime falls through to local policy retrieval,
-page-content inspection, or remote fallback. The final user-facing verdict is
+or page-content inspection. The final user-facing verdict is
 owned by the full hybrid pipeline, not by this model alone.
 
 ## 3. Data
@@ -108,4 +108,4 @@ When changing data or features:
 3. Regenerate the trained model, baseline report, trained report,
    `metrics.json`, artifact, and split files, then update the doc tables that
    `scripts/check_doc_metrics.py` reports as stale.
-4. Run model documentation, Python, server, and Kotlin tests before committing.
+4. Run model documentation, Python, and Kotlin tests before committing.

@@ -1,7 +1,7 @@
 /*
  * Root build file. Modules: :app (Android UI and Shield), :core:judge (pure
  * Kotlin judgment engine), :core:pagecontent (WebView page inspection). Model
- * training and the FastAPI fallback are managed outside Gradle.
+ * training is managed outside Gradle.
  */
 plugins {
     alias(libs.plugins.android.application) apply false

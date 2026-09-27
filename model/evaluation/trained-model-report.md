@@ -16,7 +16,7 @@ This report evaluates the nearest-centroid classifier on a deterministic stratif
 
 Model version `v8-prep`. Final test metrics use a deterministic stratified holdout split, saved as `model/data/train-split.csv` and `model/data/test-split.csv`. `url_length`, `host_length`, `path_length`, and `query_length` are log1p-compressed before min-max scaling, so a few very long real tracking URLs do not stretch the scale for everyone.
 
-Each label gets its own certain-distance threshold, calibrated by 5-fold stratified cross-validation on the training split, so one close call for one label cannot collapse another label's threshold. The thresholds are intentionally conservative, so uncertain cases fall through to local knowledge matching or remote fallback. The calibrated values are 0.4383 for `LOW`, 0.8128 for `MEDIUM`, 1.1989 for `HIGH`, 0.0898 for `UNKNOWN`.
+Each label gets its own certain-distance threshold, calibrated by 5-fold stratified cross-validation on the training split, so one close call for one label cannot collapse another label's threshold. The thresholds are intentionally conservative, so uncertain cases fall through to local knowledge matching or page-content inspection. The calibrated values are 0.4383 for `LOW`, 0.8128 for `MEDIUM`, 1.1989 for `HIGH`, 0.0898 for `UNKNOWN`.
 
 ## 2. Cross Validation
 
