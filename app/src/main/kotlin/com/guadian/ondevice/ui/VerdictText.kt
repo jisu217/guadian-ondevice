@@ -32,7 +32,6 @@ class VerdictText(private val context: Context) {
         when (layer) {
             Layer.STORE -> R.string.layer_store
             Layer.RULE -> R.string.layer_rule
-            Layer.MODEL -> R.string.layer_model
             Layer.KNOWLEDGE -> R.string.layer_knowledge
             Layer.PAGE_CONTENT -> R.string.layer_page_content
             Layer.LLM -> R.string.layer_llm
@@ -65,8 +64,6 @@ class VerdictText(private val context: Context) {
         ReasonCode.BRAND_SUBSTRING_IN_HOST -> R.string.reason_brand_substring_in_host
         ReasonCode.SUSPICIOUS_KEYWORD -> R.string.reason_suspicious_keyword
         ReasonCode.NO_RULE_MATCH -> R.string.reason_no_rule_match
-        ReasonCode.MODEL_CONFIDENT -> R.string.reason_model_confident
-        ReasonCode.MODEL_UNCERTAIN -> R.string.reason_model_uncertain
         ReasonCode.KNOWLEDGE_MATCH -> R.string.reason_knowledge_match
         ReasonCode.KNOWLEDGE_NO_MATCH -> R.string.reason_knowledge_no_match
         ReasonCode.PAGE_BRAND_LOGIN_FORM -> R.string.reason_page_brand_login_form
@@ -91,8 +88,6 @@ class VerdictText(private val context: Context) {
             ReasonCode.OFFICIAL_DOMAIN,
             ReasonCode.BRAND_TOKEN_IN_HOST,
             ReasonCode.BRAND_SUBSTRING_IN_HOST,
-            ReasonCode.MODEL_CONFIDENT,
-            ReasonCode.MODEL_UNCERTAIN,
             ReasonCode.KNOWLEDGE_MATCH,
             ReasonCode.PAGE_BRAND_LOGIN_FORM,
             ReasonCode.PAGE_BRAND_MENTION_ONLY,

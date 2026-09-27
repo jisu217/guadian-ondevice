@@ -1,7 +1,8 @@
 /*
  * Root build file. Modules: :app (Android UI and Shield), :core:judge (pure
- * Kotlin judgment engine), :core:pagecontent (WebView page inspection). Model
- * training is managed outside Gradle.
+ * Kotlin judgment engine: rules, store, local knowledge), :core:pagecontent
+ * (WebView page inspection), :core:llm (on-device LLM
+ * stage), :core:llamacpp (llama.cpp runtime). Model training is in ml/.
  */
 plugins {
     alias(libs.plugins.android.application) apply false

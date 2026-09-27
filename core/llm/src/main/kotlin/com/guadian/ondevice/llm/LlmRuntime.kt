@@ -1,7 +1,7 @@
 package com.guadian.ondevice.llm
 
 /**
- * Runs the on-device model on one prompt. The llama.cpp binding implements this
+ * Runs the LLM on one prompt. The llama.cpp binding implements this
  * outside `core/llm`, because it needs Android.
  */
 fun interface LlmRuntime {

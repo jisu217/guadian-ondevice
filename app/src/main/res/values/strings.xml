@@ -5,7 +5,6 @@
     <string name="judge_button">판정하기</string>
     <string name="judge_empty_input">URL을 입력하세요.</string>
     <string name="judge_pending">판정 중…</string>
-    <string name="model_version_label">모델 %1$s</string>
 
     <string name="label_risk">위험도</string>
     <string name="label_confidence">확신도</string>
@@ -23,10 +22,9 @@
 
     <string name="layer_store">저장된 판정</string>
     <string name="layer_rule">규칙 엔진</string>
-    <string name="layer_model">온디바이스 모델</string>
     <string name="layer_knowledge">로컬 지식</string>
     <string name="layer_page_content">페이지 내용 검사</string>
-    <string name="layer_llm">온디바이스 LLM</string>
+    <string name="layer_llm">LLM</string>
 
     <string name="reason_cache_miss">저장된 판정이 없습니다.</string>
     <string name="reason_blocklisted">피싱·악성 사이트 목록에 있는 주소입니다: %1$s</string>
@@ -36,8 +34,6 @@
     <string name="reason_brand_substring_in_host">주소에 %1$s 브랜드와 비슷한 문자열이 들어 있습니다.</string>
     <string name="reason_suspicious_keyword">경로에 이벤트·무료·계정 확인 같은 유도 문구가 있습니다.</string>
     <string name="reason_no_rule_match">해당하는 규칙이 없습니다.</string>
-    <string name="reason_model_confident">URL 특징 모델이 판정했습니다 (%1$s).</string>
-    <string name="reason_model_uncertain">URL 특징 모델이 확신하지 못했습니다 (%1$s).</string>
     <string name="reason_knowledge_match">로컬 위험 지식과 일치합니다 (%1$s).</string>
     <string name="reason_knowledge_no_match">일치하는 로컬 위험 지식이 없습니다.</string>
     <string name="reason_page_brand_login_form">%1$s 브랜드를 내세운 로그인 화면이 공식 도메인이 아닌 곳에 있습니다.</string>

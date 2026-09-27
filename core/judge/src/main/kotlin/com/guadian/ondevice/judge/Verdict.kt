@@ -16,10 +16,9 @@ enum class Confidence {
 enum class Layer(val wireName: String) {
     STORE("local-store"),
     RULE("rule"),
-    MODEL("on-device-model"),
     KNOWLEDGE("local-knowledge"),
     PAGE_CONTENT("page-content"),
-    LLM("on-device-llm"),
+    LLM("llm"),
 }
 
 /**
@@ -64,8 +63,6 @@ enum class ReasonCode {
     BRAND_SUBSTRING_IN_HOST,
     SUSPICIOUS_KEYWORD,
     NO_RULE_MATCH,
-    MODEL_CONFIDENT,
-    MODEL_UNCERTAIN,
     KNOWLEDGE_MATCH,
     KNOWLEDGE_NO_MATCH,
     PAGE_BRAND_LOGIN_FORM,

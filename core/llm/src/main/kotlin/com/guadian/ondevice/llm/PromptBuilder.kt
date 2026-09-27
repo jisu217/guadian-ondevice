@@ -3,8 +3,8 @@ package com.guadian.ondevice.llm
 import java.util.Locale
 
 /**
- * Builds the on-device model's user message from a [PageObservation]. Port of
- * `user_message` in model/llm/prompt_format.py: the model was trained on that
+ * Builds the LLM's user message from a [PageObservation]. Port of
+ * `user_message` in ml/guadian_ml/llm/contract/prompt.py: the model was trained on that
  * output, so this must produce the same text character for character.
  * core/llm's parity test checks it against data/fixtures/llm_prompt_cases.jsonl.
  */
@@ -14,19 +14,19 @@ class PromptBuilder(
     private val pageChars: Int = DEFAULT_PAGE_CHARS,
 ) {
     fun build(obs: PageObservation): String {
-        val lines = mutableListOf("주소: ${Text.take(obs.url, MAX_URL_CHARS)}")
+        val lines = mutableListOf("주소: ${PyText.take(obs.url, MAX_URL_CHARS)}")
         val finalUrl: String
         if (!obs.loaded) {
             lines += "페이지: 열리지 않음"
             finalUrl = obs.url
         } else {
             finalUrl = obs.finalUrl ?: obs.url
-            val finalHost = Text.asciiHost(finalUrl)
-            if (finalHost.isNotEmpty() && finalHost != Text.asciiHost(obs.url)) {
+            val finalHost = PyText.asciiHost(finalUrl)
+            if (finalHost.isNotEmpty() && finalHost != PyText.asciiHost(obs.url)) {
                 lines += "도착: $finalHost (이동 ${obs.redirects}회)"
             }
             lines += "페이지: 상태 ${obs.status}, 본문 ${obs.textChars}자"
-            if (obs.title.isNotEmpty()) lines += "제목: ${Text.take(obs.title, MAX_TITLE_CHARS)}"
+            if (obs.title.isNotEmpty()) lines += "제목: ${PyText.take(obs.title, MAX_TITLE_CHARS)}"
             if (obs.textChars < SPARSE_TEXT_CHARS || (obs.status ?: 0) >= 400) {
                 val brand = officialBrandOf(finalHost)
                 lines += if (brand != null) "공식 도메인: $finalHost = $brand" else "공식 도메인: $finalHost 표에 없음"
@@ -41,10 +41,10 @@ class PromptBuilder(
                 val external = if (obs.forms.any { it.externalAction }) " (외부로 전송)" else ""
                 lines += "입력 칸: ${asks.ifEmpty { "일반" }}$external"
             }
-            obs.apkLinks.firstOrNull()?.let { lines += "APK 링크: ${Text.take(it, MAX_APK_CHARS)}" }
+            obs.apkLinks.firstOrNull()?.let { lines += "APK 링크: ${PyText.take(it, MAX_APK_CHARS)}" }
         }
         hostRules.gradeCase(obs.url, if (obs.loaded) finalUrl else null)?.let { lines += "주소 흉내: ${it.reason}" }
-        if (obs.loaded && obs.text.isNotEmpty()) lines += "본문: ${Text.take(obs.text, pageChars)}"
+        if (obs.loaded && obs.text.isNotEmpty()) lines += "본문: ${PyText.take(obs.text, pageChars)}"
         return lines.joinToString("\n")
     }
 
@@ -56,11 +56,11 @@ class PromptBuilder(
     /** Brands named in [words] whose domains do not cover [host], Korean table first. */
     private fun mismatches(words: String, host: String): List<Pair<String, String>> {
         val found = mutableListOf<Pair<String, String>>()
-        val squashed = Text.squash(words)
+        val squashed = PyText.squash(words)
         for (brand in brands.korean) {
             val named = brand.aliases.any { alias ->
-                val a = Text.squash(alias)
-                Text.length(a) >= MIN_ALIAS_CHARS && a in squashed
+                val a = PyText.squash(alias)
+                PyText.length(a) >= MIN_ALIAS_CHARS && a in squashed
             }
             if (named && brand.domains.none { covers(host, it) }) found += brand.name to brand.domains.first()
         }

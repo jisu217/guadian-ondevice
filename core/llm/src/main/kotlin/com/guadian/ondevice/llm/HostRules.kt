@@ -1,10 +1,10 @@
 package com.guadian.ondevice.llm
 
-import com.guadian.ondevice.util.PublicSuffixList
+import com.guadian.ondevice.url.PublicSuffixList
 import java.net.IDN
 
 /**
- * Brand imitation judged from a host alone. Port of model/llm/host_rules.py:
+ * Brand imitation judged from a host alone. Port of ml/guadian_ml/llm/contract/host_rules.py:
  *
  * - HIGH: the host embeds a brand's official domain under another registrable
  *   domain (`roblox.com.mu`, `https-wvvw-roblox.com`)
@@ -27,7 +27,7 @@ class HostRules(
             .fold(null as HostVerdict?) { best, v -> if (best == null || rank(v) > rank(best)) v else best }
 
     fun gradeHost(url: String): HostVerdict? {
-        val host = Text.hostname(url)?.removePrefix("www.")?.ifEmpty { null } ?: return null
+        val host = PyText.hostname(url)?.removePrefix("www.")?.ifEmpty { null } ?: return null
         val asciiHost = runCatching { IDN.toASCII(host, IDN.ALLOW_UNASSIGNED) }.getOrDefault(host)
         val registrable = suffixes.registrableDomain(asciiHost) ?: host
         val flat = host.replace("-", "")

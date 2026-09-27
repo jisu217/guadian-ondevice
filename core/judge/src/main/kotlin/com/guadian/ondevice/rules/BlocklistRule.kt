@@ -6,9 +6,8 @@ import com.guadian.ondevice.judge.ReasonCode
 import com.guadian.ondevice.judge.Risk
 import com.guadian.ondevice.judge.RiskCategory
 import com.guadian.ondevice.judge.Verdict
-import com.guadian.ondevice.util.BlocklistFilter
-import com.guadian.ondevice.util.PublicSuffixList
-import com.guadian.ondevice.util.UrlHost
+import com.guadian.ondevice.url.PublicSuffixList
+import com.guadian.ondevice.url.UrlHost
 
 /**
  * HIGH when the host or one of its parent domains is on the bundled blocklist.

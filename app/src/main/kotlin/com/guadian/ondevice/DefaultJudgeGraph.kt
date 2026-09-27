@@ -3,19 +3,18 @@ package com.guadian.ondevice
 import android.content.Context
 import android.util.Log
 import java.io.File
-import com.guadian.ondevice.classifier.OnDeviceModelJudge
 import com.guadian.ondevice.judge.HybridJudge
 import com.guadian.ondevice.knowledge.LocalKnowledgeJudge
 import com.guadian.ondevice.llamacpp.LlamaCppRuntime
 import com.guadian.ondevice.llm.ObservationBoard
-import com.guadian.ondevice.llm.OnDeviceLlmJudge
+import com.guadian.ondevice.llm.LlmJudge
 import com.guadian.ondevice.pagecontent.PageContentJudge
 import com.guadian.ondevice.rules.ApkRule
 import com.guadian.ondevice.rules.BlocklistRule
 import com.guadian.ondevice.rules.BrandImpersonationRule
 import com.guadian.ondevice.rules.RuleBasedJudge
 import com.guadian.ondevice.rules.SuspiciousUrlRule
-import com.guadian.ondevice.store.InMemoryRiskStore
+import com.guadian.ondevice.store.InMemoryVerdictStore
 import com.guadian.ondevice.store.StoreJudge
 
 /**
@@ -24,17 +23,16 @@ import com.guadian.ondevice.store.StoreJudge
  * (and so whether the LLM stage, which reads it, runs).
  */
 class DefaultJudgeGraph(context: Context) {
-    private val store = InMemoryRiskStore()
+    private val store = InMemoryVerdictStore()
     private val rules = RuleBasedJudge(listOf(BlocklistRule(), ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule()))
     private val cached = StoreJudge(store)
-    private val model = OnDeviceModelJudge()
     private val knowledge = LocalKnowledgeJudge()
     private val observations = ObservationBoard()
     private val pageContent = PageContentJudge(context.applicationContext, onObservation = observations::post)
 
     // The prompt is logged so the on-device input can be checked against the
     // training format.
-    private val llm = OnDeviceLlmJudge(
+    private val llm = LlmJudge(
         observations,
         runtime = LlamaCppRuntime(File(context.filesDir, MODEL_PATH)),
         onPrompt = { url, prompt -> Log.d(LLM_LOG_TAG, "$url\n$prompt") },
@@ -42,7 +40,7 @@ class DefaultJudgeGraph(context: Context) {
 
     /** Manual URL entry: every layer, in README order. */
     val full: HybridJudge = HybridJudge(
-        stages = listOf(rules, cached, model, knowledge, pageContent, llm),
+        stages = listOf(rules, cached, knowledge, pageContent, llm),
         store = store,
     )
 
@@ -52,7 +50,7 @@ class DefaultJudgeGraph(context: Context) {
      * reads what page inspection collects, so it is not part of this graph.
      */
     val shield: HybridJudge = HybridJudge(
-        stages = listOf(rules, cached, model, knowledge),
+        stages = listOf(rules, cached, knowledge),
         store = store,
     )
 

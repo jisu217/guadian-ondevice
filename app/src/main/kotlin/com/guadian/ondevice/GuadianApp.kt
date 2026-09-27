@@ -1,11 +1,10 @@
 package com.guadian.ondevice
 
 import android.app.Application
-import com.guadian.ondevice.classifier.NearestCentroidUrlModel
-import com.guadian.ondevice.rules.OfficialDomains
-import com.guadian.ondevice.util.BlocklistFilter
-import com.guadian.ondevice.util.DomainAllowlist
-import com.guadian.ondevice.util.PublicSuffixList
+import com.guadian.ondevice.rules.BrandDomains
+import com.guadian.ondevice.rules.BlocklistFilter
+import com.guadian.ondevice.url.DomainAllowlist
+import com.guadian.ondevice.url.PublicSuffixList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,8 +24,7 @@ class GuadianApp : Application() {
             DomainAllowlist.default
             BlocklistFilter.default
             PublicSuffixList.default
-            OfficialDomains.defaultBrandDomains
-            NearestCentroidUrlModel.default
+            BrandDomains.defaultBrandDomains
         }
     }
 }

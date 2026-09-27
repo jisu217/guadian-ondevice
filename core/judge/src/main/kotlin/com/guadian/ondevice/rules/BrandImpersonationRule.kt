@@ -6,12 +6,12 @@ import com.guadian.ondevice.judge.ReasonCode
 import com.guadian.ondevice.judge.Risk
 import com.guadian.ondevice.judge.RiskCategory
 import com.guadian.ondevice.judge.Verdict
-import com.guadian.ondevice.util.DomainAllowlist
-import com.guadian.ondevice.util.PublicSuffixList
-import com.guadian.ondevice.util.UrlHost
+import com.guadian.ondevice.url.DomainAllowlist
+import com.guadian.ondevice.url.PublicSuffixList
+import com.guadian.ondevice.url.UrlHost
 
 class BrandImpersonationRule(
-    private val officialDomains: OfficialDomains = OfficialDomains(),
+    private val officialDomains: BrandDomains = BrandDomains(),
     private val allowlist: DomainAllowlist = DomainAllowlist.default,
     private val suffixes: PublicSuffixList = PublicSuffixList.default,
 ) : RiskRule {

@@ -1,8 +1,8 @@
 package com.guadian.ondevice.llm
 
 /**
- * What page inspection saw, in the form the on-device model's prompt is built
- * from. Mirrors `PageObservation` in model/llm/prompt_format.py; the training
+ * What page inspection saw, in the form the LLM's prompt is built
+ * from. Mirrors `PageObservation` in ml/guadian_ml/llm/contract/prompt.py; the training
  * data is built from the same fields.
  */
 data class PageObservation(

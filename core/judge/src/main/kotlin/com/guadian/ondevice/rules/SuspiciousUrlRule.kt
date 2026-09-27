@@ -6,7 +6,7 @@ import com.guadian.ondevice.judge.ReasonCode
 import com.guadian.ondevice.judge.Risk
 import com.guadian.ondevice.judge.RiskCategory
 import com.guadian.ondevice.judge.Verdict
-import com.guadian.ondevice.util.UrlHost
+import com.guadian.ondevice.url.UrlHost
 
 class SuspiciousUrlRule : RiskRule {
     // Whole-token match on path/query: substring matching flagged "/prevention"

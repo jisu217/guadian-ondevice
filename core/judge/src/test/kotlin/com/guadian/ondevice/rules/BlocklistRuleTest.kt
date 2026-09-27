@@ -10,7 +10,7 @@ import kotlin.test.assertNull
 
 class BlocklistRuleTest {
     private val rule = BlocklistRule()
-    private val listed = File("../../model/data/fixtures/blocklist_filter_cases.csv").readLines()
+    private val listed = File("../../ml/fixtures/rules/blocklist_filter_cases.csv").readLines()
         .drop(1).first { it.endsWith(",true") }.substringBefore(',')
 
     @Test

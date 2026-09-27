@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 
 /** Checks PageSignals against data/fixtures/llm_page_signal_cases.json, written from the original rules. */
 class PageSignalsParityTest {
-    private val cases = JSONObject(File("../../model/data/fixtures/llm_page_signal_cases.json").readText())
+    private val cases = JSONObject(File("../../ml/fixtures/llm/page_signal_cases.json").readText())
 
     @Test
     fun `form asks match the original rules`() {

@@ -8,13 +8,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * AnswerReader must read replies exactly as model/llm/answer_reader.py does, so
+ * AnswerReader must read replies exactly as ml/guadian_ml/llm/contract/answer.py does, so
  * offline scores match what the app shows. Fixture: data/fixtures/llm_answer_cases.jsonl.
  */
 class AnswerReaderParityTest {
     @Test
     fun `matches the python answer fixture`() {
-        val rows = File("../../model/data/fixtures/llm_answer_cases.jsonl").readLines()
+        val rows = File("../../ml/fixtures/llm/answer_cases.jsonl").readLines()
             .filter { it.isNotBlank() }.map(::JSONObject)
         assertTrue(rows.size >= 10)
         for (row in rows) {

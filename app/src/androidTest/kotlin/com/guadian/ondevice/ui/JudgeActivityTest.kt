@@ -14,7 +14,7 @@ import org.junit.Test
 
 /**
  * Automates the layer check that was done by hand on an emulator with adb
- * (rule engine, on-device model, local knowledge, page content, on-device LLM).
+ * (rule engine, local knowledge, page content, LLM).
  * Judging runs on a background dispatcher, so each test polls the result
  * text instead of relying on Espresso's main-looper idling.
  * Run with: ./gradlew connectedDebugAndroidTest
@@ -29,14 +29,6 @@ class JudgeActivityTest {
 
         assertTrue(result, "(HIGH)" in result)
         assertTrue(result, "(rule)" in result)
-    }
-
-    @Test
-    fun onDeviceModelResolvesTrustedSupportUrlAsLow() {
-        val result = judge("https://docs.example.com/support/chat?lang=ko")
-
-        assertTrue(result, "(LOW)" in result)
-        assertTrue(result, "(on-device-model)" in result)
     }
 
     @Test
@@ -58,7 +50,7 @@ class JudgeActivityTest {
         val result = judge("https://plain-article.test/read")
 
         assertTrue(result, "(UNKNOWN)" in result)
-        assertTrue(result, "(on-device-llm)" in result)
+        assertTrue(result, "(llm)" in result)
     }
 
     private fun judge(url: String): String {

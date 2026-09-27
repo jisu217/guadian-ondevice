@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.guadian.ondevice.GuadianApp
 import com.guadian.ondevice.R
-import com.guadian.ondevice.classifier.NearestCentroidUrlModel
 import com.guadian.ondevice.judge.Verdict
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,13 +24,7 @@ class JudgeActivity : AppCompatActivity() {
 
         val urlInput = findViewById<EditText>(R.id.urlInput)
         val resultText = findViewById<TextView>(R.id.resultText)
-        val modelVersionText = findViewById<TextView>(R.id.modelVersionText)
         val app = application as GuadianApp
-
-        lifecycleScope.launch {
-            val version = withContext(Dispatchers.Default) { NearestCentroidUrlModel.default.version }
-            modelVersionText.text = getString(R.string.model_version_label, version)
-        }
 
         findViewById<Button>(R.id.judgeButton).setOnClickListener {
             val url = urlInput.text.toString().trim()

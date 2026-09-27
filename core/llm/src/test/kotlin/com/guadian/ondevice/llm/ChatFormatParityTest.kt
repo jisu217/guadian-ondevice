@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class ChatFormatParityTest {
     @Test
     fun `matches the training chat template`() {
-        val cases = JSONObject(File("../../model/data/fixtures/llm_chat_cases.json").readText())
+        val cases = JSONObject(File("../../ml/fixtures/llm/chat_cases.json").readText())
         assertEquals(cases.getString("system"), ChatFormat.SYSTEM)
         val rendered = cases.getJSONArray("rendered")
         for (i in 0 until rendered.length()) {

@@ -14,8 +14,7 @@ in [Provenance](../docs/provenance.md).
 ## 1. Build Boundary
 
 Nothing in the build reads `reference/`. It is not a Gradle source or resource
-directory for the Kotlin runtime, and neither Python training nor the server
-imports from it.
+directory for the Kotlin runtime, and Python training does not import from it.
 
 ## 2. Contents
 
@@ -27,9 +26,9 @@ the current implementation:
 | File | Source path | Influenced |
 | :-- | :-- | :-- |
 | `Judge.kt` | `app/src/main/java/com/flyai/adalert/Judge.kt` | `Judge` / `Verdict` abstraction |
-| `HttpJudge.kt` | `app/src/main/java/com/flyai/adalert/HttpJudge.kt` | `RemoteJudge` fallback shape |
+| `HttpJudge.kt` | `app/src/main/java/com/flyai/adalert/HttpJudge.kt` | the former `RemoteJudge` fallback, removed when judgment moved fully on device |
 | `WebNode.kt` | `app/src/main/java/com/flyai/adalert/WebNode.kt` | `shield/WebAccessibilityNode.kt` (adapted; KDoc cites `reference/original-guadian/src/WebNode.kt`) |
-| `judge_agent.py` | `server/judge_agent.py` | fallback server boundary |
+| `judge_agent.py` | `server/judge_agent.py` | the former fallback server, removed with `RemoteJudge` |
 
 The same repository's `docs/` directory supplied four policy documents, stored
 in `original-guadian/docs/`:
@@ -61,4 +60,4 @@ Markdown: > 참고 출처: `SKT-FLY-AI-TEAM-6/GUADIAN/docs/<file>`
 
 Use `reference/` together with [Provenance](../docs/provenance.md) to explain
 where an idea or data row came from. To see how the current system behaves,
-read `app/`, `model/`, and `server/` instead.
+read `app/`, `core/`, and `model/` instead.

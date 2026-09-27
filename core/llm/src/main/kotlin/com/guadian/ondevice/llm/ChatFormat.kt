@@ -4,7 +4,7 @@ package com.guadian.ondevice.llm
  * The exact text the model is given: Qwen3's chat template with thinking turned
  * off, as the training notebook rendered it (`apply_chat_template(...,
  * add_generation_prompt=True, enable_thinking=False)`). The system line is the one
- * the training examples carry (model/llm/build_prompts.py SYSTEM).
+ * the training examples carry (ml/guadian_ml/llm/contract/prompt.py SYSTEM).
  * Parity fixture: data/fixtures/llm_chat_cases.json.
  */
 object ChatFormat {

@@ -4,8 +4,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Brand data shared with Python training: `model/runtime/llm_brands.json`,
- * exported by model/llm/prompt_format.py. Lists keep the exported order,
+ * Brand data shared with Python training: `ml/runtime/llm_brands.json`,
+ * exported by ml/guadian_ml/resources/llm_brands.py. Lists keep the exported order,
  * which decides ties.
  */
 class LlmBrands(json: JSONObject) {

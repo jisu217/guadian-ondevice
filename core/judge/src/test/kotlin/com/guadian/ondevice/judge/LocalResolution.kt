@@ -1,6 +1,5 @@
 package com.guadian.ondevice.judge
 
-import com.guadian.ondevice.classifier.OnDeviceModelJudge
 import com.guadian.ondevice.knowledge.LocalKnowledgeJudge
 import com.guadian.ondevice.rules.ApkRule
 import com.guadian.ondevice.rules.BlocklistRule
@@ -23,17 +22,15 @@ import java.io.File
  * `./gradlew :core:judge:writeLocalResolutionReport`.
  */
 internal object LocalResolution {
-    const val REPORT_PATH = "../../model/evaluation/local-resolution-report.md"
+    const val REPORT_PATH = "../../ml/reports/pipeline/local-resolution-report.md"
 
     private val stages: List<Pair<String, Judge>> = listOf(
         "rules" to RuleBasedJudge(listOf(BlocklistRule(), ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule())),
-        "model" to OnDeviceModelJudge(),
         "knowledge" to LocalKnowledgeJudge(),
     )
 
     private val stageLabels = mapOf(
         "rules" to "Deterministic rules",
-        "model" to "On-device model",
         "knowledge" to "Local knowledge",
     )
 
@@ -46,8 +43,7 @@ internal object LocalResolution {
     data class Dataset(val name: String, val scope: String, val file: File)
 
     fun datasets(): List<Dataset> = listOf(
-        Dataset("Holdout Split", "The holdout split was not seen in training.", File("../../model/data/test-split.csv")),
-        Dataset("Full Dataset", "The full dataset includes the training rows, so model results here are optimistic.", File("../../model/data/sample_urls.csv")),
+        Dataset("URL Dataset", "All rows of the committed URL dataset.", File("../../ml/data/url/sample_urls.csv")),
     )
 
     fun measureAll(): List<Pair<String, Result>> =
@@ -89,8 +85,8 @@ internal object LocalResolution {
         appendLine()
         appendLine("## 1. Method")
         appendLine()
-        appendLine("Each URL runs through `RuleBasedJudge`, `OnDeviceModelJudge`, and")
-        appendLine("`LocalKnowledgeJudge` in pipeline order and counts as resolved at the first")
+        appendLine("Each URL runs through `RuleBasedJudge` and `LocalKnowledgeJudge` in")
+        appendLine("pipeline order and counts as resolved at the first")
         appendLine("`CERTAIN` verdict; a resolved verdict is correct when its `risk` equals the")
         appendLine("dataset label. Every URL is judged independently, so the store is excluded.")
         appendLine("`PageContentJudge` is also excluded because it needs a real WebView; the")

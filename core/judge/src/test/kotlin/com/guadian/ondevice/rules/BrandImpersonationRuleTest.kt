@@ -4,7 +4,7 @@ import com.guadian.ondevice.judge.Confidence
 import com.guadian.ondevice.judge.ReasonCode
 import com.guadian.ondevice.judge.Risk
 import com.guadian.ondevice.judge.RiskCategory
-import com.guadian.ondevice.util.DomainAllowlist
+import com.guadian.ondevice.url.DomainAllowlist
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

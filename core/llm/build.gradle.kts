@@ -18,6 +18,16 @@ kotlin {
     compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
 }
 
+sourceSets {
+    main {
+        // Brand data for the prompt, written by `python -m guadian_ml.resources.llm_brands`.
+        resources {
+            srcDir("../../ml/runtime")
+            include("llm_brands.json")
+        }
+    }
+}
+
 dependencies {
     api(project(":core:judge"))
 

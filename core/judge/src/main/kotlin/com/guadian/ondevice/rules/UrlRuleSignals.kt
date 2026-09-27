@@ -1,10 +1,10 @@
 package com.guadian.ondevice.rules
 
-import com.guadian.ondevice.util.UrlParts
+import com.guadian.ondevice.url.UrlParts
 
 /**
  * Path/query signals for the URL rules. Checked against
- * `model/data/fixtures/rule_parity_cases.csv`, so a change here must be
+ * `ml/fixtures/rules/rule_parity_cases.csv`, so a change here must be
  * mirrored there.
  */
 internal object UrlRuleSignals {

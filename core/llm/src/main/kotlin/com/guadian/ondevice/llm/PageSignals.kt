@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 /**
  * Turns raw DOM readings into [PageObservation] fields with the rules the
  * training data was collected with (judge_agent.page_signals and _text_of in
- * model/llm/vendor). Quirks are kept on purpose: a field named "hotel" counts
+ * ml/guadian_ml/llm/vendor). Quirks are kept on purpose: a field named "hotel" counts
  * as a phone field there, so it does here. Parity cases:
  * data/fixtures/llm_page_signal_cases.json.
  */
@@ -20,11 +20,11 @@ object PageSignals {
     )
 
     // The original patterns, with Python's Unicode-aware \s and \b spelled out so they
-    // behave the same on the JVM and on Android (see Text.PY_WHITESPACE).
+    // behave the same on the JVM and on Android (see PyText.PY_WHITESPACE).
     private const val FLAGS = Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE
-    private const val S = Text.PY_WHITESPACE
-    private const val START = "(?<!${Text.PY_WORD})"
-    private const val END = "(?!${Text.PY_WORD})"
+    private const val S = PyText.PY_WHITESPACE
+    private const val START = "(?<!${PyText.PY_WORD})"
+    private const val END = "(?!${PyText.PY_WORD})"
     private val RRN = Pattern.compile("주민$S*(등록)?$S*번호|주민번호|${START}rrn$END|resident", FLAGS)
     private val CARD = Pattern.compile("카드$S*번호|card$S*(number|no)|cvc|cvv", FLAGS)
     private val PHONE = Pattern.compile("전화|휴대폰|연락처|phone|tel$END", FLAGS)

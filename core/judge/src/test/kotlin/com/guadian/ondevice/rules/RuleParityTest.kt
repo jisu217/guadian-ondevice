@@ -12,7 +12,7 @@ class RuleParityTest {
 
     @Test
     fun `matches the shared rule parity fixture`() {
-        val lines = File("../../model/data/fixtures/rule_parity_cases.csv").readLines().filter { it.isNotBlank() }
+        val lines = File("../../ml/fixtures/rules/rule_parity_cases.csv").readLines().filter { it.isNotBlank() }
         assertEquals("url,category", lines.first())
         val rows = lines.drop(1).map { it.substringBeforeLast(',') to it.substringAfterLast(',') }
 

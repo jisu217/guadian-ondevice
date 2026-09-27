@@ -20,10 +20,10 @@ import com.guadian.ondevice.judge.Verdict
 import com.guadian.ondevice.llm.FormObservation
 import com.guadian.ondevice.llm.PageObservation
 import com.guadian.ondevice.llm.PageSignals
-import com.guadian.ondevice.rules.OfficialDomains
-import com.guadian.ondevice.util.DomainAllowlist
-import com.guadian.ondevice.util.PublicSuffixList
-import com.guadian.ondevice.util.UrlHost
+import com.guadian.ondevice.rules.BrandDomains
+import com.guadian.ondevice.url.DomainAllowlist
+import com.guadian.ondevice.url.PublicSuffixList
+import com.guadian.ondevice.url.UrlHost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -48,7 +48,7 @@ import kotlin.coroutines.resume
  */
 class PageContentJudge(
     private val context: Context,
-    private val officialDomains: OfficialDomains = OfficialDomains(),
+    private val officialDomains: BrandDomains = BrandDomains(),
     private val allowlist: DomainAllowlist = DomainAllowlist.default,
     private val suffixes: PublicSuffixList = PublicSuffixList.default,
     private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
@@ -255,7 +255,7 @@ class PageContentJudge(
         const val MAX_REDIRECTS = 5
 
         // Returns what classify() and the observation need, not the full DOM. The
-        // observation fields follow the collector (model/llm/vendor/judge_agent.py):
+        // observation fields follow the collector (ml/guadian_ml/llm/vendor/judge_agent.py):
         // text joins every text node outside script/style/noscript with spaces, as
         // BeautifulSoup's get_text(" ") does; forms, fields, and APK links use the
         // same selectors and limits. Kotlin applies the matching rules.

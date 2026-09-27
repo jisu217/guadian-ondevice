@@ -8,14 +8,14 @@ import kotlin.test.assertTrue
 
 /**
  * The prompt the app builds must equal the one the model was trained on.
- * data/fixtures/llm_prompt_cases.jsonl is written by model/llm/build_prompts.py.
+ * ml/fixtures/llm/prompt_cases.jsonl is written by guadian_ml.llm.contract.fixtures.
  */
 class PromptBuilderParityTest {
     private val builder = PromptBuilder()
 
     @Test
     fun `matches the python prompt fixture`() {
-        val rows = File("../../model/data/fixtures/llm_prompt_cases.jsonl").readLines().filter { it.isNotBlank() }
+        val rows = File("../../ml/fixtures/llm/prompt_cases.jsonl").readLines().filter { it.isNotBlank() }
         assertTrue(rows.size >= 10)
         for (row in rows.map(::JSONObject)) {
             val obs = observation(row.getJSONObject("observation"))
@@ -25,11 +25,11 @@ class PromptBuilderParityTest {
 
     /**
      * The same check over every collected page. The file holds page text, so it
-     * exists only where model/llm/data was built; elsewhere this test is a no-op.
+     * exists only where ml/data/llm was built; elsewhere this test is a no-op.
      */
     @Test
     fun `matches every collected page when the local data is present`() {
-        val file = File("../../model/llm/data/llm_prompt_cases_full.jsonl")
+        val file = File("../../ml/data/llm/llm_prompt_cases_full.jsonl")
         if (!file.exists()) return
         for (row in file.readLines().filter { it.isNotBlank() }.map(::JSONObject)) {
             val obs = observation(row.getJSONObject("observation"))
@@ -39,8 +39,8 @@ class PromptBuilderParityTest {
 
     @Test
     fun `truncates by characters, not UTF-16 units`() {
-        assertEquals("😀😀", Text.take("😀😀😀", 2))
-        assertEquals(3, Text.length("😀😀😀"))
+        assertEquals("😀😀", PyText.take("😀😀😀", 2))
+        assertEquals(3, PyText.length("😀😀😀"))
     }
 
     private fun observation(o: JSONObject) = PageObservation(

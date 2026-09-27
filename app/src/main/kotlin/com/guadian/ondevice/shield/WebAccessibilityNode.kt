@@ -1,8 +1,8 @@
 package com.guadian.ondevice.shield
 
 import android.view.accessibility.AccessibilityNodeInfo
-import com.guadian.ondevice.util.PublicSuffixList
-import com.guadian.ondevice.util.UrlHost
+import com.guadian.ondevice.url.PublicSuffixList
+import com.guadian.ondevice.url.UrlHost
 
 /**
  * Browser accessibility-tree helpers used by ShieldAccessibilityService.

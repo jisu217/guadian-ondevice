@@ -1,6 +1,6 @@
 package com.guadian.ondevice.judge
 
-import com.guadian.ondevice.store.RiskStore
+import com.guadian.ondevice.store.VerdictStore
 
 /**
  * Runs [stages] in order and returns the first `CERTAIN` verdict, or the
@@ -12,7 +12,7 @@ import com.guadian.ondevice.store.RiskStore
  */
 class HybridJudge(
     private val stages: List<Judge>,
-    private val store: RiskStore? = null,
+    private val store: VerdictStore? = null,
 ) : Judge {
 
     init {

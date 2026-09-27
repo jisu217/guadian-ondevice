@@ -36,11 +36,11 @@ jobs:
       - name: Check model requirements
         run: bash scripts/check-model-requirements.sh
 
-      - name: Test model training code
-        run: python -m unittest discover model/training
+      - name: Install model package
+        run: pip install -e "model[test]"
 
-      - name: Test doc metric checker
-        run: python -m unittest discover scripts
+      - name: Test model code
+        run: python -m unittest discover -s ml/tests -t model
 
       - name: Test Kotlin on-device runtime
         run: ./gradlew test

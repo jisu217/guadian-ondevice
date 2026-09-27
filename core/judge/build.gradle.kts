@@ -20,8 +20,12 @@ kotlin {
 
 sourceSets {
     main {
-        // Files the app reads at runtime, shared with Python training.
-        resources.srcDir("../../model/runtime")
+        // The runtime files this module reads, shared with Python training. Each
+        // module ships only its own; the LLM brand data lives with :core:llm.
+        resources {
+            srcDir("../../ml/runtime")
+            include("official_domains.txt", "brand_domains.tsv", "public_suffix_list.dat", "blocklist.bloom")
+        }
     }
 }
 
@@ -42,10 +46,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Regenerates model/evaluation/local-resolution-report.md; `./gradlew test`
+// Regenerates ml/reports/pipeline/local-resolution-report.md; `./gradlew test`
 // only checks the measurement's invariants and never writes the file.
 tasks.register<Test>("writeLocalResolutionReport") {
-    description = "Writes model/evaluation/local-resolution-report.md."
+    description = "Writes ml/reports/pipeline/local-resolution-report.md."
     group = "verification"
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath

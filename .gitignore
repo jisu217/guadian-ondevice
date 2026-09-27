@@ -29,8 +29,9 @@ captures/
 # macOS Finder metadata
 .DS_Store
 
-# Python bytecode cache and virtual environment (model/)
+# Python bytecode cache and virtual environment (ml/)
 __pycache__/
+*.egg-info/
 *.py[cod]
 .venv/
 
@@ -44,7 +45,7 @@ local.properties
 docs/prefetch-parallelism.md
 
 # Collected LLM cases and labels (contain third-party page text and personal data)
-model/llm/data/
+ml/data/llm/
 
 # CMake working directories for native modules (NDK builds)
 .cxx/

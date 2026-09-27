@@ -1,9 +1,9 @@
 # Technical Report
 
-This report summarizes the problem, runtime design, model, dataset, and
-evaluation of GUADIAN On-device Judge. Runtime details are in
-[Architecture](architecture.md); source lineage is in
-[Provenance](provenance.md).
+This report summarizes the problem, runtime design, on-device model, and
+evaluation of GUADIAN On-device, and records the URL model that was tried and
+removed. Runtime details are in [Architecture](architecture.md); source lineage
+is in [Provenance](provenance.md).
 
 ## Table of Contents
 
@@ -11,32 +11,34 @@ evaluation of GUADIAN On-device Judge. Runtime details are in
 2. [Problem](#2-problem)
 3. [Reference Basis](#3-reference-basis)
 4. [Runtime](#4-runtime)
-5. [Model](#5-model)
-6. [Dataset](#6-dataset)
-7. [Evaluation](#7-evaluation)
+5. [On-device LLM](#5-on-device-llm)
+6. [Evaluation](#6-evaluation)
+7. [Earlier Approach: URL Model](#7-earlier-approach-url-model)
 8. [Verification](#8-verification)
 9. [Limitations](#9-limitations)
 10. [Next Steps](#10-next-steps)
 
 ## 1. Overview
 
-GUADIAN On-device Judge is a local-first Android prototype for URL-risk
-judgment. It refactors the original GUADIAN ad-risk idea into an Android app
-(`app/`, with the judgment engine in `core/judge` and WebView page inspection
-in `core/pagecontent`) that runs the local judgment pipeline, and a Python model
-workspace (`model/`) for training, evaluation, and the generated model artifact.
+GUADIAN On-device is an Android prototype that judges the risk of an ad's
+destination entirely on the phone. It replaces the original GUADIAN server
+judge (`claude-haiku-4-5`) with deterministic rules, a local verdict store,
+local policy knowledge, rendered-page inspection, and a fine-tuned Qwen3-1.7B
+run with llama.cpp. The Android code is in `app/` and `core/`; the Python
+package that builds the model's data, trains, and evaluates it is in `ml/`.
 
 The app has two entry points: `JudgeActivity` for manual URL input, and
 `ShieldAccessibilityService`, which detects link clicks in supported browsers
-through Android accessibility APIs. As of 2026-09-24, the app builds and runs
-on an emulator; physical-device validation is pending.
+through Android accessibility APIs. The app builds and runs on an arm64
+emulator; physical-device validation is pending.
 
 ## 2. Problem
 
-Ad landing URLs can lead to phishing, APK downloads, brand impersonation,
-credential capture, or payment lures. A server-only judge can inspect richer
-context, but it adds latency, cost, and privacy exposure. This project asks how
-far a conservative on-device pipeline can go without a server judge.
+Ad landing pages can lead to phishing, APK downloads, brand impersonation,
+credential capture, or payment lures. A server judge can read the page with a
+large model, but every visit then leaves the phone, and the service pays for
+latency and API cost. This project asks how much of that judgment a phone can
+do by itself.
 
 ## 3. Reference Basis
 
@@ -46,151 +48,176 @@ sibling model-comparison dataset. Preserved source material is stored under
 [Provenance](provenance.md).
 
 The repository is a new implementation, not a direct port. The new work covers
-the local-first Kotlin judgment pipeline, the generated URL-feature model
-artifact, the local policy fallback, hidden-WebView page-content inspection,
-the accessibility-triggered Shield flow, and the model documentation checks.
+the local Kotlin judgment pipeline, the page-content inspection, the
+accessibility-triggered Shield flow, the LLM dataset and fine-tuning pipeline,
+the on-device llama.cpp runtime, and the parity tests that hold the Kotlin
+prompt and reply reading to the Python reference.
 
 ## 4. Runtime
 
 ```text
 URL
   -> RuleBasedJudge
-  -> InMemoryRiskStore (StoreJudge)
-  -> OnDeviceModelJudge
+  -> InMemoryVerdictStore (StoreJudge)
   -> LocalKnowledgeJudge
   -> PageContentJudge        (manual entry only; skipped for Shield clicks)
-  -> OnDeviceLlmJudge        (manual entry only; placeholder until the model is integrated)
+  -> LlmJudge                (manual entry only)
   -> Verdict
 ```
 
-The order is intentional. Cheap deterministic checks run first; the rules come
-before the store so that a cached verdict can never skip them. The URL model's confidence is calibrated with per-label distance
-thresholds, so it only answers when it is close enough to a centroid.
-Rendered-page inspection is delayed until URL-only evidence is insufficient.
-Control
-flow and the `Verdict` contract are described in [Architecture](architecture.md).
+Cheap deterministic checks run first, and the rules come before the store so
+that a cached verdict can never skip them. Page inspection and the LLM run
+only when nothing earlier is certain. Control flow and the `Verdict` contract
+are described in [Architecture](architecture.md).
 
-## 5. Model
+## 5. On-device LLM
 
-The model is a nearest-centroid URL-feature classifier over four labels (`LOW`,
-`MEDIUM`, `HIGH`, `UNKNOWN`), not a fine-tuned LLM. The four length features are
-`log1p`-compressed before min-max scaling, and each label has its own
-certain-distance threshold, calibrated by 5-fold cross-validation on the
-training split. Kotlin loads the generated artifact
-(`model/runtime/url_risk_centroid_model.json`, version `v8-prep`) directly, and
-Python training and Kotlin inference share a feature contract checked by
-`model/data/fixtures/feature_parity_cases.csv`.
+The LLM reads a short Korean prompt built from what page inspection saw
+(address, title, visible text, form fields, APK links, redirects, and host
+imitation findings) and answers with one JSON line: risk, type, and, for
+`HIGH`, the prompt line that supports it. The app accepts a `HIGH` only when
+that line appears in its own prompt.
 
-The 22 features fall into six groups:
+The 551 training and evaluation cases are the original team's 251 gold ad URLs
+plus 300 OpenPhish URLs, rendered in a headless mobile browser and labeled by
+the original server's model and criteria, then corrected by a written policy
+and by hand. Run 2 trains a LoRA adapter on the fp16 base, merges it, and
+ships a Q5_K_M GGUF (1.26 GB). The data process is in
+[LLM Dataset](../ml/docs/llm/dataset.md), and intended use and limits in the
+[LLM Model Card](../ml/docs/llm/model-card.md).
 
-| Group | Features |
-| :-- | :-- |
-| Length | `url_length`, `host_length`, `path_length`, `query_length` |
-| Character composition | `digit_ratio`, `special_char_ratio` |
-| Host structure | `subdomain_count` |
-| Risk tokens | `has_apk`, `has_login`, `has_event`, `has_free`, `has_shortener_token`, `brand_keyword_present` |
-| Domain signals | `official_domain_match`, `suspicious_tld` |
-| Redirect / ad-network | `query_param_count`, `utm_param_count`, `tracking_param_count`, `has_nested_url`, `has_encoded_url`, `has_ad_click_host`, `has_base64_like_token` |
+## 6. Evaluation
 
-Model history is in [Model Evolution](../model/docs/model-evolution.md).
-
-## 6. Dataset
-
-The committed dataset, `model/data/sample_urls.csv`, holds 668 rows of
-sanitized prototype data, not production traffic. It mixes three sources:
-
-| Source | Rows | Content |
-| :-- | --: | :-- |
-| `synthetic` | 301 | controlled samples for feature and pipeline validation |
-| `reference-derived` | 275 | 248 real ad landing rows from `gold_251.jsonl` + 27 GUADIAN-policy-derived rows |
-| `public-benign` | 92 | public official/normal URLs |
-
-By label, the dataset has 236 `LOW`, 222 `MEDIUM`, 107 `HIGH`, and 103
-`UNKNOWN` rows. 217 labels come from LLM consensus (Claude, Gemini, OpenAI);
-they are treated as prototype evidence, not audited incident truth. Row-level
-provenance is in [Provenance §5](provenance.md#5-committed-dataset-provenance).
-
-## 7. Evaluation
-
-Evaluation uses a deterministic stratified holdout split of 536 training and
-132 test rows, committed as `model/data/train-split.csv` and
-`model/data/test-split.csv`. Numbers below come from
-`model/evaluation/trained-model-report.md`.
+On the 118-case test split, grouped by site so no test site was seen in
+training, the shipped Q5_K_M model scores:
 
 | Metric | Value |
 | :-- | --: |
-| Holdout accuracy | 75.00% |
-| Holdout macro F1 | 74.63% |
-| Rule baseline accuracy (same split) | 64.39% |
-| 5-fold CV accuracy | 80.44% |
-| 5-fold CV macro F1 | 81.44% |
+| Accuracy | 66.9% |
+| Macro F1 | 0.67 |
+| `HIGH` recall | 52.2% |
+| Missed risk (`MEDIUM` or `HIGH` answered `LOW`) | 20 of 70 |
+| Untuned base accuracy | 43.2% |
 
-On the 72 non-synthetic holdout rows alone, accuracy is 66.67%. Per label:
+Every GGUF variant and the Colab runs are compared in the
+[LLM Evaluation Report](../ml/reports/llm/evaluation-report.md), generated
+from the committed records. Missed risk is the main weakness.
 
-| Label | Precision | Recall | F1 | Support | Interpretation |
-| :-- | --: | --: | --: | --: | :-- |
-| `LOW` | 85.37% | 74.47% | 79.55% | 47 | affected by tracking-heavy benign URLs |
-| `MEDIUM` | 75.61% | 70.45% | 72.94% | 44 | often needs page context |
-| `HIGH` | 87.50% | 66.67% | 75.68% | 21 | APK misses are resolved by `ApkRule` first |
-| `UNKNOWN` | 55.88% | 95.00% | 70.37% | 20 | conservative fallback-oriented label |
+The layers before the LLM are measured on the 668-row URL dataset
+(`ml/data/url/sample_urls.csv`): the rules resolve 135 rows (98 correct) and
+local knowledge 86 (55 correct), leaving 447 for page inspection and the LLM
+([Local Resolution Report](../ml/reports/pipeline/local-resolution-report.md)).
 
-The holdout errors fall into these buckets:
+## 7. Earlier Approach: URL Model
 
-| Bucket | Count |
-| :-- | --: |
-| `LOW` benign URL lacks enough local context | 7 |
-| `MEDIUM` needs page or interaction context | 7 |
-| `MEDIUM` under-risked by URL-only signal | 6 |
-| `HIGH` malicious signal too weak in URL text | 6 |
-| `LOW` tracking/ad URL over-risked | 5 |
-| `HIGH` impersonation signal below threshold | 1 |
-| `UNKNOWN` over-classified by sparse URL signal | 1 |
+Before the LLM, the pipeline had a third layer: a nearest-centroid classifier
+over 22 URL features (lengths, character ratios, risk tokens, official-domain
+match, suspicious TLD, and tracking and redirect parameters), trained in
+Python and run in Kotlin with a parity fixture between them. It was removed
+once the LLM ran on the device.
 
-Adding realistic ad-landing rows lowered headline accuracy but exposed the
-limits of URL-only inference. v8-prep removed a `.test` suspicious-TLD feature entry
-that leaked the synthetic source into `HIGH`; holdout accuracy fell from 79.55%
-to 75.00% and `HIGH` F1 from 93.02% to 75.68%
-([Model Evolution](../model/docs/model-evolution.md)).
-Page-content inspection addresses runtime blind spots that the URL model cannot
-cover.
+It was removed for three reasons. It settled few cases: on its 132-row holdout
+it resolved 9 URLs before later layers, 7 of them correctly. Its numbers
+leaned on synthetic data: on the 72 non-synthetic holdout rows its accuracy
+was 66.67%. And the LLM already reads the address and the host-imitation
+findings, so the URL model mostly repeated what a later layer sees with more
+context, while its training code, fixtures, reports, and checks had to be
+maintained alongside. Nothing in its code moved to other layers: its
+tracking-parameter list was already covered by the store's `UrlKey`, and its
+nested-URL, short-link, and suspicious-TLD signals are too common on benign ad
+URLs to settle a verdict alone. They are candidates for LLM prompt lines in a
+later training run. The code and its reports remain in the repository history.
+
+The version history below is kept because its lessons carry over to the LLM:
+realistic data lowers headline numbers, and synthetic artifacts leak into
+features.
+
+**v1, rule-scoring baseline.** Hand-written feature scores (APK, login, brand,
+event, free, shortener, and suspicious-TLD signals) summed into a risk label.
+It was easy to explain but too coarse for mixed ad URLs, reaching 68.41%
+accuracy on the full 668-row dataset and 68.94% on the final holdout split
+(62.57% and 64.39% after the v8-prep feature change below).
+
+**v2, synthetic-only centroid.** A nearest-centroid classifier trained on
+balanced synthetic and policy-derived samples reached 97.50% accuracy, but the
+dataset was too controlled to represent real ad landing URLs. It was treated
+as an over-optimistic checkpoint, not a result.
+
+**v3, realistic data merge.** Adding 248 real ad landing rows from
+`ml/data/raw/gold_251.jsonl`, then targeted banking, short-link, APK, and
+Korean-domain edge cases, produced the 668-row dataset. Holdout accuracy fell
+to 72.73% (macro F1 74.15%), exposing that `MEDIUM` and `UNKNOWN` often require
+signals beyond URL text.
+
+**v4–v5, confidence thresholds.** v4 used one distance threshold shared by all
+labels, so a `LOW`/`MEDIUM` boundary case collapsed confidence for
+well-separated `HIGH` cases. v5 gave each predicted label its own threshold,
+calibrated by 5-fold cross-validation on the training split.
+
+**v6–v7, feature changes.** v6 applied `log1p` to URL, host, path, and query
+lengths before min-max scaling, so very long tracking URLs no longer dominated
+the scale. v7 added query count, UTM and tracking parameter count, nested URL,
+encoded URL, ad-click host, and base64-like token features. Both were retrained
+together in `a95b51b`; an ablation run (2026-09-25) on the same dataset, split,
+and training code separated their effects:
+
+| Variant | Holdout acc. | Holdout macro F1 | `MEDIUM` recall | CV acc. | CV macro F1 |
+| :-- | --: | --: | --: | --: | --: |
+| v3–v5 (no `log1p`, no v7 features) | 72.73% | 74.15% | 50.00% | 73.16% | 74.95% |
+| v6 only (`log1p`) | 79.55% | 80.98% | 70.45% | 79.69% | 81.18% |
+| v7 only (v7 features) | 79.55% | 80.72% | 65.91% | 80.63% | 82.04% |
+| v6 + v7 | 79.55% | 80.98% | 70.45% | 81.19% | 82.70% |
+
+v6 accounted for the whole holdout gain; v7 on top left holdout accuracy
+unchanged and raised 5-fold CV accuracy from 79.69% to 81.19%.
+
+**v8-prep, `.test` leak removed (last version).** v7 treated the `.test` TLD as
+suspicious, but the synthetic rows use the reserved `.test` TLD and 66 of the
+107 `HIGH` rows were `.test` hosts, so the feature partly learned "synthetic"
+instead of "risky". v8-prep removed it and retrained on the same data and
+split:
+
+| Variant | Holdout acc. | Holdout macro F1 | `HIGH` F1 | Synthetic acc. (60) | Non-synthetic acc. (72) | CV acc. | CV macro F1 |
+| :-- | --: | --: | --: | --: | --: | --: | --: |
+| v7 | 79.55% | 80.98% | 93.02% | 93.33% | 68.06% | 81.19% | 82.70% |
+| v8-prep | 75.00% | 74.63% | 75.68% | 85.00% | 66.67% | 80.44% | 81.44% |
+
+Most of the drop was on synthetic rows, where the leaked signal lived; on
+non-synthetic rows the change was 1.39 points.
 
 ## 8. Verification
 
 Most checks run in CI on every pull request; instrumented tests run in a
-separate nightly/on-demand workflow:
+separate nightly or on-demand workflow:
 
 | Type | Scope | Run by |
 | :-- | :-- | :-- |
-| Kotlin unit tests | judges, rules, store, feature extraction, rule fixture | CI (`./gradlew test`) |
+| Kotlin unit tests | judges, rules, store, LLM prompt, chat template, and reply parity | CI (`./gradlew test`) |
 | Android lint | app sources and resources | CI (`./gradlew lint`) |
 | Robolectric tests | accessibility-node helper logic | CI (`./gradlew test`) |
-| Python model tests | training, features, allowlist build | CI |
-| Model documentation checks | `scripts/check-model-requirements.sh` | CI |
-| Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | `instrumented.yml` (nightly, on demand) or `./gradlew connectedDebugAndroidTest` |
+| Python tests | prompt contract, notebook, runtime-file builders, evaluation report | CI |
+| Requirement checks | `scripts/check-model-requirements.sh` | CI |
+| Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | `instrumented.yml` or `./gradlew connectedDebugAndroidTest` |
 
-Manual emulator verification has covered URL judgment through `JudgeActivity`,
-the safe `UNKNOWN` result when every layer was uncertain (returned at the time
-by the remote fallback, since removed), the Shield
-overlay on off-site browser link clicks, and the absence of an overlay on
-same-site browser navigation. The overlay has since been replaced by Logcat
-output (tag `GuadianShield`), which has not yet been verified by hand.
+On an arm64 emulator, the LLM stage has loaded the model and returned verdicts
+in about 4–5 seconds with a 4-bit run 1 model; run 2 Q5_K_M has not been timed
+on the device yet. Shield verdicts are written to Logcat (tag `GuadianShield`);
+that output has not yet been verified by hand.
 
 ## 9. Limitations
 
 - No physical-device validation yet.
-- Shield detects candidate browser clicks; it does not prove a click is an ad.
+- About one risky page in three is answered `LOW` by the LLM.
+- The model file is not bundled or downloaded by the app yet.
+- Shield detects candidate browser clicks; it does not prove a click is an ad,
+  and it skips page inspection and the LLM.
 - Arbitrary in-app WebViews and native ad surfaces are not covered.
-- Page-content inspection depends on WebView loading, timeout behavior, and
-  simple DOM heuristics.
-- The dataset is small and partly synthetic.
 - The project is a research prototype, not a production security product.
 
 ## 10. Next Steps
 
-1. Run and document physical-device verification.
-2. Improve accessibility permission onboarding and risk-result UI.
-3. Add redirect-chain resolution for nested landing URLs.
-4. Expand human-reviewed `MEDIUM` and benign tracking-heavy samples.
-5. Revisit `MEDIUM` versus `UNKNOWN` labeling policy.
-6. Decide whether nearest-centroid remains sufficient or should be replaced by
-   another on-device-friendly classifier.
+1. Reduce missed risk: analyze the 20 missed cases and train run 3.
+2. Time run 2 Q5_K_M on the emulator and on a physical device.
+3. Deliver the model file to the app (download and storage).
+4. Update the bundled blocklist periodically.
+5. Improve accessibility permission onboarding and the result UI.

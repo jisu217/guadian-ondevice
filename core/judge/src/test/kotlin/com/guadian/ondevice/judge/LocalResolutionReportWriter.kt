@@ -5,7 +5,7 @@ import java.io.File
 import kotlin.test.Test
 
 /**
- * Not a test: writes model/evaluation/local-resolution-report.md. It is
+ * Not a test: writes ml/reports/pipeline/local-resolution-report.md. It is
  * skipped by `./gradlew test`; `./gradlew :core:judge:writeLocalResolutionReport`
  * sets the variable below and runs only this class.
  */
