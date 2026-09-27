@@ -59,7 +59,7 @@ Paths are relative to `<module>/src/main/kotlin/com/guadian/ondevice/`. The
 | `OnDeviceModelJudge` | `core/judge` | `classifier/OnDeviceModelJudge.kt` | nearest-centroid URL-feature model | `MODEL` |
 | `LocalKnowledgeJudge` | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` | matches local policy snippets | `KNOWLEDGE` |
 | `PageContentJudge` | `core/pagecontent` | `pagecontent/PageContentJudge.kt` | inspects the rendered page in a hidden WebView | `PAGE_CONTENT` |
-| `OnDeviceLlmJudge` | `core/llm` | `llm/OnDeviceLlmJudge.kt` | builds the on-device model's prompt from page inspection's observation (`PromptBuilder`); no model yet, so it logs the prompt and stays uncertain | `LLM` |
+| `OnDeviceLlmJudge` | `core/llm` | `llm/OnDeviceLlmJudge.kt` | builds the on-device model's prompt from page inspection's observation (`PromptBuilder`), runs the model (`LlmRuntime`), and reads the reply (`AnswerReader`); no model is loaded yet, so it stays uncertain | `LLM` |
 
 ### 2.2 Control Flow
 
@@ -119,7 +119,7 @@ Each layer decides `CERTAIN` differently:
 | `OnDeviceModelJudge` | centroid distance is within the per-label threshold from the model artifact and the label is not `UNKNOWN`; otherwise `risk` is forced to `UNKNOWN` |
 | `LocalKnowledgeJudge` | a snippet matches; `risk` and `confidence` come from the first snippet |
 | `PageContentJudge` | a password field on a host that is neither an official brand domain nor allowlisted: `HIGH` if the page names a known brand, otherwise `MEDIUM`. A brand name without a password field stays `UNCERTAIN` |
-| `OnDeviceLlmJudge` | never, until the model is integrated |
+| `OnDeviceLlmJudge` | the model's reply is readable. `AnswerReader` lowers `HIGH` to `MEDIUM` unless its type is impersonation, credentials, or apk and its evidence is one of the prompt's lines verbatim; an unreadable reply is an uncertain `MEDIUM`. No model is loaded yet, so today it is never certain |
 
 Brand-to-domain data lives in `model/runtime/brand_domains.tsv`, shared with the
 allowlist builder, and registrable domains come from the bundled Public Suffix
