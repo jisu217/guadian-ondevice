@@ -89,6 +89,8 @@ require_text "core/llm/src/test/kotlin/com/guadian/ondevice/llm/PromptBuilderPar
   "Kotlin tests must cover LLM prompt parity fixture"
 require_text "core/llm/src/test/kotlin/com/guadian/ondevice/llm/PageSignalsParityTest.kt" "llm_page_signal_cases\\.json" \
   "Kotlin tests must cover page signal parity fixture"
+require_text "core/llm/src/test/kotlin/com/guadian/ondevice/llm/AnswerReaderParityTest.kt" "llm_answer_cases\\.jsonl" \
+  "Kotlin tests must cover answer reading parity fixture"
 pass "Python/Kotlin parity checks are wired"
 
 # The shipped artifact's version must be the one the trained report describes.
