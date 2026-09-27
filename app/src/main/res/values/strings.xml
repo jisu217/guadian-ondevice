@@ -51,9 +51,6 @@
     <string name="advice_medium">열기 전에 주소와 내용을 다시 확인하세요.</string>
     <string name="advice_high">이 페이지에 개인정보, 비밀번호, 결제 정보를 입력하지 마세요.</string>
     <string name="advice_unknown">판단 근거가 부족합니다. 주소를 직접 확인하세요.</string>
-    <string name="advice_shield_went_back">위험한 페이지로 판정되어 이전 화면으로 돌아갔습니다.</string>
 
     <string name="shield_service_description">브라우저에서 클릭한 링크 주소를 온디바이스에서 위험 판정하기 위해 사용합니다. 페이지 내용을 서버로 전송하지 않습니다.</string>
-    <string name="shield_dismiss_button">닫기</string>
-    <string name="shield_pending">링크를 확인하는 중…</string>
 </resources>
