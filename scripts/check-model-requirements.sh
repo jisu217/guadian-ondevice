@@ -85,6 +85,8 @@ require_text "core/judge/src/test/kotlin/com/guadian/ondevice/rules/RuleParityTe
   "Kotlin tests must cover rule parity fixture"
 require_text "core/judge/src/test/kotlin/com/guadian/ondevice/util/BlocklistFilterTest.kt" "blocklist_filter_cases\\.csv" \
   "Kotlin tests must cover blocklist filter parity fixture"
+require_text "core/llm/src/test/kotlin/com/guadian/ondevice/llm/PromptBuilderParityTest.kt" "llm_prompt_cases\\.jsonl" \
+  "Kotlin tests must cover LLM prompt parity fixture"
 pass "Python/Kotlin parity checks are wired"
 
 # The shipped artifact's version must be the one the trained report describes.

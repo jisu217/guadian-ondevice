@@ -21,6 +21,10 @@ kotlin {
 dependencies {
     api(project(":core:judge"))
 
+    // As in :core:judge: Android ships org.json; the JVM needs it to compile and test.
+    compileOnly(libs.orgjson)
+    testImplementation(libs.orgjson)
+
     testImplementation(libs.kotlin.test.junit5)
     testImplementation(libs.kotlinx.coroutines.test)
     testRuntimeOnly(libs.junit.jupiter.engine)
