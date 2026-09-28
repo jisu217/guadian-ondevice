@@ -4,6 +4,10 @@ Implements the host table in README "Labeling policy":
 
     HIGH   the host embeds a brand's official domain under another registrable
            domain (roblox.com.mu, https-wvvw-roblox.com)
+    HIGH   the registrable domain takes a brand's official name under another
+           suffix (roblox.ly for roblox.com), unless the allowlist lists it:
+           brands own many country domains (amazon.fr), and the allowlist of
+           popular sites is how the phone tells those apart
     MEDIUM the host pairs a brand token with an account word on a non-brand
            domain (xfinityuserverification.weebly.com)
     none   a brand token alone (meritzevent.com); page content decides
@@ -21,6 +25,7 @@ import re
 from dataclasses import dataclass
 from urllib.parse import urlsplit
 
+from guadian_ml import paths
 from guadian_ml.llm.vendor import judge_agent as ja
 from guadian_ml.shared import public_suffix
 
@@ -83,6 +88,25 @@ _BRANDS = _brand_table()
 _PSL = public_suffix.default()
 
 
+def _load_allowlist() -> frozenset[str]:
+    with open(paths.OFFICIAL_DOMAINS, encoding="utf-8") as f:
+        return frozenset(line.strip().lower() for line in f if line.strip() and not line.startswith("#"))
+
+
+_ALLOWLIST = _load_allowlist()
+
+
+def _allowlisted(domain: str) -> bool:
+    """DomainAllowlist.coversHost: the domain or any parent is listed."""
+    labels = domain.split(".")
+    return any(".".join(labels[i:]) in _ALLOWLIST for i in range(len(labels)))
+
+
+def _name_of(domain: str) -> str:
+    """The label before the public suffix: "amazon" for amazon.co.jp."""
+    return (_PSL.registrable_domain(domain) or domain).split(".")[0]
+
+
 def _under(host: str, domain: str) -> bool:
     return host == domain or host.endswith("." + domain)
 
@@ -112,6 +136,14 @@ def grade_host(url: str) -> HostVerdict | None:
         if embedded and not any(_under(registrable, d) for d in officials):
             return HostVerdict("HIGH", "impersonation",
                                f"host {host} embeds {embedded} but belongs to {registrable}")
+
+    name = registrable.split(".")[0]
+    if len(name) >= MIN_TOKEN_LENGTH and not _allowlisted(registrable):
+        for officials in _BRANDS.values():
+            taken = next((d for d in officials if _name_of(d) == name), None)
+            if taken:
+                return HostVerdict("HIGH", "impersonation",
+                                   f"host {host} takes the name of {taken} on {registrable}")
 
     tokens = [t for t in _BRANDS if t in flat]
     if not tokens:

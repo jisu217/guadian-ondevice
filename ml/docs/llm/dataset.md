@@ -55,6 +55,7 @@ A host that imitates a brand is graded by how certain the imitation is:
 | Host | Label | Example |
 | :-- | :-- | :-- |
 | embeds a brand's official domain under another registrable domain | `HIGH impersonation` | `roblox.com.mu` |
+| takes a brand's official name under another suffix, and the allowlist does not cover it | `HIGH impersonation` | `roblox.ly` |
 | pairs a brand name with account words (login, verify) on a non-brand domain | `MEDIUM impersonation` | `xfinityuserverification.weebly.com` |
 | contains a brand name only | no rule; judged by page content | `meritzevent.com` |
 

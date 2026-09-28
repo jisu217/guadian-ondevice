@@ -12,6 +12,14 @@ class GradeHostTest(unittest.TestCase):
         self.assertGrade("https://roblox.com.mu/games/1", "HIGH")
         self.assertGrade("https://https-wvvw-roblox.com/users/1", "HIGH")
 
+    def test_official_name_under_another_suffix_is_high(self):
+        self.assertGrade("https://www.roblox.ly/users/1/profile", "HIGH")
+        self.assertGrade("https://roblox.et/", "HIGH")
+
+    def test_allowlisted_country_domains_are_not_graded(self):
+        self.assertGrade("https://www.amazon.fr/", None)
+        self.assertGrade("https://aliexpress.ru/", None)
+
     def test_brand_with_account_word_is_medium(self):
         self.assertGrade("http://www.xfinityuserverification.weebly.com/", "MEDIUM")
         self.assertGrade("https://kb-star-login.top/", "MEDIUM")

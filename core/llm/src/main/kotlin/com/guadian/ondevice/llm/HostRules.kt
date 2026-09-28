@@ -1,5 +1,6 @@
 package com.guadian.ondevice.llm
 
+import com.guadian.ondevice.url.DomainAllowlist
 import com.guadian.ondevice.url.PublicSuffixList
 import java.net.IDN
 
@@ -8,6 +9,9 @@ import java.net.IDN
  *
  * - HIGH: the host embeds a brand's official domain under another registrable
  *   domain (`roblox.com.mu`, `https-wvvw-roblox.com`)
+ * - HIGH: the registrable domain takes a brand's official name under another
+ *   suffix (`roblox.ly` for roblox.com), unless the allowlist covers it
+ *   (brands own many country domains, such as amazon.fr)
  * - MEDIUM: the host pairs a brand token with an account word on a non-brand
  *   domain (`xfinityuserverification.weebly.com`)
  * - otherwise nothing: a brand name alone (`meritzevent.com`) is left to page content
@@ -18,6 +22,7 @@ import java.net.IDN
 class HostRules(
     private val brands: LlmBrands = LlmBrands.default,
     private val suffixes: PublicSuffixList = PublicSuffixList.default,
+    private val allowlist: DomainAllowlist = DomainAllowlist.default,
 ) {
     data class HostVerdict(val risk: String, val type: String, val reason: String)
 
@@ -40,6 +45,16 @@ class HostRules(
             }
         }
 
+        val name = registrable.substringBefore('.')
+        if (name.length >= MIN_NAME_LENGTH && !allowlist.coversHost(registrable)) {
+            for ((_, officials) in brands.hostTokens) {
+                val taken = officials.firstOrNull { nameOf(it) == name }
+                if (taken != null) {
+                    return HostVerdict("HIGH", "impersonation", "host $host takes the name of $taken on $registrable")
+                }
+            }
+        }
+
         val tokens = brands.hostTokens.map { it.first }.filter { it in flat }
         val token = tokens.maxByOrNull { it.length } ?: return null   // first of the longest, as Python's max
         val rest = flat.replace(token, "")
@@ -49,10 +64,18 @@ class HostRules(
 
     private fun rank(v: HostVerdict) = if (v.risk == "HIGH") 2 else 1
 
+    /** The label before the public suffix: "amazon" for amazon.co.jp. */
+    private fun nameOf(domain: String) = (suffixes.registrableDomain(domain) ?: domain).substringBefore('.')
+
     private fun under(host: String, domain: String) = host == domain || host.endsWith(".$domain")
 
     private fun embeds(host: String, flat: String, domain: String): Boolean {
         val pattern = Regex("(^|[.\\-])" + Regex.escape(domain) + "($|[.\\-/])")
         return pattern.containsMatchIn(host) || pattern.containsMatchIn(flat)
+    }
+
+    private companion object {
+        /** host_rules.MIN_TOKEN_LENGTH: shorter names match unrelated words too often. */
+        const val MIN_NAME_LENGTH = 5
     }
 }
