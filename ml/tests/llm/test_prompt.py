@@ -28,6 +28,11 @@ class PromptFormatTest(unittest.TestCase):
         self.assertIn("브랜드 언급: 네이버(공식 naver.com) / 실제 naver-pay.top", user_message(foreign, brands))
         self.assertIn("입력 칸: password (외부로 전송)", user_message(foreign, brands))
 
+    def test_official_domain_line_knows_global_brands(self):
+        sparse = PageObservation(url="https://m.facebook.com/login", loaded=True, final_url="https://m.facebook.com/login",
+                                 status=200, title="Facebook", text="Facebook", text_chars=40)
+        self.assertIn("공식 도메인: m.facebook.com = facebook", user_message(sparse, Brands.load()))
+
 
 if __name__ == "__main__":
     unittest.main()

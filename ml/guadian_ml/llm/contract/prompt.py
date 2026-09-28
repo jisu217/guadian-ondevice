@@ -129,8 +129,11 @@ class Brands:
             return cls(json.load(f))
 
     def official_brand_of(self, host: str) -> str | None:
+        """The brand that owns `host`: the Korean table first, then the global brands."""
         host = host.removeprefix("www.")
-        return next((b["name"] for b in self.korean if any(_covers(host, d) for d in b["domains"])), None)
+        korean = next((b["name"] for b in self.korean if any(_covers(host, d) for d in b["domains"])), None)
+        return korean or next((token for token, domains in self.global_brands.items()
+                               if any(_covers(host, d) for d in domains)), None)
 
     def mismatches(self, words: str, host: str) -> list[tuple[str, str]]:
         """(brand, first official domain) for brands named in `words` that do not own `host`."""

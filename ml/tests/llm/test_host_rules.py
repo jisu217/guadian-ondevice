@@ -16,6 +16,10 @@ class GradeHostTest(unittest.TestCase):
         self.assertGrade("https://www.roblox.ly/users/1/profile", "HIGH")
         self.assertGrade("https://roblox.et/", "HIGH")
 
+    def test_name_rule_needs_the_brand_token_itself(self):
+        # imToken's domain is token.im; "token" is not the brand's token.
+        self.assertGrade("https://token.xyz/", None)
+
     def test_allowlisted_country_domains_are_not_graded(self):
         self.assertGrade("https://www.amazon.fr/", None)
         self.assertGrade("https://aliexpress.ru/", None)

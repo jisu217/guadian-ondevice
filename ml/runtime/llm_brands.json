@@ -977,6 +977,57 @@
    [
     "fedex.com"
    ]
+  ],
+  [
+   "shopee",
+   [
+    "shopee.com",
+    "shopee.co.id",
+    "shopee.sg",
+    "shopee.tw",
+    "shopee.vn",
+    "shopee.co.th",
+    "shopee.ph",
+    "shopee.com.my",
+    "shopee.com.br"
+   ]
+  ],
+  [
+   "hinet",
+   [
+    "hinet.net"
+   ]
+  ],
+  [
+   "ionos",
+   [
+    "ionos.com",
+    "ionos.de",
+    "ionos.co.uk",
+    "ionos.fr",
+    "ionos.es",
+    "ionos.it"
+   ]
+  ],
+  [
+   "bellsouth",
+   [
+    "bellsouth.net",
+    "att.com",
+    "att.net"
+   ]
+  ],
+  [
+   "tokenpocket",
+   [
+    "tokenpocket.pro"
+   ]
+  ],
+  [
+   "imtoken",
+   [
+    "token.im"
+   ]
   ]
  ],
  "text_mentions": [
@@ -1059,6 +1110,30 @@
   [
    "fedex",
    "fedex"
+  ],
+  [
+   "shopee",
+   "shopee"
+  ],
+  [
+   "hinet",
+   "hinet"
+  ],
+  [
+   "ionos",
+   "ionos"
+  ],
+  [
+   "bellsouth",
+   "bellsouth"
+  ],
+  [
+   "tokenpocket",
+   "tokenpocket"
+  ],
+  [
+   "imtoken",
+   "imtoken"
   ]
  ],
  "host_tokens": [
@@ -1742,6 +1817,57 @@
    "fedex",
    [
     "fedex.com"
+   ]
+  ],
+  [
+   "shopee",
+   [
+    "shopee.co.id",
+    "shopee.co.th",
+    "shopee.com",
+    "shopee.com.br",
+    "shopee.com.my",
+    "shopee.ph",
+    "shopee.sg",
+    "shopee.tw",
+    "shopee.vn"
+   ]
+  ],
+  [
+   "hinet",
+   [
+    "hinet.net"
+   ]
+  ],
+  [
+   "ionos",
+   [
+    "ionos.co.uk",
+    "ionos.com",
+    "ionos.de",
+    "ionos.es",
+    "ionos.fr",
+    "ionos.it"
+   ]
+  ],
+  [
+   "bellsouth",
+   [
+    "att.com",
+    "att.net",
+    "bellsouth.net"
+   ]
+  ],
+  [
+   "tokenpocket",
+   [
+    "tokenpocket.pro"
+   ]
+  ],
+  [
+   "imtoken",
+   [
+    "token.im"
    ]
   ]
  ],

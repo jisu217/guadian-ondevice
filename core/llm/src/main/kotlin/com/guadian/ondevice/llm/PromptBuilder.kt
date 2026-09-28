@@ -48,9 +48,11 @@ class PromptBuilder(
         return lines.joinToString("\n")
     }
 
+    /** The brand that owns [host]: the Korean table first, then the global brands. */
     private fun officialBrandOf(host: String): String? {
         val bare = host.removePrefix("www.")
         return brands.korean.firstOrNull { brand -> brand.domains.any { covers(bare, it) } }?.name
+            ?: brands.globalBrands.entries.firstOrNull { (_, domains) -> domains.any { covers(bare, it) } }?.key
     }
 
     /** Brands named in [words] whose domains do not cover [host], Korean table first. */

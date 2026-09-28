@@ -45,14 +45,12 @@ class HostRules(
             }
         }
 
+        // Only a brand's own token counts as its name: imToken's domain is token.im,
+        // and "token" alone would flag every token.xyz.
         val name = registrable.substringBefore('.')
-        if (name.length >= MIN_NAME_LENGTH && !allowlist.coversHost(registrable)) {
-            for ((_, officials) in brands.hostTokens) {
-                val taken = officials.firstOrNull { nameOf(it) == name }
-                if (taken != null) {
-                    return HostVerdict("HIGH", "impersonation", "host $host takes the name of $taken on $registrable")
-                }
-            }
+        val taken = brands.hostTokens.firstOrNull { it.first == name }?.second?.firstOrNull { nameOf(it) == name }
+        if (taken != null && !allowlist.coversHost(registrable)) {
+            return HostVerdict("HIGH", "impersonation", "host $host takes the name of $taken on $registrable")
         }
 
         val tokens = brands.hostTokens.map { it.first }.filter { it in flat }
@@ -72,10 +70,5 @@ class HostRules(
     private fun embeds(host: String, flat: String, domain: String): Boolean {
         val pattern = Regex("(^|[.\\-])" + Regex.escape(domain) + "($|[.\\-/])")
         return pattern.containsMatchIn(host) || pattern.containsMatchIn(flat)
-    }
-
-    private companion object {
-        /** host_rules.MIN_TOKEN_LENGTH: shorter names match unrelated words too often. */
-        const val MIN_NAME_LENGTH = 5
     }
 }

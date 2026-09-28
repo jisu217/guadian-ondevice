@@ -67,6 +67,10 @@ def observations() -> list[prompt.PageObservation]:
                         title="제휴", text="네이버 카카오 구글 애플 삼성전자 쿠팡 roblox paypal", text_chars=600),
         prompt.PageObservation(url="https://tiny.cc/abc", loaded=True, final_url="https://www.roblox.com.bi/users/2",
                         status=200, redirects=1, title="Roblox", text="Roblox", text_chars=180),
+        prompt.PageObservation(url="https://short.example/f", loaded=True, final_url="https://m.facebook.com/login",
+                        status=200, redirects=3, title="Facebook", text="Facebook 로그인", text_chars=40),
+        prompt.PageObservation(url="https://token.xyz/", loaded=True, final_url="https://token.xyz/", status=200,
+                        title="TokenPocket wallet", text="Download TokenPocket and imToken", text_chars=300),
     ]
 
 

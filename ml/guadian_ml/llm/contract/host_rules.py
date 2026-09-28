@@ -50,6 +50,15 @@ GLOBAL_BRANDS: dict[str, tuple[str, ...]] = {
     "dropbox": ("dropbox.com",),
     "docusign": ("docusign.com", "docusign.net"),
     "fedex": ("fedex.com",),
+    # Added after the run-2 error analysis: named in collected phishing pages
+    # that carried no brand signal.
+    "shopee": ("shopee.com", "shopee.co.id", "shopee.sg", "shopee.tw", "shopee.vn",
+               "shopee.co.th", "shopee.ph", "shopee.com.my", "shopee.com.br"),
+    "hinet": ("hinet.net",),
+    "ionos": ("ionos.com", "ionos.de", "ionos.co.uk", "ionos.fr", "ionos.es", "ionos.it"),
+    "bellsouth": ("bellsouth.net", "att.com", "att.net"),
+    "tokenpocket": ("tokenpocket.pro",),
+    "imtoken": ("token.im",),
 }
 
 ACCOUNT_WORDS = ("login", "logon", "signin", "verify", "verification", "account",
@@ -137,13 +146,13 @@ def grade_host(url: str) -> HostVerdict | None:
             return HostVerdict("HIGH", "impersonation",
                                f"host {host} embeds {embedded} but belongs to {registrable}")
 
+    # Only a brand's own token counts as its name: imToken's domain is token.im,
+    # and "token" alone would flag every token.xyz.
     name = registrable.split(".")[0]
-    if len(name) >= MIN_TOKEN_LENGTH and not _allowlisted(registrable):
-        for officials in _BRANDS.values():
-            taken = next((d for d in officials if _name_of(d) == name), None)
-            if taken:
-                return HostVerdict("HIGH", "impersonation",
-                                   f"host {host} takes the name of {taken} on {registrable}")
+    officials = _BRANDS.get(name, ())
+    taken = next((d for d in officials if _name_of(d) == name), None)
+    if taken and not _allowlisted(registrable):
+        return HostVerdict("HIGH", "impersonation", f"host {host} takes the name of {taken} on {registrable}")
 
     tokens = [t for t in _BRANDS if t in flat]
     if not tokens:
@@ -164,6 +173,8 @@ TEXT_MENTIONS: dict[str, str] = {
     "whatsapp": "whatsapp", "paypal": "paypal", "amazon": "amazon", "xfinity": "xfinity",
     "coinbase": "coinbase", "binance": "binance", "metamask": "metamask", "telegram": "telegram",
     "linkedin": "linkedin", "dropbox": "dropbox", "docusign": "docusign", "fedex": "fedex",
+    "shopee": "shopee", "hinet": "hinet", "ionos": "ionos", "bellsouth": "bellsouth",
+    "tokenpocket": "tokenpocket", "imtoken": "imtoken",
 }
 
 
