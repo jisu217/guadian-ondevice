@@ -55,6 +55,10 @@ class ExampleBuildingTest(unittest.TestCase):
         self.ns["AutoTokenizer"] = AutoTokenizer
         exec(nb.EXAMPLES.replace("from transformers import AutoTokenizer\n", ""), self.ns)
 
+    def test_only_training_high_cases_are_repeated(self):
+        self.assertEqual(len(self.ns["features"]["train"]), 2)        # one HIGH example, two copies
+        self.assertEqual(len(self.ns["features"]["validation"]), 1)
+
     def test_loss_covers_only_the_answer(self):
         tokenizer = self.ns["tokenizer"]
         features = self.ns["features"]["train"][0]

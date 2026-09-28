@@ -28,6 +28,25 @@ lowered no `HIGH` answer. On the 47 hand-reviewed cases
 Q5_K_M reaches 55.3% and finds none of the `HIGH`
 cases; missed risk is the main thing to fix.
 
+Run 2 was scored before the 2026-09-28 prompt changes (brand names under
+another suffix, added brands, and global brands in the official-domain line),
+which changed 8 of the 118 test prompts. Later runs are scored on the new
+prompts.
+
+## Stability across quantization
+
+All 4 files give the same risk on 60.2% of the 118 cases. Agreement with f16, per quantized file:
+
+| File | Same risk as f16 |
+| :-- | --: |
+| Q4_K_M | 65.3% |
+| Q5_K_M | 88.1% |
+| Q8_0 | 96.6% |
+
+Q8_0 and Q5_K_M mostly keep the f16 model's answers; Q4_K_M changes about one
+in three, which matches its accuracy drop. The misses are not quantization
+noise: the f16 file answers `LOW` on 17 of the 20 risky cases Q5_K_M misses.
+
 ## Run 1: why LoRA instead of QLoRA
 
 | Model | Accuracy | Macro F1 | HIGH recall | Missed risk | Unparseable | Record |

@@ -15,6 +15,7 @@ import nbformat
 from guadian_ml import paths
 
 OUT = paths.NOTEBOOKS / "train_llm.ipynb"
+RUN = "run3"   # the training run this notebook produces; written into its cells
 
 INTRO = """\
 # LoRA fine-tuning of the on-device judge
@@ -36,6 +37,7 @@ INSTALL = """\
 
 CONFIG = """\
 MODEL_ID = "Qwen/Qwen3-1.7B"
+RUN = "__RUN__"            # names the exported files, so runs do not overwrite each other
 SEED = 20260926
 # Train on the full-precision base (plain LoRA) rather than a 4-bit one (QLoRA). An adapter
 # trained against 4-bit weights no longer fits once merged into the full-precision weights the
@@ -44,8 +46,15 @@ QUANTIZE_BASE = False
 MAX_LENGTH = 1024          # longest compact prompt is ~700 tokens
 LORA = dict(r=16, lora_alpha=32, lora_dropout=0.05,
             target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
-TRAIN = dict(num_train_epochs=3, learning_rate=2e-4, per_device_train_batch_size=4,
-             gradient_accumulation_steps=4, lr_scheduler_type="cosine")
+# Run 2 took 72 optimizer steps (3 epochs at an effective batch of 16), and its misses
+# were systematic: the f16 file answered LOW on 17 of the 20 risky test cases the Q5
+# file missed. Run 3 takes about four times as many steps; the best epoch by
+# validation loss is kept.
+TRAIN = dict(num_train_epochs=5, learning_rate=2e-4, per_device_train_batch_size=4,
+             gradient_accumulation_steps=2, lr_scheduler_type="cosine")
+# Training copies per risk level. HIGH is the rarest label (59 of 381) and had
+# the lowest recall in run 2; validation and test are never resampled.
+OVERSAMPLE = {"HIGH": 2}
 WARMUP_FRACTION = 0.05     # of all optimizer steps
 MAX_NEW_TOKENS = 96        # the answer is one short JSON line
 RISKS = ["LOW", "MEDIUM", "HIGH"]"""
@@ -68,6 +77,7 @@ data = {name.split("_")[1].split(".")[0]: read_jsonl(name) for name in NAMES}
 print({split: len(rows) for split, rows in data.items()})"""
 
 EXAMPLES = """\
+import json
 from transformers import AutoTokenizer
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
@@ -86,7 +96,12 @@ def to_features(example):
     labels = ([-100] * len(prompt_ids) + answer_ids)[:MAX_LENGTH]
     return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}
 
-features = {split: [to_features(e) for e in rows] for split, rows in data.items() if split != "test"}
+def copies(example, split):
+    risk = json.loads(example["messages"][2]["content"])["risk"]
+    return OVERSAMPLE.get(risk, 1) if split == "train" else 1
+
+features = {split: [to_features(e) for e in rows for _ in range(copies(e, split))]
+            for split, rows in data.items() if split != "test"}
 lengths = sorted(len(f["input_ids"]) for f in features["train"])
 print("train tokens: median", lengths[len(lengths) // 2], "max", lengths[-1])"""
 
@@ -219,6 +234,7 @@ for name in ("model", "base", "trainer"):
     globals().pop(name, None)
 torch.cuda.empty_cache()
 MODEL_ID = "Qwen/Qwen3-1.7B"
+RUN = "__RUN__"
 from peft import PeftModel
 full = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.float16, device_map="auto")
 merged = PeftModel.from_pretrained(full, "adapter").merge_and_unload()
@@ -237,16 +253,16 @@ import os
 if not os.path.exists("llama.cpp"):
     !git clone --depth 1 https://github.com/ggml-org/llama.cpp
 %pip install -q -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
-!python llama.cpp/convert_hf_to_gguf.py merged --outtype f16 --outfile guadian-qwen3-1.7b-f16.gguf"""
+!python llama.cpp/convert_hf_to_gguf.py merged --outtype f16 --outfile guadian-qwen3-1.7b-{RUN}-f16.gguf"""
 
 SAVE = """\
 # Copy results to Google Drive (the f16 GGUF is ~3.4 GB, too large for a browser download).
 from google.colab import drive
 import os, shutil
 drive.mount("/content/drive")
-target = "/content/drive/MyDrive/guadian-ondevice"
+target = f"/content/drive/MyDrive/guadian-ondevice/{RUN}"
 os.makedirs(target, exist_ok=True)
-for path in ["guadian-qwen3-1.7b-f16.gguf", "test_metrics.json", "test_predictions.jsonl"]:
+for path in [f"guadian-qwen3-1.7b-{RUN}-f16.gguf", "test_metrics.json", "test_predictions.jsonl"]:
     shutil.copy(path, target)
 shutil.copytree("adapter", f"{target}/adapter", dirs_exist_ok=True)
 print("saved to", target)"""
@@ -255,8 +271,14 @@ OUTRO = """\
 ## After training, on the Mac
 
 ```bash
-llama-quantize guadian-qwen3-1.7b-f16.gguf guadian-qwen3-1.7b-Q5_K_M.gguf Q5_K_M
-python -m guadian_ml.llm.evaluation.gguf guadian-qwen3-1.7b-Q5_K_M.gguf --name runN-q5_k_m
+for q in Q8_0 Q5_K_M Q4_K_M; do
+  llama-quantize guadian-qwen3-1.7b-__RUN__-f16.gguf guadian-qwen3-1.7b-__RUN__-$q.gguf $q
+done
+for f in f16 Q8_0 Q5_K_M Q4_K_M; do
+  python -m guadian_ml.llm.evaluation.gguf guadian-qwen3-1.7b-__RUN__-$f.gguf \\
+    --name __RUN__-$(echo $f | tr A-Z a-z) --gpu-layers 99
+done
+python -m guadian_ml.llm.evaluation.agreement __RUN__
 ```
 
 The evaluation confirms quantization kept the scores (Q4_K_M did not for run 2; see
@@ -272,7 +294,7 @@ def main() -> None:
              ("code", MODEL), ("code", TRAINING), ("code", SCORING), ("code", EVALUATE),
              ("code", MERGE), ("code", EXPORT), ("code", SAVE), ("md", OUTRO)]
     nb.cells = [nbformat.v4.new_markdown_cell(src) if kind == "md" else nbformat.v4.new_code_cell(src)
-                for kind, src in cells]
+                for kind, src in ((kind, src.replace("__RUN__", RUN)) for kind, src in cells)]
     for i, cell in enumerate(nb.cells):   # fixed ids keep the generated file reproducible
         cell.id = f"cell-{i:02d}"
     nbformat.write(nb, OUT)

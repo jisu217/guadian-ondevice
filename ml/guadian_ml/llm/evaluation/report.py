@@ -55,6 +55,18 @@ def table(rows: list[tuple[str, str | None, str]]) -> str:
     return "\n".join(lines)
 
 
+def stability(run: str) -> str:
+    """Agreement with the run's f16 file, from `evaluation.agreement`."""
+    record = load(f"{run}-agreement", None)
+    rows = ["| File | Same risk as f16 |", "| :-- | --: |"]
+    for variant in record["variants"]:
+        if variant != "f16":
+            rows.append(f"| {variant.upper()} | {pct(record['pairwise'][f'f16|{variant}'])} |")
+    return (f"All {len(record['variants'])} files give the same risk on "
+            f"{pct(record['all_agree'])} of the {record['cases']} cases. "
+            f"Agreement with f16, per quantized file:\n\n" + "\n".join(rows))
+
+
 def render() -> str:
     q5 = load("run2-q5_k_m", None)
     return f"""# On-device LLM Evaluation
@@ -79,6 +91,19 @@ gives the same scores; for Q5_K_M no reply was malformed and the grounding check
 lowered no `HIGH` answer. On the {q5['human_review']['n']} hand-reviewed cases
 Q5_K_M reaches {pct(q5['human_review']['accuracy'])} and finds none of the `HIGH`
 cases; missed risk is the main thing to fix.
+
+Run 2 was scored before the 2026-09-28 prompt changes (brand names under
+another suffix, added brands, and global brands in the official-domain line),
+which changed 8 of the 118 test prompts. Later runs are scored on the new
+prompts.
+
+## Stability across quantization
+
+{stability("run2")}
+
+Q8_0 and Q5_K_M mostly keep the f16 model's answers; Q4_K_M changes about one
+in three, which matches its accuracy drop. The misses are not quantization
+noise: the f16 file answers `LOW` on 17 of the 20 risky cases Q5_K_M misses.
 
 ## Run 1: why LoRA instead of QLoRA
 
