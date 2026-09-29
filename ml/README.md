@@ -39,11 +39,11 @@ The package needs Python 3.11 or later. From the repository root:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -e "model[llm]"      # data collection, labeling, notebook, evaluation
-python -m unittest discover -s ml/tests -t model
+pip install -e "ml[llm]"      # data collection, labeling, notebook, evaluation
+python -m unittest discover -s ml/tests -t ml
 ```
 
-`model[test]` installs only what the tests need, and is what CI uses. Every
+`ml[test]` installs only what the tests need, and is what CI uses. Every
 dependency is pinned in `pyproject.toml`.
 
 ## 3. On-device LLM

@@ -40,7 +40,7 @@ paths in the original repository and may not resolve here.
 
 The sibling-repository dataset `gold_251.jsonl` used to live here. Because it is
 training input rather than reference material, it now lives at
-`model/data/raw/gold_251.jsonl` (unchanged, same SHA256); its lineage is in
+`ml/data/raw/gold_251.jsonl` (unchanged, same SHA256); its lineage is in
 [Provenance](../docs/provenance.md#4-sibling-dataset-reference).
 
 ## 3. Copy Policy
@@ -54,10 +54,10 @@ Python:   # 참고 출처: SKT-FLY-AI-TEAM-6/GUADIAN/<source path>
 Markdown: > 참고 출처: `SKT-FLY-AI-TEAM-6/GUADIAN/docs/<file>`
 ```
 
-`model/data/raw/gold_251.jsonl` is stored unmodified.
+`ml/data/raw/gold_251.jsonl` is stored unmodified.
 
 ## 4. Usage Rule
 
 Use `reference/` together with [Provenance](../docs/provenance.md) to explain
 where an idea or data row came from. To see how the current system behaves,
-read `app/`, `core/`, and `model/` instead.
+read `app/`, `core/`, and `ml/` instead.

@@ -221,4 +221,4 @@ that output has not yet been verified by hand.
    prompt can tell email and name fields apart.
 2. Time run 3 Q4_K_M on the emulator and on a physical device.
 3. Update the bundled blocklist periodically.
-5. Improve accessibility permission onboarding and the result UI.
+4. Improve accessibility permission onboarding and the result UI.
