@@ -81,27 +81,28 @@ that line appears in its own prompt.
 The 551 training and evaluation cases are the original team's 251 gold ad URLs
 plus 300 OpenPhish URLs, rendered in a headless mobile browser and labeled by
 the original server's model and criteria, then corrected by a written policy
-and by hand. Run 2 trains a LoRA adapter on the fp16 base, merges it, and
-ships a Q5_K_M GGUF (1.26 GB). The data process is in
+and by hand. Run 3 trains a LoRA adapter on the fp16 base, merges it, and
+ships a Q4_K_M GGUF (1.11 GB). The data process is in
 [LLM Dataset](../ml/docs/llm/dataset.md), and intended use and limits in the
 [LLM Model Card](../ml/docs/llm/model-card.md).
 
 ## 6. Evaluation
 
 On the 118-case test split, grouped by site so no test site was seen in
-training, the shipped Q5_K_M model scores:
+training, the shipped run 3 Q4_K_M model scores:
 
 | Metric | Value |
 | :-- | --: |
-| Accuracy | 66.9% |
-| Macro F1 | 0.67 |
-| `HIGH` recall | 52.2% |
-| Missed risk (`MEDIUM` or `HIGH` answered `LOW`) | 20 of 70 |
+| Accuracy | 74.6% |
+| Macro F1 | 0.73 |
+| `HIGH` recall | 56.5% |
+| Missed risk (`MEDIUM` or `HIGH` answered `LOW`) | 21 of 70 |
 | Untuned base accuracy | 43.2% |
 
 Every GGUF variant and the Colab runs are compared in the
 [LLM Evaluation Report](../ml/reports/llm/evaluation-report.md), generated
-from the committed records. Missed risk is the main weakness.
+from the committed records. Missed risk is the main weakness: run 3 raised
+accuracy by 7.7 points over run 2 without reducing it.
 
 The layers before the LLM are measured on the 668-row URL dataset
 (`ml/data/url/sample_urls.csv`): the rules resolve 135 rows (98 correct) and
@@ -200,7 +201,7 @@ separate nightly or on-demand workflow:
 | Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | `instrumented.yml` or `./gradlew connectedDebugAndroidTest` |
 
 On an arm64 emulator, the LLM stage has loaded the model and returned verdicts
-in about 4–5 seconds with a 4-bit run 1 model; run 2 Q5_K_M has not been timed
+in about 4–5 seconds with a 4-bit run 1 model; run 3 Q4_K_M has not been timed
 on the device yet. Shield verdicts are written to Logcat (tag `GuadianShield`);
 that output has not yet been verified by hand.
 
@@ -208,7 +209,7 @@ that output has not yet been verified by hand.
 
 - No physical-device validation yet.
 - About one risky page in three is answered `LOW` by the LLM.
-- The model file is not bundled or downloaded by the app yet.
+- The model file is not distributed (its training data's terms forbid it).
 - Shield detects candidate browser clicks; it does not prove a click is an ad,
   and it skips page inspection and the LLM.
 - Arbitrary in-app WebViews and native ad surfaces are not covered.
@@ -216,8 +217,8 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Reduce missed risk: analyze the 20 missed cases and train run 3.
-2. Time run 2 Q5_K_M on the emulator and on a physical device.
-3. Deliver the model file to the app (download and storage).
-4. Update the bundled blocklist periodically.
+1. Reduce missed risk on personal-information pages: re-collect pages so the
+   prompt can tell email and name fields apart.
+2. Time run 3 Q4_K_M on the emulator and on a physical device.
+3. Update the bundled blocklist periodically.
 5. Improve accessibility permission onboarding and the result UI.

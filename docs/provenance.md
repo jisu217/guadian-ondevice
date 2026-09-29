@@ -205,8 +205,11 @@ base weights nor the fine-tuned GGUF are committed.
 
 Its training data combines the 251 gold-set URLs (section 4) with 300 URLs
 from the OpenPhish community feed (https://openphish.com/feed.txt), fetched on
-2026-09-26. The feed's terms of use have not been reviewed yet. Collected
-pages and labels stay in the git-ignored `ml/data/llm/`.
+2026-09-26. The feed's terms (https://openphish.com/terms.html, read
+2026-09-29) allow academic, independent, or personal research and forbid
+commercial use and making the information or derivative works available to
+third parties. Collected pages and labels therefore stay in the git-ignored
+`ml/data/llm/`, and the fine-tuned model is not distributed.
 
 ## 10. Implementation Boundaries
 

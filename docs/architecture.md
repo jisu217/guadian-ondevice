@@ -184,7 +184,7 @@ lack those instructions. The model file is not bundled yet; for development it
 is copied into the app's private storage:
 
 ```bash
-adb push guadian-qwen3-1.7b-run2-Q5_K_M.gguf /data/local/tmp/guadian.gguf
+adb push guadian-qwen3-1.7b-run3-Q4_K_M.gguf /data/local/tmp/guadian.gguf
 adb shell run-as com.guadian.ondevice sh -c 'mkdir -p files/models && cp /data/local/tmp/guadian.gguf files/models/guadian.gguf'
 adb shell rm /data/local/tmp/guadian.gguf
 ```
@@ -211,6 +211,6 @@ Each layer trades some accuracy or coverage for speed, privacy, or safety:
 | :-- | :-- | :-- |
 | rules first | fast and explainable | rule maintenance |
 | conservative rules | fewer overconfident mistakes | more cases reach slower, later layers |
-| LLM last | reads what the page shows, on the device | seconds per verdict, a 1.26 GB model file |
+| LLM last | reads what the page shows, on the device | seconds per verdict, a 1.11 GB model file |
 | page content late | catches forms and brand text | page load cost; the destination server sees a visit from the device |
 | accessibility Shield | judges browser clicks without touching the page | permission and surface limits; results are only logged |

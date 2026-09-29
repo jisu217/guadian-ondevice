@@ -27,8 +27,9 @@ host-imitation findings) and answers with one JSON line: `risk` (`LOW`,
 It replaces the original GUADIAN server's call to `claude-haiku-4-5`; nothing
 leaves the phone.
 
-The current model is run 2, shipped as `guadian-qwen3-1.7b-run2-Q5_K_M.gguf`
-(1.26 GB). The file is not bundled with the app yet.
+The current model is run 3, shipped as `guadian-qwen3-1.7b-run3-Q4_K_M.gguf`
+(1.11 GB). The file is not bundled with the app and is not distributed (see
+[Provenance](../../../docs/provenance.md)).
 
 ## 2. Intended Use
 
@@ -66,21 +67,24 @@ content and personal data, so the dataset stays in the git-ignored
 
 ## 4. Training
 
-Run 2 trains a LoRA adapter (rank 16, alpha 32, dropout 0.05, all attention
-and MLP projections) on the fp16 base for three epochs, learning rate 2e-4
-with cosine decay, effective batch size 16, loss on the answer tokens only.
-The adapter is merged into the fp16 weights, converted to GGUF, and quantized
-to Q5_K_M. Plain LoRA replaced QLoRA after run 1 lost about six points in the
-merge. `notebooks/train_llm.ipynb` holds the exact settings.
+Run 3 trains a LoRA adapter (rank 16, alpha 32, dropout 0.05, all attention
+and MLP projections) on the fp16 base for five epochs, learning rate 2e-4
+with cosine decay, effective batch size 8, loss on the answer tokens only,
+with `HIGH` training cases repeated twice; the epoch with the lowest
+validation loss is kept. The adapter is merged into the fp16 weights,
+converted to GGUF, and quantized to Q4_K_M. Plain LoRA replaced QLoRA after
+run 1 lost about six points in the merge, and run 3 takes about four times
+run 2's 72 optimizer steps. `notebooks/train_llm.ipynb` holds the exact settings.
 
 ## 5. Evaluation
 
-On the 118-case test split, Q5_K_M reaches 66.9% accuracy, macro F1 0.67, and
-52.2% `HIGH` recall. It answers `LOW` for 20 of the 70 `MEDIUM` and `HIGH`
-cases (missed risk), and on the 47 hand-reviewed cases it reaches 55.3% and
-finds none of the `HIGH` ones. The untuned base scores 43.2% and cannot follow
-the answer format (112 of 118 replies unparseable). Q4_K_M falls 8.5 points
-below f16, so it is not used.
+On the 118-case test split, Q4_K_M reaches 74.6% accuracy, macro F1 0.73, and
+56.5% `HIGH` recall. It answers `LOW` for 21 of the 70 `MEDIUM` and `HIGH`
+cases (missed risk), 9 of them pages collecting personal details, and on the
+47 hand-reviewed cases it reaches 68.1% and finds none of the `HIGH` ones. The
+untuned base scores 43.2% and cannot follow the answer format (112 of 118
+replies unparseable). Q4_K_M keeps the f16 file's answer on 91.5% of cases
+and scores at least as well as the larger files, so it ships as the smallest.
 
 These figures come from 118 cases, so one case moves accuracy by 0.85 points;
 differences of a few points between runs are within noise.

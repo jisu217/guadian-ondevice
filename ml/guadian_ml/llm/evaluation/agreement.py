@@ -56,6 +56,8 @@ def main() -> int:
     answers: dict[str, dict[str, str]] = {}
     for path in sorted(paths.LLM_DATA.glob(f"eval_{args.run}-*_{args.split}_predictions.jsonl")):
         variant = path.name.removeprefix(f"eval_{args.run}-").removesuffix(f"_{args.split}_predictions.jsonl")
+        if variant == "colab":   # the notebook's own predictions: another format, not a GGUF file
+            continue
         with open(path, encoding="utf-8") as f:
             answers[variant] = {r["case_id"]: read(r["reply"]) for r in map(json.loads, f) if r}
     if len(answers) < 2:

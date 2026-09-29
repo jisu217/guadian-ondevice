@@ -22,18 +22,18 @@ llama.cpp, reads what the page showed and gives the final verdict. ⑥
 
 ## 1. Current Results
 
-The on-device LLM (run 2, Q5_K_M GGUF) on the 118-case test split, grouped by
+The on-device LLM (run 3, Q4_K_M GGUF) on the 118-case test split, grouped by
 site so no test site was seen in training:
 
 | Metric | Value |
 | :-- | --: |
-| Accuracy | 66.9% |
-| Macro F1 | 0.67 |
-| `HIGH` recall | 52.2% |
-| Missed risk (`MEDIUM` or `HIGH` answered `LOW`) | 20 of 70 |
+| Accuracy | 74.6% |
+| Macro F1 | 0.73 |
+| `HIGH` recall | 56.5% |
+| Missed risk (`MEDIUM` or `HIGH` answered `LOW`) | 21 of 70 |
 | Untuned base accuracy | 43.2% |
 
-Fine-tuning taught the model the answer format and lifted accuracy by 23.7
+Fine-tuning taught the model the answer format and lifted accuracy by 31.4
 points, but about one risky page in three is still answered `LOW`; that is the
 next thing to fix. Source:
 [LLM Evaluation Report](ml/reports/llm/evaluation-report.md).
