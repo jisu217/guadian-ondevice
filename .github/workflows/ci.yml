@@ -37,10 +37,10 @@ jobs:
         run: bash scripts/check-model-requirements.sh
 
       - name: Install model package
-        run: pip install -e "model[test]"
+        run: pip install -e "ml[test]"
 
       - name: Test model code
-        run: python -m unittest discover -s ml/tests -t model
+        run: python -m unittest discover -s ml/tests -t ml
 
       - name: Test Kotlin on-device runtime
         run: ./gradlew test
