@@ -2,127 +2,104 @@
 
 ![Status](https://img.shields.io/badge/status-in_progress-111111)
 
-「GUADIAN」 is a service developed in the SKT FLY AI bootcamp to reduce harm
-from malicious ad landing pages. This repository focuses on the judgment stage
-of its detect -> judge -> intervene flow, and rebuilds the original
-server-based judgment structure as an Android on-device pipeline.
+「GUADIAN」 is a service developed in the SKT FLY AI bootcamp to prevent digital
+harm originating from malicious ads. This repository focuses on the judgment
+stage of the detect → judge → intervene flow and rebuilds the original
+server-based judgment architecture as an on-device pipeline.
 
-This is not a single-model demo. The app combines cheap deterministic exits,
-local evidence, rendered-page observation, and a small fine-tuned LLM whose
-`HIGH` answers must be grounded in the prompt. The design goal is not to make
-the model sound confident; it is to keep uncertainty visible until the pipeline
-has enough evidence to act.
+This repository records
+that process: building the data, fine-tuning Qwen3-1.7B, comparing training
+runs and quantized models, and connecting the model to the app.
 
-The current result is promising but unfinished. Run 3 of the on-device Qwen3
-judge reaches 74.6% accuracy on a grouped-site test split, but still answers
-`LOW` for 21 of 70 risky pages. The runtime works on an arm64 emulator; model
-distribution, physical-device validation, and broader Shield coverage remain
-future work.
+## 1. Model Development
 
-## At a Glance
+### Data and Judgment Task
 
-| Area | Current state |
-| :-- | :-- |
-| Runtime | Android app with manual URL judgment and browser-click Shield logging |
-| Judgment strategy | cheap certain exits first, LLM last, uncertain results passed onward |
-| Model | Qwen3-1.7B LoRA run 3, exported as Q4_K_M GGUF |
-| Evaluation split | 118 cases, grouped by site so test sites are not seen in training |
-| Current result | 74.6% accuracy, 0.73 macro F1, 56.5% `HIGH` recall |
-| Main failure mode | missed risk: 21 of 70 risky pages answered `LOW` |
-| Scope | research prototype, not a production security product |
+The original service used `claude-haiku-4-5` as its server judge. For the local
+model, I built a dataset from the team's 251 ad landing URLs and 300 OpenPhish
+URLs. Pages were rendered in a mobile browser, labeled using the original
+judge's criteria, and corrected through labeling rules and human review.
 
-Key documents:
+The 551 cases were split into 381 training, 52 validation, and 118 test cases,
+grouped by site so that test sites do not appear in training. Labels are mostly
+teacher-generated; all 47 hand-reviewed cases are in the test split.
 
-- [Architecture](docs/architecture.md) explains the runtime pipeline and module boundaries.
-- [Technical Report](docs/technical-report.md) summarizes design, evaluation, and removed approaches.
-- [LLM Model Card](ml/docs/llm/model-card.md) states intended use, data, results, and limits.
-- [Provenance](docs/provenance.md) records source, data, model, and license boundaries.
-- [Original history](reference/original-guadian/docs/history.md) preserves the earlier GUADIAN project context.
+Qwen3-1.7B reads a compact Korean prompt containing the URL, page text, form
+fields, links, and other page observations. It returns `risk`, `type`, and
+supporting evidence for a `HIGH` judgment in JSON. The task includes learning
+both the risk criteria and the response format the app can read.
 
-## 1. Current Results
+### Training Experiments
 
-The on-device LLM (run 3, Q4_K_M GGUF) on the 118-case test split, grouped by
-site so no test site was seen in training:
+| Run | What I tried | What I found |
+| :-- | :-- | :-- |
+| 1 | QLoRA on a 4-bit base, then merging into fp16 for GGUF export | Accuracy fell by about six percentage points after merging, so I changed the later runs to LoRA on the fp16 base used for export. |
+| 2 | LoRA on fp16 for 3 epochs, with an effective batch size of 16 | Responses followed the format, but quantization changed many answers: Q4_K_M agreed with f16 on only 65.3% of test cases. |
+| 3 | 5 epochs, an effective batch size of 8, and repeating `HIGH` training cases twice | Q4_K_M agreement with f16 rose to 91.5%, and accuracy reached 74.6%. Risky pages classified as `LOW` remained a problem. |
 
-| Metric | Value |
-| :-- | --: |
-| Accuracy | 74.6% |
-| Macro F1 | 0.73 |
-| `HIGH` recall | 56.5% |
-| Missed risk (`MEDIUM` or `HIGH` answered `LOW`) | 21 of 70 |
-| Untuned base accuracy | 43.2% |
+Run 1 used an earlier dataset version. Eight test prompts also changed between
+runs 2 and 3, so these experiments do not isolate the effect of training
+settings alone.
 
-Fine-tuning taught the model the answer format and lifted accuracy by 31.4
-points, but about one risky page in three is still answered `LOW`; that is the
-next thing to fix. Source:
-[LLM Evaluation Report](ml/reports/llm/evaluation-report.md).
+### Evaluation and Model Selection
 
-Before the LLM, the rules and local knowledge settle part of the traffic
-cheaply. On the 668-row URL dataset:
+I compared f16, Q8_0, Q5_K_M, and Q4_K_M exports. Run 3's Q4_K_M was the
+smallest file at 1.11 GB and had the highest accuracy on this test split, so
+I selected it as the current model. The small test set does not establish
+that 4-bit quantization is generally more accurate.
 
-| Resolved by | Resolved | Correct |
-| :-- | --: | --: |
-| Deterministic rules | 135 | 98 |
-| Local knowledge | 86 | 55 |
-| **Total local** | **221** | **153** |
+| Model | Accuracy | Macro F1 | `HIGH` recall | Unparseable replies |
+| :-- | --: | --: | --: | --: |
+| Untuned Qwen3-1.7B, fp16 | 43.2% | 0.25 | 0.0% | 112 / 118 |
+| Run 2, Q5_K_M | 66.9% | 0.67 | 52.2% | 0 / 118 |
+| Run 3, Q4_K_M | 74.6% | 0.73 | 56.5% | 0 / 118 |
 
-The other 447 rows go on to page inspection and the LLM. Source:
-[Local Resolution Report](ml/reports/pipeline/local-resolution-report.md).
-This table measures only the pre-LLM early exits, not the final pipeline
-accuracy. These are evaluation-set numbers, not production estimates.
+The untuned model usually failed to follow the response format, so its score
+reflects that failure as well as risk judgment. The base was evaluated in
+Colab; GGUF files were evaluated on a Mac, not on a phone.
 
-## 2. How It Works
+The main lesson was that better overall accuracy did not necessarily reduce
+missed risk. Run 3 Q4_K_M classified 21 of 70 risky pages as `LOW`, compared
+with 20 for run 2 Q5_K_M. Nine of run 3's misses were pages collecting personal
+details. On the 47 hand-reviewed cases, accuracy was 68.1%, with no `HIGH`
+cases correctly identified.
 
-Each layer returns a verdict when it is sufficiently certain. Otherwise, the
-request moves to the next layer.
+Details: [Dataset](ml/docs/llm/dataset.md),
+[Model Card](ml/docs/llm/model-card.md), and
+[Evaluation Report](ml/reports/llm/evaluation-report.md).
+
+## 2. On-device Integration
+
+After training, I merged the adapter, exported GGUF files, and connected
+llama.cpp to the Kotlin Android app. The app's prompt construction, chat
+template, and response parsing are checked against Python fixtures so that
+training and runtime use the same contract.
+
+The LLM runs at the end of the manual URL judgment pipeline, when earlier
+stages cannot reach a certain verdict:
 
 ```text
-Ad / link destination candidate
-  ↓
-Rule Engine
-  ↓
-Local Verdict Store
-  ↓
-Local RAG / local evidence   | RAG planned
-  ↓
-Page Content Inspection
-  ↓
-On-device LLM
-  ↓
-Verdict
+URL
+  -> Rules
+  -> Local Verdict Store
+  -> Local Knowledge
+  -> Page Content Inspection
+  -> On-device LLM
+  -> Verdict
 ```
 
-The stages are:
+Page inspection uses a hidden WebView. The current local knowledge stage
+matches policy snippets by keyword; retrieval-based Local RAG remains planned.
+The app checks the evidence returned with a `HIGH` answer and lowers the risk
+to `MEDIUM` when the required grounding is missing.
 
-| Stage | Role |
-| :-- | :-- |
-| Rule Engine | clear URL-level decisions, including a bundled phishing and malware blocklist |
-| Local Verdict Store | reuses earlier judgments for the same normalized URL, after rules have run |
-| Local RAG / local evidence | planned as retrieval; today keyword-matches local policy snippets |
-| Page Content Inspection | loads the page in a hidden WebView and reads forms, text, links, and redirects |
-| On-device LLM | reads the page observation and returns the final model verdict |
+| Area | Verified so far | Still to do |
+| :-- | :-- | :-- |
+| Android runtime | Model loading and verdict generation on an arm64 emulator | Physical-device validation |
+| Inference time | About 4–5 seconds per verdict with a 4-bit run 1 model on the emulator | Timing the selected run 3 model and measuring latency and memory on a real phone |
+| Model setup | Manual copying into the app's private storage for development | The model is not bundled or distributed; data terms constrain distribution |
+| Browser integration | Shield implements browser-click judgment and Logcat output, skipping page inspection and the LLM | Manual verification of Shield logs and broader surface coverage |
 
-This flow corresponds to the judgment stage of 「GUADIAN」's
-detect-judge-intervene structure. Its input is a destination candidate, provided
-in the current implementation by manual URL entry (`JudgeActivity`) or a
-supported browser link click (`ShieldAccessibilityService`). Browser clicks
-skip page inspection and the LLM, because the browser is already loading the
-page. See [Architecture](docs/architecture.md).
-
-Each stage name above maps to one runtime class; file paths are under
-`<module>/src/main/kotlin/com/guadian/ondevice/`:
-
-| Stage | Class | Module | File |
-| :-- | :-- | :-- | :-- |
-| Rule Engine | `RuleBasedJudge` (`BlocklistRule`, `ApkRule`, `BrandImpersonationRule`, `SuspiciousUrlRule`) | `core/judge` | `rules/` |
-| Local Verdict Store | `InMemoryVerdictStore` (run as `StoreJudge`) | `core/judge` | `store/VerdictStore.kt` |
-| Local RAG / local evidence | `LocalKnowledgeJudge` (keyword retrieval today) | `core/judge` | `knowledge/LocalKnowledgeJudge.kt` |
-| Page Content Inspection | `PageContentJudge` | `core/pagecontent` | `pagecontent/PageContentJudge.kt` |
-| On-device LLM | `LlmJudge`, run by `LlamaCppRuntime` | `core/llm`, `core/llamacpp` | `llm/LlmJudge.kt` |
-| Verdict | `Verdict`, assembled by `HybridJudge` | `core/judge` | `judge/` |
-
-## 3. Current Scope
-
-The pipeline runs on an arm64 emulator. The model file is not yet delivered
-by the app, and physical-device validation, latency on real phones, and
-broader Shield coverage remain future work.
+This reaches model development and Android emulator integration, with real
+device validation still pending. Runtime structure and model-loading commands
+are in [Architecture](docs/architecture.md).
