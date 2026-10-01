@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "guadian-ondevice"
 
-include(":app", ":core:judge", ":core:pagecontent")
+include(":app", ":core:judge", ":core:pagecontent", ":core:llm", ":core:llamacpp")

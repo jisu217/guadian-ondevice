@@ -1,0 +1,1888 @@
+{
+ "korean": [
+  {
+   "name": "국민은행",
+   "aliases": [
+    "국민은행",
+    "kb국민은행",
+    "kb은행",
+    "kbstar",
+    "kb bank"
+   ],
+   "domains": [
+    "kbstar.com",
+    "kbcard.com",
+    "kbfg.com"
+   ]
+  },
+  {
+   "name": "신한은행",
+   "aliases": [
+    "신한은행",
+    "신한카드",
+    "신한"
+   ],
+   "domains": [
+    "shinhan.com",
+    "shinhancard.com"
+   ]
+  },
+  {
+   "name": "우리은행",
+   "aliases": [
+    "우리은행",
+    "우리카드"
+   ],
+   "domains": [
+    "wooribank.com",
+    "wooricard.com"
+   ]
+  },
+  {
+   "name": "하나은행",
+   "aliases": [
+    "하나은행",
+    "하나카드",
+    "kebhana"
+   ],
+   "domains": [
+    "hanabank.com",
+    "kebhana.com",
+    "hanacard.co.kr"
+   ]
+  },
+  {
+   "name": "농협",
+   "aliases": [
+    "농협",
+    "nh농협",
+    "농협은행",
+    "nh은행"
+   ],
+   "domains": [
+    "nonghyup.com",
+    "nhbank.com",
+    "nhcard.com"
+   ]
+  },
+  {
+   "name": "기업은행",
+   "aliases": [
+    "기업은행",
+    "ibk기업은행",
+    "ibk"
+   ],
+   "domains": [
+    "ibk.co.kr"
+   ]
+  },
+  {
+   "name": "카카오뱅크",
+   "aliases": [
+    "카카오뱅크"
+   ],
+   "domains": [
+    "kakaobank.com"
+   ]
+  },
+  {
+   "name": "케이뱅크",
+   "aliases": [
+    "케이뱅크",
+    "k뱅크"
+   ],
+   "domains": [
+    "kbanknow.com"
+   ]
+  },
+  {
+   "name": "토스",
+   "aliases": [
+    "토스",
+    "토스뱅크",
+    "toss"
+   ],
+   "domains": [
+    "toss.im",
+    "tossbank.com"
+   ]
+  },
+  {
+   "name": "새마을금고",
+   "aliases": [
+    "새마을금고"
+   ],
+   "domains": [
+    "kfcc.co.kr"
+   ]
+  },
+  {
+   "name": "신협",
+   "aliases": [
+    "신협"
+   ],
+   "domains": [
+    "cu.co.kr"
+   ]
+  },
+  {
+   "name": "우체국",
+   "aliases": [
+    "우체국",
+    "우체국예금",
+    "우체국택배"
+   ],
+   "domains": [
+    "epost.go.kr",
+    "epostbank.go.kr"
+   ]
+  },
+  {
+   "name": "산업은행",
+   "aliases": [
+    "산업은행",
+    "kdb"
+   ],
+   "domains": [
+    "kdb.co.kr"
+   ]
+  },
+  {
+   "name": "수협",
+   "aliases": [
+    "수협",
+    "수협은행"
+   ],
+   "domains": [
+    "suhyup-bank.com"
+   ]
+  },
+  {
+   "name": "sc제일은행",
+   "aliases": [
+    "sc제일은행",
+    "제일은행"
+   ],
+   "domains": [
+    "standardchartered.co.kr"
+   ]
+  },
+  {
+   "name": "씨티은행",
+   "aliases": [
+    "씨티은행",
+    "한국씨티"
+   ],
+   "domains": [
+    "citibank.co.kr"
+   ]
+  },
+  {
+   "name": "삼성카드",
+   "aliases": [
+    "삼성카드"
+   ],
+   "domains": [
+    "samsungcard.com"
+   ]
+  },
+  {
+   "name": "현대카드",
+   "aliases": [
+    "현대카드"
+   ],
+   "domains": [
+    "hyundaicard.com"
+   ]
+  },
+  {
+   "name": "롯데카드",
+   "aliases": [
+    "롯데카드"
+   ],
+   "domains": [
+    "lottecard.co.kr"
+   ]
+  },
+  {
+   "name": "비씨카드",
+   "aliases": [
+    "비씨카드",
+    "bc카드"
+   ],
+   "domains": [
+    "bccard.com"
+   ]
+  },
+  {
+   "name": "국세청",
+   "aliases": [
+    "국세청",
+    "홈택스"
+   ],
+   "domains": [
+    "nts.go.kr",
+    "hometax.go.kr"
+   ]
+  },
+  {
+   "name": "정부24",
+   "aliases": [
+    "정부24",
+    "행정안전부"
+   ],
+   "domains": [
+    "gov.kr",
+    "mois.go.kr"
+   ]
+  },
+  {
+   "name": "건강보험공단",
+   "aliases": [
+    "건강보험공단",
+    "국민건강보험"
+   ],
+   "domains": [
+    "nhis.or.kr"
+   ]
+  },
+  {
+   "name": "국민연금",
+   "aliases": [
+    "국민연금",
+    "국민연금공단"
+   ],
+   "domains": [
+    "nps.or.kr"
+   ]
+  },
+  {
+   "name": "경찰청",
+   "aliases": [
+    "경찰청",
+    "경찰서",
+    "사이버수사대"
+   ],
+   "domains": [
+    "police.go.kr",
+    "ecrm.police.go.kr"
+   ]
+  },
+  {
+   "name": "검찰청",
+   "aliases": [
+    "검찰청",
+    "검찰"
+   ],
+   "domains": [
+    "spo.go.kr"
+   ]
+  },
+  {
+   "name": "금융감독원",
+   "aliases": [
+    "금융감독원",
+    "금감원"
+   ],
+   "domains": [
+    "fss.or.kr"
+   ]
+  },
+  {
+   "name": "질병관리청",
+   "aliases": [
+    "질병관리청"
+   ],
+   "domains": [
+    "kdca.go.kr"
+   ]
+  },
+  {
+   "name": "도로교통공단",
+   "aliases": [
+    "도로교통공단"
+   ],
+   "domains": [
+    "koroad.or.kr",
+    "safedriving.or.kr"
+   ]
+  },
+  {
+   "name": "한국전력",
+   "aliases": [
+    "한국전력",
+    "한전"
+   ],
+   "domains": [
+    "kepco.co.kr"
+   ]
+  },
+  {
+   "name": "법원",
+   "aliases": [
+    "법원",
+    "대법원"
+   ],
+   "domains": [
+    "scourt.go.kr"
+   ]
+  },
+  {
+   "name": "국민비서",
+   "aliases": [
+    "국민비서"
+   ],
+   "domains": [
+    "ips.go.kr"
+   ]
+  },
+  {
+   "name": "교통민원24",
+   "aliases": [
+    "교통민원24",
+    "이파인"
+   ],
+   "domains": [
+    "efine.go.kr"
+   ]
+  },
+  {
+   "name": "고용노동부",
+   "aliases": [
+    "고용노동부",
+    "고용보험"
+   ],
+   "domains": [
+    "moel.go.kr",
+    "ei.go.kr"
+   ]
+  },
+  {
+   "name": "예금보험공사",
+   "aliases": [
+    "예금보험공사"
+   ],
+   "domains": [
+    "kdic.or.kr"
+   ]
+  },
+  {
+   "name": "skt",
+   "aliases": [
+    "skt",
+    "sk텔레콤",
+    "t월드",
+    "tworld"
+   ],
+   "domains": [
+    "sktelecom.com",
+    "tworld.co.kr",
+    "sk.com"
+   ]
+  },
+  {
+   "name": "kt",
+   "aliases": [
+    "kt",
+    "케이티",
+    "올레"
+   ],
+   "domains": [
+    "kt.com",
+    "olleh.com"
+   ]
+  },
+  {
+   "name": "lg유플러스",
+   "aliases": [
+    "lg유플러스",
+    "lgu+",
+    "유플러스"
+   ],
+   "domains": [
+    "lguplus.com",
+    "uplus.co.kr"
+   ]
+  },
+  {
+   "name": "cj대한통운",
+   "aliases": [
+    "cj대한통운",
+    "대한통운"
+   ],
+   "domains": [
+    "cjlogistics.com"
+   ]
+  },
+  {
+   "name": "한진택배",
+   "aliases": [
+    "한진택배",
+    "한진"
+   ],
+   "domains": [
+    "hanjin.com",
+    "hanjin.co.kr"
+   ]
+  },
+  {
+   "name": "롯데택배",
+   "aliases": [
+    "롯데택배",
+    "롯데글로벌로지스"
+   ],
+   "domains": [
+    "lotteglogis.com"
+   ]
+  },
+  {
+   "name": "로젠택배",
+   "aliases": [
+    "로젠택배"
+   ],
+   "domains": [
+    "ilogen.com"
+   ]
+  },
+  {
+   "name": "쿠팡",
+   "aliases": [
+    "쿠팡",
+    "쿠팡이츠",
+    "로켓배송"
+   ],
+   "domains": [
+    "coupang.com",
+    "coupangeats.com"
+   ]
+  },
+  {
+   "name": "네이버",
+   "aliases": [
+    "네이버",
+    "naver",
+    "네이버페이"
+   ],
+   "domains": [
+    "naver.com",
+    "navercorp.com",
+    "pay.naver.com"
+   ]
+  },
+  {
+   "name": "카카오",
+   "aliases": [
+    "카카오",
+    "카카오톡",
+    "카카오페이"
+   ],
+   "domains": [
+    "kakao.com",
+    "kakaopay.com",
+    "kakaocorp.com"
+   ]
+  },
+  {
+   "name": "구글",
+   "aliases": [
+    "구글",
+    "google",
+    "gmail"
+   ],
+   "domains": [
+    "google.com",
+    "google.co.kr",
+    "youtube.com"
+   ]
+  },
+  {
+   "name": "애플",
+   "aliases": [
+    "애플",
+    "apple",
+    "아이클라우드",
+    "icloud"
+   ],
+   "domains": [
+    "apple.com",
+    "icloud.com"
+   ]
+  },
+  {
+   "name": "삼성",
+   "aliases": [
+    "삼성",
+    "삼성전자",
+    "갤럭시"
+   ],
+   "domains": [
+    "samsung.com"
+   ]
+  },
+  {
+   "name": "lg전자",
+   "aliases": [
+    "lg전자"
+   ],
+   "domains": [
+    "lge.co.kr",
+    "lg.com"
+   ]
+  },
+  {
+   "name": "넷플릭스",
+   "aliases": [
+    "넷플릭스",
+    "netflix"
+   ],
+   "domains": [
+    "netflix.com"
+   ]
+  },
+  {
+   "name": "당근",
+   "aliases": [
+    "당근",
+    "당근마켓"
+   ],
+   "domains": [
+    "daangn.com"
+   ]
+  },
+  {
+   "name": "배달의민족",
+   "aliases": [
+    "배달의민족",
+    "배민"
+   ],
+   "domains": [
+    "baemin.com"
+   ]
+  },
+  {
+   "name": "11번가",
+   "aliases": [
+    "11번가"
+   ],
+   "domains": [
+    "11st.co.kr"
+   ]
+  },
+  {
+   "name": "g마켓",
+   "aliases": [
+    "g마켓",
+    "지마켓"
+   ],
+   "domains": [
+    "gmarket.co.kr"
+   ]
+  },
+  {
+   "name": "옥션",
+   "aliases": [
+    "옥션"
+   ],
+   "domains": [
+    "auction.co.kr"
+   ]
+  },
+  {
+   "name": "ssg",
+   "aliases": [
+    "ssg",
+    "쓱",
+    "신세계몰"
+   ],
+   "domains": [
+    "ssg.com",
+    "shinsegae.com"
+   ]
+  },
+  {
+   "name": "롯데온",
+   "aliases": [
+    "롯데온",
+    "롯데닷컴"
+   ],
+   "domains": [
+    "lotteon.com",
+    "lotte.com"
+   ]
+  },
+  {
+   "name": "무신사",
+   "aliases": [
+    "무신사"
+   ],
+   "domains": [
+    "musinsa.com"
+   ]
+  },
+  {
+   "name": "인터파크",
+   "aliases": [
+    "인터파크"
+   ],
+   "domains": [
+    "interpark.com"
+   ]
+  },
+  {
+   "name": "알리익스프레스",
+   "aliases": [
+    "알리익스프레스",
+    "알리"
+   ],
+   "domains": [
+    "aliexpress.com"
+   ]
+  },
+  {
+   "name": "테무",
+   "aliases": [
+    "테무",
+    "temu"
+   ],
+   "domains": [
+    "temu.com"
+   ]
+  },
+  {
+   "name": "삼성생명",
+   "aliases": [
+    "삼성생명",
+    "samsunglife"
+   ],
+   "domains": [
+    "samsunglife.com"
+   ]
+  },
+  {
+   "name": "삼성화재",
+   "aliases": [
+    "삼성화재",
+    "애니카",
+    "samsungfire"
+   ],
+   "domains": [
+    "samsungfire.com"
+   ]
+  },
+  {
+   "name": "현대해상",
+   "aliases": [
+    "현대해상",
+    "하이카"
+   ],
+   "domains": [
+    "hi.co.kr"
+   ]
+  },
+  {
+   "name": "db손해보험",
+   "aliases": [
+    "db손해보험",
+    "db손보",
+    "동부화재",
+    "idbins"
+   ],
+   "domains": [
+    "idbins.com"
+   ]
+  },
+  {
+   "name": "kb손해보험",
+   "aliases": [
+    "kb손해보험",
+    "kb손보",
+    "kbinsure"
+   ],
+   "domains": [
+    "kbinsure.co.kr"
+   ]
+  },
+  {
+   "name": "라이나생명",
+   "aliases": [
+    "라이나생명",
+    "라이나"
+   ],
+   "domains": [
+    "lina.co.kr"
+   ]
+  },
+  {
+   "name": "교보생명",
+   "aliases": [
+    "교보생명",
+    "kyobo"
+   ],
+   "domains": [
+    "kyobo.com"
+   ]
+  },
+  {
+   "name": "한화생명",
+   "aliases": [
+    "한화생명",
+    "hanwhalife"
+   ],
+   "domains": [
+    "hanwhalife.com"
+   ]
+  },
+  {
+   "name": "메리츠화재",
+   "aliases": [
+    "메리츠화재",
+    "meritz"
+   ],
+   "domains": [
+    "meritzfire.com"
+   ]
+  },
+  {
+   "name": "AXA손해보험",
+   "aliases": [
+    "AXA손해보험",
+    "악사",
+    "악사다이렉트",
+    "axa"
+   ],
+   "domains": [
+    "axa.co.kr"
+   ]
+  },
+  {
+   "name": "캐롯손해보험",
+   "aliases": [
+    "캐롯손해보험",
+    "캐롯",
+    "carrot"
+   ],
+   "domains": [
+    "carrotins.com"
+   ]
+  },
+  {
+   "name": "키움증권",
+   "aliases": [
+    "키움증권"
+   ],
+   "domains": [
+    "kiwoom.com"
+   ]
+  },
+  {
+   "name": "미래에셋",
+   "aliases": [
+    "미래에셋"
+   ],
+   "domains": [
+    "miraeasset.com"
+   ]
+  },
+  {
+   "name": "삼성증권",
+   "aliases": [
+    "삼성증권"
+   ],
+   "domains": [
+    "samsungpop.com"
+   ]
+  },
+  {
+   "name": "nh투자증권",
+   "aliases": [
+    "nh투자증권"
+   ],
+   "domains": [
+    "nhqv.com"
+   ]
+  },
+  {
+   "name": "한국투자증권",
+   "aliases": [
+    "한국투자증권"
+   ],
+   "domains": [
+    "truefriend.com"
+   ]
+  },
+  {
+   "name": "업비트",
+   "aliases": [
+    "업비트"
+   ],
+   "domains": [
+    "upbit.com"
+   ]
+  },
+  {
+   "name": "빗썸",
+   "aliases": [
+    "빗썸"
+   ],
+   "domains": [
+    "bithumb.com"
+   ]
+  },
+  {
+   "name": "대한항공",
+   "aliases": [
+    "대한항공"
+   ],
+   "domains": [
+    "koreanair.com"
+   ]
+  },
+  {
+   "name": "아시아나",
+   "aliases": [
+    "아시아나"
+   ],
+   "domains": [
+    "flyasiana.com"
+   ]
+  },
+  {
+   "name": "야놀자",
+   "aliases": [
+    "야놀자"
+   ],
+   "domains": [
+    "yanolja.com"
+   ]
+  },
+  {
+   "name": "여기어때",
+   "aliases": [
+    "여기어때"
+   ],
+   "domains": [
+    "goodchoice.kr"
+   ]
+  }
+ ],
+ "global_brands": [
+  [
+   "roblox",
+   [
+    "roblox.com"
+   ]
+  ],
+  [
+   "microsoft",
+   [
+    "microsoft.com",
+    "office.com",
+    "live.com",
+    "outlook.com",
+    "microsoftonline.com"
+   ]
+  ],
+  [
+   "instagram",
+   [
+    "instagram.com"
+   ]
+  ],
+  [
+   "facebook",
+   [
+    "facebook.com",
+    "fb.com"
+   ]
+  ],
+  [
+   "whatsapp",
+   [
+    "whatsapp.com"
+   ]
+  ],
+  [
+   "paypal",
+   [
+    "paypal.com"
+   ]
+  ],
+  [
+   "amazon",
+   [
+    "amazon.com",
+    "amazon.co.jp",
+    "amazon.de"
+   ]
+  ],
+  [
+   "xfinity",
+   [
+    "xfinity.com",
+    "comcast.com"
+   ]
+  ],
+  [
+   "steam",
+   [
+    "steampowered.com",
+    "steamcommunity.com"
+   ]
+  ],
+  [
+   "coinbase",
+   [
+    "coinbase.com"
+   ]
+  ],
+  [
+   "binance",
+   [
+    "binance.com"
+   ]
+  ],
+  [
+   "metamask",
+   [
+    "metamask.io"
+   ]
+  ],
+  [
+   "telegram",
+   [
+    "telegram.org"
+   ]
+  ],
+  [
+   "linkedin",
+   [
+    "linkedin.com"
+   ]
+  ],
+  [
+   "dropbox",
+   [
+    "dropbox.com"
+   ]
+  ],
+  [
+   "docusign",
+   [
+    "docusign.com",
+    "docusign.net"
+   ]
+  ],
+  [
+   "fedex",
+   [
+    "fedex.com"
+   ]
+  ],
+  [
+   "shopee",
+   [
+    "shopee.com",
+    "shopee.co.id",
+    "shopee.sg",
+    "shopee.tw",
+    "shopee.vn",
+    "shopee.co.th",
+    "shopee.ph",
+    "shopee.com.my",
+    "shopee.com.br"
+   ]
+  ],
+  [
+   "hinet",
+   [
+    "hinet.net"
+   ]
+  ],
+  [
+   "ionos",
+   [
+    "ionos.com",
+    "ionos.de",
+    "ionos.co.uk",
+    "ionos.fr",
+    "ionos.es",
+    "ionos.it"
+   ]
+  ],
+  [
+   "bellsouth",
+   [
+    "bellsouth.net",
+    "att.com",
+    "att.net"
+   ]
+  ],
+  [
+   "tokenpocket",
+   [
+    "tokenpocket.pro"
+   ]
+  ],
+  [
+   "imtoken",
+   [
+    "token.im"
+   ]
+  ]
+ ],
+ "text_mentions": [
+  [
+   "roblox",
+   "roblox"
+  ],
+  [
+   "microsoft",
+   "microsoft"
+  ],
+  [
+   "office 365",
+   "microsoft"
+  ],
+  [
+   "outlook",
+   "microsoft"
+  ],
+  [
+   "onedrive",
+   "microsoft"
+  ],
+  [
+   "sharepoint",
+   "microsoft"
+  ],
+  [
+   "instagram",
+   "instagram"
+  ],
+  [
+   "facebook",
+   "facebook"
+  ],
+  [
+   "whatsapp",
+   "whatsapp"
+  ],
+  [
+   "paypal",
+   "paypal"
+  ],
+  [
+   "amazon",
+   "amazon"
+  ],
+  [
+   "xfinity",
+   "xfinity"
+  ],
+  [
+   "coinbase",
+   "coinbase"
+  ],
+  [
+   "binance",
+   "binance"
+  ],
+  [
+   "metamask",
+   "metamask"
+  ],
+  [
+   "telegram",
+   "telegram"
+  ],
+  [
+   "linkedin",
+   "linkedin"
+  ],
+  [
+   "dropbox",
+   "dropbox"
+  ],
+  [
+   "docusign",
+   "docusign"
+  ],
+  [
+   "fedex",
+   "fedex"
+  ],
+  [
+   "shopee",
+   "shopee"
+  ],
+  [
+   "hinet",
+   "hinet"
+  ],
+  [
+   "ionos",
+   "ionos"
+  ],
+  [
+   "bellsouth",
+   "bellsouth"
+  ],
+  [
+   "tokenpocket",
+   "tokenpocket"
+  ],
+  [
+   "imtoken",
+   "imtoken"
+  ]
+ ],
+ "host_tokens": [
+  [
+   "kbbank",
+   [
+    "kbcard.com",
+    "kbfg.com",
+    "kbstar.com"
+   ]
+  ],
+  [
+   "kbcard",
+   [
+    "kbcard.com",
+    "kbfg.com",
+    "kbstar.com"
+   ]
+  ],
+  [
+   "kbstar",
+   [
+    "kbcard.com",
+    "kbfg.com",
+    "kbstar.com"
+   ]
+  ],
+  [
+   "shinhan",
+   [
+    "shinhan.com",
+    "shinhancard.com"
+   ]
+  ],
+  [
+   "shinhancard",
+   [
+    "shinhan.com",
+    "shinhancard.com"
+   ]
+  ],
+  [
+   "wooribank",
+   [
+    "wooribank.com",
+    "wooricard.com"
+   ]
+  ],
+  [
+   "wooricard",
+   [
+    "wooribank.com",
+    "wooricard.com"
+   ]
+  ],
+  [
+   "hanabank",
+   [
+    "hanabank.com",
+    "hanacard.co.kr",
+    "kebhana.com"
+   ]
+  ],
+  [
+   "hanacard",
+   [
+    "hanabank.com",
+    "hanacard.co.kr",
+    "kebhana.com"
+   ]
+  ],
+  [
+   "kebhana",
+   [
+    "hanabank.com",
+    "hanacard.co.kr",
+    "kebhana.com"
+   ]
+  ],
+  [
+   "nhbank",
+   [
+    "nhbank.com",
+    "nhcard.com",
+    "nonghyup.com"
+   ]
+  ],
+  [
+   "nhcard",
+   [
+    "nhbank.com",
+    "nhcard.com",
+    "nonghyup.com"
+   ]
+  ],
+  [
+   "nonghyup",
+   [
+    "nhbank.com",
+    "nhcard.com",
+    "nonghyup.com"
+   ]
+  ],
+  [
+   "kakaobank",
+   [
+    "kakaobank.com"
+   ]
+  ],
+  [
+   "kbanknow",
+   [
+    "kbanknow.com"
+   ]
+  ],
+  [
+   "tossbank",
+   [
+    "toss.im",
+    "tossbank.com"
+   ]
+  ],
+  [
+   "epost",
+   [
+    "epost.go.kr",
+    "epostbank.go.kr"
+   ]
+  ],
+  [
+   "epostbank",
+   [
+    "epost.go.kr",
+    "epostbank.go.kr"
+   ]
+  ],
+  [
+   "suhyup-bank",
+   [
+    "suhyup-bank.com"
+   ]
+  ],
+  [
+   "standardchartered",
+   [
+    "standardchartered.co.kr"
+   ]
+  ],
+  [
+   "citibank",
+   [
+    "citibank.co.kr"
+   ]
+  ],
+  [
+   "samsungcard",
+   [
+    "samsungcard.com"
+   ]
+  ],
+  [
+   "hyundaicard",
+   [
+    "hyundaicard.com"
+   ]
+  ],
+  [
+   "lottecard",
+   [
+    "lottecard.co.kr"
+   ]
+  ],
+  [
+   "bccard",
+   [
+    "bccard.com"
+   ]
+  ],
+  [
+   "hometax",
+   [
+    "hometax.go.kr",
+    "nts.go.kr"
+   ]
+  ],
+  [
+   "police",
+   [
+    "ecrm.police.go.kr",
+    "police.go.kr"
+   ]
+  ],
+  [
+   "koroad",
+   [
+    "koroad.or.kr",
+    "safedriving.or.kr"
+   ]
+  ],
+  [
+   "safedriving",
+   [
+    "koroad.or.kr",
+    "safedriving.or.kr"
+   ]
+  ],
+  [
+   "kepco",
+   [
+    "kepco.co.kr"
+   ]
+  ],
+  [
+   "scourt",
+   [
+    "scourt.go.kr"
+   ]
+  ],
+  [
+   "efine",
+   [
+    "efine.go.kr"
+   ]
+  ],
+  [
+   "sktelecom",
+   [
+    "sk.com",
+    "sktelecom.com",
+    "tworld.co.kr"
+   ]
+  ],
+  [
+   "tworld",
+   [
+    "sk.com",
+    "sktelecom.com",
+    "tworld.co.kr"
+   ]
+  ],
+  [
+   "olleh",
+   [
+    "kt.com",
+    "olleh.com"
+   ]
+  ],
+  [
+   "lguplus",
+   [
+    "lguplus.com",
+    "uplus.co.kr"
+   ]
+  ],
+  [
+   "uplus",
+   [
+    "lguplus.com",
+    "uplus.co.kr"
+   ]
+  ],
+  [
+   "cjlogistics",
+   [
+    "cjlogistics.com"
+   ]
+  ],
+  [
+   "hanjin",
+   [
+    "hanjin.co.kr",
+    "hanjin.com"
+   ]
+  ],
+  [
+   "lotteglogis",
+   [
+    "lotteglogis.com"
+   ]
+  ],
+  [
+   "ilogen",
+   [
+    "ilogen.com"
+   ]
+  ],
+  [
+   "coupang",
+   [
+    "coupang.com",
+    "coupangeats.com"
+   ]
+  ],
+  [
+   "coupangeats",
+   [
+    "coupang.com",
+    "coupangeats.com"
+   ]
+  ],
+  [
+   "naver",
+   [
+    "naver.com",
+    "navercorp.com",
+    "pay.naver.com"
+   ]
+  ],
+  [
+   "navercorp",
+   [
+    "naver.com",
+    "navercorp.com",
+    "pay.naver.com"
+   ]
+  ],
+  [
+   "kakao",
+   [
+    "kakao.com",
+    "kakaocorp.com",
+    "kakaopay.com"
+   ]
+  ],
+  [
+   "kakaocorp",
+   [
+    "kakao.com",
+    "kakaocorp.com",
+    "kakaopay.com"
+   ]
+  ],
+  [
+   "kakaopay",
+   [
+    "kakao.com",
+    "kakaocorp.com",
+    "kakaopay.com"
+   ]
+  ],
+  [
+   "gmail",
+   [
+    "google.co.kr",
+    "google.com",
+    "youtube.com"
+   ]
+  ],
+  [
+   "google",
+   [
+    "google.co.kr",
+    "google.com",
+    "youtube.com"
+   ]
+  ],
+  [
+   "youtube",
+   [
+    "google.co.kr",
+    "google.com",
+    "youtube.com"
+   ]
+  ],
+  [
+   "apple",
+   [
+    "apple.com",
+    "icloud.com"
+   ]
+  ],
+  [
+   "icloud",
+   [
+    "apple.com",
+    "icloud.com"
+   ]
+  ],
+  [
+   "samsung",
+   [
+    "samsung.com"
+   ]
+  ],
+  [
+   "netflix",
+   [
+    "netflix.com"
+   ]
+  ],
+  [
+   "daangn",
+   [
+    "daangn.com"
+   ]
+  ],
+  [
+   "baemin",
+   [
+    "baemin.com"
+   ]
+  ],
+  [
+   "gmarket",
+   [
+    "gmarket.co.kr"
+   ]
+  ],
+  [
+   "auction",
+   [
+    "auction.co.kr"
+   ]
+  ],
+  [
+   "shinsegae",
+   [
+    "shinsegae.com",
+    "ssg.com"
+   ]
+  ],
+  [
+   "lotte",
+   [
+    "lotte.com",
+    "lotteon.com"
+   ]
+  ],
+  [
+   "lotteon",
+   [
+    "lotte.com",
+    "lotteon.com"
+   ]
+  ],
+  [
+   "musinsa",
+   [
+    "musinsa.com"
+   ]
+  ],
+  [
+   "interpark",
+   [
+    "interpark.com"
+   ]
+  ],
+  [
+   "aliexpress",
+   [
+    "aliexpress.com"
+   ]
+  ],
+  [
+   "samsunglife",
+   [
+    "samsunglife.com"
+   ]
+  ],
+  [
+   "samsungfire",
+   [
+    "samsungfire.com"
+   ]
+  ],
+  [
+   "idbins",
+   [
+    "idbins.com"
+   ]
+  ],
+  [
+   "kbinsure",
+   [
+    "kbinsure.co.kr"
+   ]
+  ],
+  [
+   "kyobo",
+   [
+    "kyobo.com"
+   ]
+  ],
+  [
+   "hanwhalife",
+   [
+    "hanwhalife.com"
+   ]
+  ],
+  [
+   "meritz",
+   [
+    "meritzfire.com"
+   ]
+  ],
+  [
+   "meritzfire",
+   [
+    "meritzfire.com"
+   ]
+  ],
+  [
+   "carrot",
+   [
+    "carrotins.com"
+   ]
+  ],
+  [
+   "carrotins",
+   [
+    "carrotins.com"
+   ]
+  ],
+  [
+   "kiwoom",
+   [
+    "kiwoom.com"
+   ]
+  ],
+  [
+   "miraeasset",
+   [
+    "miraeasset.com"
+   ]
+  ],
+  [
+   "samsungpop",
+   [
+    "samsungpop.com"
+   ]
+  ],
+  [
+   "truefriend",
+   [
+    "truefriend.com"
+   ]
+  ],
+  [
+   "upbit",
+   [
+    "upbit.com"
+   ]
+  ],
+  [
+   "bithumb",
+   [
+    "bithumb.com"
+   ]
+  ],
+  [
+   "koreanair",
+   [
+    "koreanair.com"
+   ]
+  ],
+  [
+   "flyasiana",
+   [
+    "flyasiana.com"
+   ]
+  ],
+  [
+   "yanolja",
+   [
+    "yanolja.com"
+   ]
+  ],
+  [
+   "goodchoice",
+   [
+    "goodchoice.kr"
+   ]
+  ],
+  [
+   "roblox",
+   [
+    "roblox.com"
+   ]
+  ],
+  [
+   "microsoft",
+   [
+    "live.com",
+    "microsoft.com",
+    "microsoftonline.com",
+    "office.com",
+    "outlook.com"
+   ]
+  ],
+  [
+   "instagram",
+   [
+    "instagram.com"
+   ]
+  ],
+  [
+   "facebook",
+   [
+    "facebook.com",
+    "fb.com"
+   ]
+  ],
+  [
+   "whatsapp",
+   [
+    "whatsapp.com"
+   ]
+  ],
+  [
+   "paypal",
+   [
+    "paypal.com"
+   ]
+  ],
+  [
+   "amazon",
+   [
+    "amazon.co.jp",
+    "amazon.com",
+    "amazon.de"
+   ]
+  ],
+  [
+   "xfinity",
+   [
+    "comcast.com",
+    "xfinity.com"
+   ]
+  ],
+  [
+   "steam",
+   [
+    "steamcommunity.com",
+    "steampowered.com"
+   ]
+  ],
+  [
+   "coinbase",
+   [
+    "coinbase.com"
+   ]
+  ],
+  [
+   "binance",
+   [
+    "binance.com"
+   ]
+  ],
+  [
+   "metamask",
+   [
+    "metamask.io"
+   ]
+  ],
+  [
+   "telegram",
+   [
+    "telegram.org"
+   ]
+  ],
+  [
+   "linkedin",
+   [
+    "linkedin.com"
+   ]
+  ],
+  [
+   "dropbox",
+   [
+    "dropbox.com"
+   ]
+  ],
+  [
+   "docusign",
+   [
+    "docusign.com",
+    "docusign.net"
+   ]
+  ],
+  [
+   "fedex",
+   [
+    "fedex.com"
+   ]
+  ],
+  [
+   "shopee",
+   [
+    "shopee.co.id",
+    "shopee.co.th",
+    "shopee.com",
+    "shopee.com.br",
+    "shopee.com.my",
+    "shopee.ph",
+    "shopee.sg",
+    "shopee.tw",
+    "shopee.vn"
+   ]
+  ],
+  [
+   "hinet",
+   [
+    "hinet.net"
+   ]
+  ],
+  [
+   "ionos",
+   [
+    "ionos.co.uk",
+    "ionos.com",
+    "ionos.de",
+    "ionos.es",
+    "ionos.fr",
+    "ionos.it"
+   ]
+  ],
+  [
+   "bellsouth",
+   [
+    "att.com",
+    "att.net",
+    "bellsouth.net"
+   ]
+  ],
+  [
+   "tokenpocket",
+   [
+    "tokenpocket.pro"
+   ]
+  ],
+  [
+   "imtoken",
+   [
+    "token.im"
+   ]
+  ]
+ ],
+ "account_words": [
+  "login",
+  "logon",
+  "signin",
+  "verify",
+  "verification",
+  "account",
+  "secure",
+  "auth",
+  "wallet",
+  "recover",
+  "unlock"
+ ],
+ "min_token_length": 5
+}

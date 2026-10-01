@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.guardian.ondevice.pagecontent"
+    namespace = "com.guadian.ondevice.pagecontent"
     compileSdk = 37
 
     defaultConfig {
@@ -23,6 +23,7 @@ android {
 
 dependencies {
     api(project(":core:judge"))
+    api(project(":core:llm"))
     implementation(libs.kotlinx.coroutines.android)
 
     androidTestImplementation(libs.androidx.test.runner)

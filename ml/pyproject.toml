@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "guadian-ml"
+version = "0.1.0"
+description = "Training, evaluation, and runtime-resource tooling for GUADIAN On-device's judgment models"
+requires-python = ">=3.11"
+# The URL model and the resource builders use only the standard library.
+dependencies = []
+
+[project.optional-dependencies]
+# Exact versions the LLM dataset and evaluation were produced with, so a rerun
+# reads pages, tokenizes, and renders prompts the same way.
+llm = [
+    "anthropic==1.8.0",
+    "beautifulsoup4==4.15.0",
+    "lxml==6.1.3",
+    "nbformat==5.11.1",
+    "playwright==1.63.0",
+    "requests==2.34.2",
+    "tokenizers==0.23.2",
+    "transformers==5.17.0",
+]
+# What the test suite imports: the vendored judge (requests, BeautifulSoup) and the notebook generator.
+test = [
+    "beautifulsoup4==4.15.0",
+    "nbformat==5.11.1",
+    "requests==2.34.2",
+]
+
+[tool.setuptools.packages.find]
+include = ["guadian_ml*"]
+
+[tool.setuptools.package-data]
+"guadian_ml.llm.vendor" = ["prompt_spec.json"]

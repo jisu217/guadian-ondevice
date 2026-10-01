@@ -1,6 +1,0 @@
-# Exact versions verified with `python -m unittest discover server`; bump
-# deliberately and rerun the tests.
-fastapi==0.141.1
-uvicorn[standard]==0.53.0
-anthropic==1.8.0
-python-dotenv==1.2.3

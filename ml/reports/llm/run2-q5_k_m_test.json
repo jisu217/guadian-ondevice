@@ -1,0 +1,50 @@
+{
+  "n": 118,
+  "accuracy": 0.6694915254237288,
+  "unparseable": 0,
+  "recall_LOW": 0.7291666666666666,
+  "recall_MEDIUM": 0.6808510638297872,
+  "recall_HIGH": 0.5217391304347826,
+  "macro_f1": 0.6686907105283645,
+  "missed_risk": 20,
+  "human_review": {
+    "n": 47,
+    "accuracy": 0.5531914893617021,
+    "unparseable": 0,
+    "recall_LOW": 0.625,
+    "recall_MEDIUM": 0.42857142857142855,
+    "recall_HIGH": 0.0,
+    "macro_f1": 0.3435792349726776,
+    "missed_risk": 9
+  },
+  "app": {
+    "n": 118,
+    "accuracy": 0.6694915254237288,
+    "recall_LOW": 0.7291666666666666,
+    "recall_MEDIUM": 0.6808510638297872,
+    "recall_HIGH": 0.5217391304347826,
+    "macro_f1": 0.6686907105283645,
+    "missed_risk": 20,
+    "malformed": 0,
+    "high_lowered": 0,
+    "human_review": {
+      "n": 47,
+      "accuracy": 0.5531914893617021,
+      "recall_LOW": 0.625,
+      "recall_MEDIUM": 0.42857142857142855,
+      "recall_HIGH": 0.0,
+      "macro_f1": 0.3435792349726776,
+      "missed_risk": 9,
+      "malformed": 0,
+      "high_lowered": 0
+    }
+  },
+  "latency_s": {
+    "median": 2.0168632910063025,
+    "p90": 2.534167207981227,
+    "max": 2.9734429999953136,
+    "threads": 4,
+    "gpu_layers": 99
+  },
+  "model": "guadian-qwen3-1.7b-run2-Q5_K_M.gguf"
+}

@@ -1,5 +1,3 @@
-import java.util.Properties
-
 /*
  * AGP 9 provides Kotlin support here; applying a separate Kotlin Android
  * plugin would create a duplicate extension.
@@ -8,34 +6,17 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-// Remote fallback endpoint, e.g. `guadian.remoteJudgeUrl=https://...` in
-// local.properties or `-Pguadian.remoteJudgeUrl=...`. Empty disables the
-// remote layer: RemoteJudge then answers UNKNOWN without touching the network.
-val remoteJudgeUrl: String = run {
-    val local = Properties().apply {
-        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
-    }
-    (findProperty("guadian.remoteJudgeUrl") as String?)
-        ?: local.getProperty("guadian.remoteJudgeUrl")
-        ?: ""
-}
-
 android {
-    namespace = "com.guardian.ondevice"
+    namespace = "com.guadian.ondevice"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.guardian.ondevice"
+        applicationId = "com.guadian.ondevice"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "REMOTE_JUDGE_URL", "\"$remoteJudgeUrl\"")
-    }
-
-    buildFeatures {
-        buildConfig = true
     }
 
     buildTypes {
@@ -59,6 +40,8 @@ android {
 dependencies {
     implementation(project(":core:judge"))
     implementation(project(":core:pagecontent"))
+    implementation(project(":core:llm"))
+    implementation(project(":core:llamacpp"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
