@@ -211,6 +211,13 @@ commercial use and making the information or derivative works available to
 third parties. Collected pages and labels therefore stay in the git-ignored
 `ml/data/llm/`, and the fine-tuned model is not distributed.
 
+URL lists for the next dataset version are built by `llm.dataset.urls`: 248
+more OpenPhish URLs (feed fetched 2026-10-01, same terms), 300 `.kr` sites
+from the Tranco top-1m list (downloaded 2026-10-01), and, once an API key is
+set up, Naver Search API (NAVER API HUB) web results for queries by page type. Those are
+organic results, not ad clicks; ad networks were not crawled because scripted
+ad clicks bill advertisers.
+
 ## 10. Implementation Boundaries
 
 | Area | New implementation in this repository | Reference influence |
