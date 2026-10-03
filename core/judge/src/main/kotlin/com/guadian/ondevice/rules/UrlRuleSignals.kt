@@ -10,8 +10,10 @@ import com.guadian.ondevice.url.UrlParts
 internal object UrlRuleSignals {
     val SUSPICIOUS_TOKENS = setOf("free", "event", "gift", "loan", "verify", "account")
 
-    // ".apk" followed by a non-alphanumeric or the end, so "/app.apk?x" and
-    // "file=a.apk" match but "/x.apkmirror" does not.
+    /*
+     * ".apk" followed by a non-alphanumeric or the end, so "/app.apk?x" and
+     * "file=a.apk" match but "/x.apkmirror" does not.
+     */
     private val APK_PATTERN = Regex("""\.apk(?![a-z0-9])""")
     private val TOKEN_SPLIT = Regex("[^a-z0-9]+")
 

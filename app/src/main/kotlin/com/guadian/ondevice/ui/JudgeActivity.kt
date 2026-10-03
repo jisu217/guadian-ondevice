@@ -36,8 +36,10 @@ class JudgeActivity : AppCompatActivity() {
             judging?.cancel()
             resultText.text = getString(R.string.judge_pending)
             judging = lifecycleScope.launch {
-                // Graph construction and every stage stay off the main thread;
-                // PageContentJudge hops to Main by itself for its WebView.
+                /*
+                 * Graph construction and every stage stay off the main thread;
+                 * PageContentJudge hops to Main by itself for its WebView.
+                 */
                 val verdict = withContext(Dispatchers.Default) { app.judges.full.judge(url) }
                 resultText.text = format(verdict)
             }

@@ -30,8 +30,10 @@ class DefaultJudgeGraph(context: Context) {
     private val observations = ObservationBoard()
     private val pageContent = PageContentJudge(context.applicationContext, onObservation = observations::post)
 
-    // The prompt is logged so the on-device input can be checked against the
-    // training format.
+    /*
+     * The prompt is logged so the on-device input can be checked against the
+     * training format.
+     */
     private val llm = LlmJudge(
         observations,
         runtime = LlamaCppRuntime(File(context.filesDir, MODEL_PATH)),

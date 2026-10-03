@@ -31,9 +31,11 @@ class BrandImpersonationRule(
             )
         }
 
-        // Only a hint: embedded labels also occur in unrelated real sites, so
-        // later layers decide. Skipped outright for allowlisted sites, checked
-        // on the registrable domain so "x.github.io" does not inherit github.io.
+        /*
+         * Only a hint: embedded labels also occur in unrelated real sites, so
+         * later layers decide. Skipped outright for allowlisted sites, checked
+         * on the registrable domain so "x.github.io" does not inherit github.io.
+         */
         officialDomains.brandSubstringInHost(host)?.let { brand ->
             val site = suffixes.registrableDomain(host) ?: host
             if (allowlist.containsExactly(site)) return null

@@ -9,8 +9,10 @@ import com.guadian.ondevice.judge.Verdict
 import com.guadian.ondevice.url.UrlHost
 
 class SuspiciousUrlRule : RiskRule {
-    // Whole-token match on path/query: substring matching flagged "/prevention"
-    // ("event") and "/accounting" ("account").
+    /*
+     * Whole-token match on path/query: substring matching flagged "/prevention"
+     * ("event") and "/accounting" ("account").
+     */
     override fun evaluate(url: String): Verdict? {
         if (!UrlRuleSignals.hasSuspiciousToken(url)) return null
 

@@ -10,9 +10,11 @@ class BrandDomains(
     private val domainsByBrand: Map<String, Set<String>> = defaultBrandDomains,
     private val suffixes: PublicSuffixList = PublicSuffixList.default,
 ) {
-    // The registrable label of each official domain ("kbstar" for kbstar.com,
-    // "naver" for naver.me). The raw brand key ("kb") is never matched on its
-    // own: it would false-positive on hosts like "bankbook.com".
+    /*
+     * The registrable label of each official domain ("kbstar" for kbstar.com,
+     * "naver" for naver.me). The raw brand key ("kb") is never matched on its
+     * own: it would false-positive on hosts like "bankbook.com".
+     */
     private val labelsByBrand: Map<String, Set<String>> = domainsByBrand.mapValues { (_, domains) ->
         domains.mapNotNullTo(HashSet()) { domain ->
             suffixes.registrableDomain(domain)?.substringBefore('.')

@@ -14,9 +14,11 @@ class BrandImpersonationRuleTest {
 
     @Test
     fun officialDomainIsLowRiskRegardlessOfHostCase() {
-        // Regression: hostOf() used to skip lowercasing, so an official
-        // domain typed/rendered in uppercase failed the exact-match check
-        // and fell through to being flagged as brand impersonation instead.
+        /*
+         * Regression: hostOf() used to skip lowercasing, so an official
+         * domain typed/rendered in uppercase failed the exact-match check
+         * and fell through to being flagged as brand impersonation instead.
+         */
         val verdict = rule.evaluate("https://PAY.NAVER.COM")!!
 
         assertEquals(Risk.LOW, verdict.risk)

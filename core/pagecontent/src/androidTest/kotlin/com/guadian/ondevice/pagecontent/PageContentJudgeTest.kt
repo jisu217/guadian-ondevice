@@ -43,8 +43,10 @@ class PageContentJudgeTest {
 
     @Test
     fun brandMentionWithoutLoginFormIsNotHigh() {
-        // Regression: a page that only names a brand ("Log in with Naver",
-        // a news article) used to be HIGH by itself.
+        /*
+         * Regression: a page that only names a brand ("Log in with Naver",
+         * a news article) used to be HIGH by itself.
+         */
         val verdict = judgeHtml("<html><body>Log in with naver or read our kakao news.</body></html>")
 
         assertEquals(Risk.UNKNOWN, verdict.risk)
@@ -86,9 +88,11 @@ class PageContentJudgeTest {
     }
 
     private fun judgeHtml(html: String, onObservation: (PageObservation) -> Unit = {}): Verdict {
-        // URLEncoder is form-encoding (space -> "+"), not URI percent-encoding;
-        // a literal "+" between e.g. "input" and "type=..." would corrupt the
-        // tag itself, so space must become "%20" instead.
+        /*
+         * URLEncoder is form-encoding (space -> "+"), not URI percent-encoding;
+         * a literal "+" between e.g. "input" and "type=..." would corrupt the
+         * tag itself, so space must become "%20" instead.
+         */
         val encoded = URLEncoder.encode(html, "UTF-8").replace("+", "%20")
         val dataUrl = "data:text/html;charset=utf-8,$encoded"
         val judge = PageContentJudge(

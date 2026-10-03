@@ -178,8 +178,10 @@ class WebAccessibilityNodeRobolectricTest {
         shadowOf(root).addChild(linkNode("http://10.0.2.2:8123/about"))
         val iframe = chromeRoleNode(role = "iframe")
         shadowOf(root).addChild(iframe)
-        // A single ad link inside the iframe would otherwise win a naive
-        // majority count if it were (wrongly) included.
+        /*
+         * A single ad link inside the iframe would otherwise win a naive
+         * majority count if it were (wrongly) included.
+         */
         shadowOf(iframe).addChild(linkNode("https://ad-network.test/click"))
 
         assertEquals("10.0.2.2", WebAccessibilityNode.inferCurrentSiteHost(root))

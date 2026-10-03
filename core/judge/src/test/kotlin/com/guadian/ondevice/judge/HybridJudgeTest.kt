@@ -47,8 +47,10 @@ class HybridJudgeTest {
 
     @Test
     fun `deterministic rules run before a cached verdict can answer`() = runTest {
-        // Regression: the store used to be consulted first and keyed by host,
-        // so a LOW for "evil.example/" was reused for "evil.example/app.apk".
+        /*
+         * Regression: the store used to be consulted first and keyed by host,
+         * so a LOW for "evil.example/" was reused for "evil.example/app.apk".
+         */
         val store = InMemoryVerdictStore()
         store.save("https://evil.example/app.apk", fixed(Layer.KNOWLEDGE, Risk.LOW, Confidence.CERTAIN))
         val judge = HybridJudge(

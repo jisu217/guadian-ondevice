@@ -18,8 +18,10 @@ class GuadianApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Load the large runtime resources off the main thread before the
-        // first judgment needs them.
+        /*
+         * Load the large runtime resources off the main thread before the
+         * first judgment needs them.
+         */
         appScope.launch {
             DomainAllowlist.default
             BlocklistFilter.default

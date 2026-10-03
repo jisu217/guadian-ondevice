@@ -20,8 +20,10 @@ kotlin {
 
 sourceSets {
     main {
-        // The runtime files this module reads, shared with Python training. Each
-        // module ships only its own; the LLM brand data lives with :core:llm.
+        /*
+         * The runtime files this module reads, shared with Python training. Each
+         * module ships only its own; the LLM brand data lives with :core:llm.
+         */
         resources {
             srcDir("../../ml/runtime")
             include("official_domains.txt", "brand_domains.tsv", "public_suffix_list.dat", "blocklist.bloom")
@@ -32,8 +34,10 @@ sourceSets {
 dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
-    // Android ships org.json in the platform, and bundling a second copy into
-    // the APK clashes with it; the JVM only needs it to compile and test.
+    /*
+     * Android ships org.json in the platform, and bundling a second copy into
+     * the APK clashes with it; the JVM only needs it to compile and test.
+     */
     compileOnly(libs.orgjson)
     testImplementation(libs.orgjson)
 
@@ -46,8 +50,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Regenerates ml/reports/pipeline/local-resolution-report.md; `./gradlew test`
-// only checks the measurement's invariants and never writes the file.
+/*
+ * Regenerates ml/reports/pipeline/local-resolution-report.md; `./gradlew test`
+ * only checks the measurement's invariants and never writes the file.
+ */
 tasks.register<Test>("writeLocalResolutionReport") {
     description = "Writes ml/reports/pipeline/local-resolution-report.md."
     group = "verification"

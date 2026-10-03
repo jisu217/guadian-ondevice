@@ -44,9 +44,11 @@ class JudgeActivityTest {
 
     @Test
     fun unresolvableUrlEndsUnknownAtLlmStage() {
-        // .test is IANA-reserved (RFC 2606): guaranteed never to resolve, so
-        // PageContentJudge's WebView load fails deterministically instead of
-        // rendering whatever a real .org registrant happens to host there.
+        /*
+         * .test is IANA-reserved (RFC 2606): guaranteed never to resolve, so
+         * PageContentJudge's WebView load fails deterministically instead of
+         * rendering whatever a real .org registrant happens to host there.
+         */
         val result = judge("https://plain-article.test/read")
 
         assertTrue(result, "(UNKNOWN)" in result)
