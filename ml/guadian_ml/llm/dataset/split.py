@@ -12,11 +12,16 @@ Design:
     Human-reviewed cases go to test first.  Their labels are the most reliable,
         which makes them the best measure of accuracy.
 
+    --keep keeps every site's existing split.  Adding a dataset version then
+        places only the new sites, so cases scored before stay in the same split
+        and earlier test results remain comparable. New sites still fill each
+        stratum toward the targets, counting the kept sites.
+
 Validation is for checkpoint selection only; test is used once, at the end.
 The assignment is deterministic for a given seed and label file.
 
 Usage:
-    python -m guadian_ml.llm.dataset.split [--seed 20260926]
+    python -m guadian_ml.llm.dataset.split [--seed 20260926] [--keep]
 """
 
 from __future__ import annotations
@@ -45,7 +50,12 @@ def group_risk(rows: list[dict]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Grouped, stratified train/validation/test split.")
     parser.add_argument("--seed", type=int, default=20260926)
+    parser.add_argument("--keep", action="store_true", help="keep the existing split of every site in splits.jsonl")
     args = parser.parse_args()
+    kept: dict[str, str] = {}
+    if args.keep and OUT.exists():
+        with open(OUT, encoding="utf-8") as f:
+            kept = {r["site"]: r["split"] for r in map(json.loads, filter(str.strip, f))}
 
     suffixes = public_suffix.default()
     with open(LABELS, encoding="utf-8") as f:
@@ -66,7 +76,11 @@ def main() -> int:
         rng.shuffle(sites)   # breaks ties among equal-sized groups
         total = sum(len(groups[s]) for s in sites)
         filled = collections.Counter()
-        reviewed = [s for s in sites if any(r["label_source"] == "human_review" for r in groups[s])]
+        for site in (s for s in sites if s in kept):
+            assignment[site] = kept[site]
+            filled[kept[site]] += len(groups[site])
+        reviewed = [s for s in sites if s not in assignment
+                    and any(r["label_source"] == "human_review" for r in groups[s])]
         for site in reviewed:
             assignment[site] = "test"
             filled["test"] += len(groups[site])
