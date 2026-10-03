@@ -15,6 +15,7 @@ PUBLIC_SUFFIX_LIST = RUNTIME / "public_suffix_list.dat"
 OFFICIAL_DOMAINS = RUNTIME / "official_domains.txt"
 BRAND_DOMAINS = RUNTIME / "brand_domains.tsv"
 LLM_BRANDS = RUNTIME / "llm_brands.json"
+PAGE_INSPECTION = RUNTIME / "page_inspection.js"
 BLOCKLIST = RUNTIME / "blocklist.bloom"
 BLOCKLIST_META = RUNTIME / "blocklist.meta.json"
 

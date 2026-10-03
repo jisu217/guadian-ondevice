@@ -115,7 +115,7 @@ Each layer decides `CERTAIN` differently:
 | `RuleBasedJudge` | `BlocklistRule` (`HIGH`, the host or a parent domain up to the registrable domain is on the bundled phishing/malware blocklist), `ApkRule` (`HIGH`, `.apk` in path/query), official-domain match (`LOW`), a brand label as its own host token on a non-official host (`HIGH`), or a whole-token lure keyword in path/query (`SuspiciousUrlRule`, `MEDIUM`). A brand label only embedded in a longer host token is an `UNCERTAIN` `MEDIUM` hint, and is ignored when the registrable domain is allowlisted |
 | `StoreJudge` | the normalized URL has a cached verdict |
 | `LocalKnowledgeJudge` | a snippet matches; `risk` and `confidence` come from the first snippet |
-| `PageContentJudge` | a password field on a host that is neither an official brand domain nor allowlisted: `HIGH` if the page names a known brand, otherwise `MEDIUM`. A brand name without a password field stays `UNCERTAIN` |
+| `PageContentJudge` | a shown password field (not one in a closed popup) on a host that is neither an official brand domain nor allowlisted: `HIGH` if the page names a known brand, otherwise `MEDIUM`. A brand name without a password field stays `UNCERTAIN` |
 | `LlmJudge` | the model's reply is readable. `AnswerReader` lowers `HIGH` to `MEDIUM` unless its type is impersonation, credentials, or apk and its evidence is one of the prompt's lines verbatim; an unreadable reply is an uncertain `MEDIUM`. Without a model file it answers uncertain `UNKNOWN` |
 
 Brand-to-domain data lives in `ml/runtime/brand_domains.tsv`, shared with the

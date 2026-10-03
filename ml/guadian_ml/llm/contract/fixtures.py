@@ -5,7 +5,8 @@ the Kotlin ports must reproduce the Python behavior exactly. Inputs are syntheti
 the committed files hold no collected page text.
 
     prompt_cases.jsonl        observation -> prompt           (PromptBuilderParityTest)
-    page_signal_cases.json    DOM readings -> form asks, external action, text (PageSignalsParityTest)
+    page_signal_cases.json    DOM readings -> form asks, external action, text, and
+                              page_inspection.js results -> observation (PageSignalsParityTest)
     answer_cases.jsonl        reply -> reading and grounding  (AnswerReaderParityTest)
     chat_cases.json           prompt -> model input via the real tokenizer (ChatFormatParityTest;
                               rewritten only when data/llm/tokenizer is present)
@@ -51,6 +52,10 @@ def observations() -> list[prompt.PageObservation]:
         prompt.PageObservation(url="https://form.example.com/", loaded=True, final_url="https://form.example.com/",
                         status=200, title="Newsletter", text="이메일을 입력하세요", text_chars=400,
                         forms=(prompt.FormObservation((), False), prompt.FormObservation(("phone",), False))),
+        prompt.PageObservation(url="https://lead.example.com/", loaded=True, final_url="https://lead.example.com/",
+                        status=200, title="자료 받기", text="자료를 받으려면 입력하세요", text_chars=400,
+                        forms=(prompt.FormObservation(("search",), False),
+                               prompt.FormObservation(("email", "name", "phone"), False))),
         prompt.PageObservation(url="https://apk.example.com/", loaded=True, final_url="https://apk.example.com/",
                         status=200, title="Download", text="앱 설치", text_chars=300,
                         apk_links=("https://apk.example.com/" + "x" * 120 + "/app.apk",)),
@@ -69,13 +74,16 @@ def observations() -> list[prompt.PageObservation]:
                         status=200, redirects=1, title="Roblox", text="Roblox", text_chars=180),
         prompt.PageObservation(url="https://short.example/f", loaded=True, final_url="https://m.facebook.com/login",
                         status=200, redirects=3, title="Facebook", text="Facebook 로그인", text_chars=40),
+        prompt.PageObservation(url="https://phish.example.com/h/google.html", loaded=True,
+                        final_url="blob:https://phish.example.com/6fb6-1f8c#", status=200, redirects=1,
+                        title="Sign in - Google Accounts", text="Sign in - Google Accounts", text_chars=25),
         prompt.PageObservation(url="https://token.xyz/", loaded=True, final_url="https://token.xyz/", status=200,
                         title="TokenPocket wallet", text="Download TokenPocket and imToken", text_chars=300),
     ]
 
 
 def page_signal_cases() -> dict:
-    """Cases for core/llm PageSignals.kt, computed with the original rules."""
+    """Cases for core/llm PageSignals.kt, computed with the original rules and the added field kinds."""
     field_sets = [
         [{"type": "password", "name": "pw"}],
         [{"type": "text", "name": "jumin", "placeholder": "주민등록번호"}],
@@ -95,6 +103,17 @@ def page_signal_cases() -> dict:
         [{"type": "text", "placeholder": "주민\u3000등록번호"}],
         [{"type": "text", "name": "id-rrn"}],
         [{"type": "text", "name": f"f{i}", "placeholder": "phone" if i == 20 else ""} for i in range(21)],
+        # field kinds added after the original collector: first 12 fields, labels cut to 30
+        [{"type": "text", "name": "EMAIL_addr"}, {"type": "text", "name": "user_name"}],
+        [{"type": "text", "name": "username"}, {"type": "text", "name": "nickname"}],
+        [{"type": "text", "name": "firstName"}, {"type": "text", "placeholder": "성명"}],
+        [{"type": "search", "name": "x"}, {"type": "text", "name": "q"}, {"type": "text", "name": "query1"}],
+        [{"type": "text", "name": "umobile"}, {"type": "text", "placeholder": "핸드폰 번호"}],
+        [{"type": "text", "name": "seq"}, {"type": "text", "name": "faq"}],
+        [{"type": "text", "name": "a" * 26, "id": "email"}],
+        [{"type": "text", "placeholder": "\U0001F600" * 29 + "email"}],
+        [{"type": "text", "name": f"f{i}", "placeholder": "이메일" if i == 12 else ""} for i in range(13)],
+        [{"type": "text", "name": "\u212Aname"}, {"type": "text", "name": "\u017Fearch"}],
     ]
     actions = [
         ("https://shop.example.com/a", None),
@@ -106,10 +125,40 @@ def page_signal_cases() -> dict:
         ("https://a.b.example.org/", "https://example.org/x"),
     ]
     texts = ["  광고\n\n  안내\t\t입니다  ", "a b　c", "", "   ", "line1\r\nline2"]
+
+    def field(type_, shown=True, **attrs):
+        return {"type": type_, "name": None, "id": None, "placeholder": None, "autocomplete": None,
+                **attrs, "shown": shown}
+
+    inspections = [
+        ("https://board.example.com/", {
+            "title": "  게시판  ", "text": "  레저\n체험  ",
+            "forms": [{"action": None, "fields": [field("password", False, name="secret_pw_input"),
+                                                  field("button", False)]},
+                      {"action": None, "fields": []},
+                      {"action": "https://board.example.com/s", "fields": [field("text", name="q")]}]}),
+        ("https://lead.example.com/", {
+            "title": "T" * 250, "text": "상담 신청",
+            "forms": [{"action": "https://crm.other.net/post", "fields": [
+                field("text", name="user_name"), field("tel", name="phone"),
+                field("email", False, name="email"), field("hidden", False, name="token")]}]}),
+        ("https://apk.example.com/", {
+            "title": "", "text": "",
+            "forms": [{"action": None, "fields": [{"type": "text", "name": "id"}, {"type": "password", "name": "pw"}]}],
+            "apkAnchors": ["https://apk.example.com/a.apk", "https://apk.example.com/" + "x" * 130 + ".apk"],
+            "apkInHtml": ["https://apk.example.com/a.apk", "https://b.example.com/b.apk", "https://c.example.com/c.apk",
+                          "https://d.example.com/d.apk", "https://e.example.com/e.apk"]}),
+        ("https://forms.example.com/", {
+            "title": "많은 폼", "text": "\U0001F600" * 2600,
+            "forms": [{"action": None, "fields": [field("text", name=f"f{i}")]} for i in range(8)]}),
+    ]
     return {
         "forms": [{"fields": f, "asks": prompt.form_asks(f)} for f in field_sets],
         "actions": [{"final_url": u, "action": a, "external": prompt.external_action(u, a)} for u, a in actions],
         "texts": [{"raw": t, "collapsed": prompt.collapse_text(t)} for t in texts],
+        "inspections": [{"url": u, "final_url": u, "status": 200, "redirects": 1, "inspection": data,
+                         "observation": prompt.observation_from_inspection(u, u, 200, 1, data).to_json()}
+                        for u, data in inspections],
     }
 
 

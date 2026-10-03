@@ -20,10 +20,13 @@ kotlin {
 
 sourceSets {
     main {
-        // Brand data for the prompt, written by `python -m guadian_ml.resources.llm_brands`.
+        /*
+         * Brand data for the prompt, written by `python -m guadian_ml.resources.llm_brands`,
+         * and the page inspection script the collector runs too.
+         */
         resources {
             srcDir("../../ml/runtime")
-            include("llm_brands.json")
+            include("llm_brands.json", "page_inspection.js")
         }
     }
 }

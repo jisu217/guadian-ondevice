@@ -42,6 +42,17 @@ class PageSignalsParityTest {
     }
 
     @Test
+    fun `inspection results read like the collector reads them`() {
+        val inspections = cases.getJSONArray("inspections")
+        for (i in 0 until inspections.length()) {
+            val case = inspections.getJSONObject(i)
+            val actual = PageSignals.observe(case.getString("url"), case.getString("final_url"), case.getInt("status"),
+                case.getInt("redirects"), case.getJSONObject("inspection"))
+            assertEquals(observationFromJson(case.getJSONObject("observation")), actual, case.getString("url"))
+        }
+    }
+
+    @Test
     fun `text collapses like the original`() {
         val texts = cases.getJSONArray("texts")
         for (i in 0 until texts.length()) {
