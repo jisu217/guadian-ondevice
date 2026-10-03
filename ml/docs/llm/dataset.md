@@ -45,7 +45,14 @@ other type becomes `MEDIUM`.
 A label describes the collected input, not the live page. If the collector
 could not read a page, the label is `MEDIUM unverifiable` even when the page
 opens in a browser. Labeling it `LOW` would teach the model that an unreadable
-page is safe.
+page is safe. For the same reason, a form that appears only on a later step is
+not on the page: `case_107` and `case_219`, reviewed as `MEDIUM personal_info`
+from their later steps, are labeled from the first screen (`LOW` and
+`MEDIUM urgency`). Cases collected from 2026-10-01 also store the result of
+`ml/runtime/page_inspection.js`, the script the app runs, and the model's input
+is built from it; a field the user cannot see (a closed popup's password box) is
+left out. Earlier cases are read from the original collector's signals, which
+count every field.
 
 Missing evidence is never evidence of risk. An unreachable page on a newly
 registered domain is `MEDIUM unverifiable`, not `HIGH`.
@@ -62,6 +69,21 @@ A host that imitates a brand is graded by how certain the imitation is:
 The last row matters: brands run campaign sites on separate domains, and
 treating every brand name as a warning sign would block them.
 
+Forms are graded from what page inspection reports, and "official" means a host
+the brand table (`ml/runtime/llm_brands.json`) owns. Following the original
+criteria, a password or phone field on a host the table does not own makes a
+`LOW` label `MEDIUM personal_info`; the teacher had answered `LOW` for three
+such pages.
+
+Two rules depart from the original criteria (decided 2026-10-01). A form whose
+only personal field is an email address, outside a login, is `LOW`: the
+criteria's reason for `MEDIUM` is sales calls after leaving a phone number, and
+newsletter boxes are common on ordinary sites. An investment offer is `LOW` only
+on a host the table owns and `MEDIUM` elsewhere; a company name in the page
+footer does not establish the host. Two human-reviewed test cases were changed
+to match (`case_201` to `LOW`, `case_174` to `MEDIUM investment`), with the
+reason appended to their review note.
+
 The model only sees what the phone can observe without revealing the visit.
 The collector records blocklist membership and domain age for the teacher, but
 neither reaches the student's input or the policy rules: domain age needs a
@@ -69,6 +91,12 @@ per-domain online lookup, and no blocklist ships with the app.
 
 Teacher labels that disagreed with the team's earlier gold labels were reviewed
 by hand (`data/llm/review_*.csv`). Human review overrides every other source.
+
+The 373 test cases without a human label in the 2026-10 version were reviewed
+against the same criteria from the model's input alone: 30 by a person, the
+other 343 by a Claude model (Claude Opus 5.5). Model-reviewed rows live in
+`data/llm/assistant_review_*.csv` and carry `label_source: assistant_review`,
+so scores on `human_review` cases still measure agreement with people only.
 `data/llm/label_overrides.jsonl`, if present, holds one-off corrections.
 
 ## Vendored files
