@@ -34,8 +34,7 @@ import sys
 
 from guadian_ml import paths
 from guadian_ml.llm.contract.prompt import SYSTEM, Brands, observation_from_case, user_message
-
-SOURCES = ("gold251_js", "openphish_20260926_js")
+from guadian_ml.llm.dataset.final_labels import SOURCES
 
 
 def read_jsonl(path: str) -> list[dict]:
