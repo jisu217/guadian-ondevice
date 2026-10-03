@@ -23,6 +23,10 @@ Reruns skip cases that already have a verdict and retry cases that failed.
 
 `--addendum` appends CRITERIA_ADDENDUM to the original criteria; each row records
 its SHA256. `--only-ids PATH` labels just the case IDs listed one per line.
+
+`--batch` sends the same requests through the Message Batches API at half the
+price; results arrive within 24 hours. The batch ID is kept in OUT.batch, so an
+interrupted run resumes waiting for the same batch instead of paying twice.
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ import json
 import os
 import sys
 import time
+from collections import Counter
 from datetime import datetime, timezone
 
 import anthropic
@@ -91,6 +96,94 @@ def labeled_case_ids(path: str) -> set[str]:
         return {row["case_id"] for row in map(json.loads, filter(str.strip, f)) if "error" not in row}
 
 
+def request(case: dict, spec: dict, tool: dict, addendum: str) -> tuple[dict, dict]:
+    """The output row's provenance fields and the Messages API parameters for one case."""
+    system, user = bp.build_messages(case, spec)
+    system += addendum
+    row = {
+        "case_id": case["case_id"],
+        "model": MODEL,
+        "spec_id": spec["spec_id"],
+        "addendum_sha256": CRITERIA_ADDENDUM_SHA256 if addendum else None,
+        # Lets a later run prove it sent the same prompt.
+        "prompt_sha256": hashlib.sha256(user.encode()).hexdigest(),
+        "labeled_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    params = {
+        "model": MODEL,
+        "max_tokens": spec["params"]["max_tokens"],
+        "system": system,
+        "tools": [tool],
+        "tool_choice": {"type": "tool", "name": "final_verdict"},
+        "messages": [{"role": "user", "content": user}],
+    }
+    return row, params
+
+
+def finish_row(row: dict, response, case: dict) -> None:
+    """Record usage and the grounded verdict from one response."""
+    row["usage"] = {"input_tokens": response.usage.input_tokens, "output_tokens": response.usage.output_tokens}
+    verdict = next((dict(block.input) for block in response.content
+                    if getattr(block, "type", "") == "tool_use" and block.name == "final_verdict"), None)
+    if verdict is None:
+        row["error"] = f"no final_verdict tool_use block (stop_reason={response.stop_reason})"
+    else:
+        tool_texts = [item["output"] for item in case["input"]["tool_outputs"]]
+        row["verdict_raw"] = verdict
+        row["verdict"] = ja._ground(verdict, tool_texts)
+
+
+def write_row(out, row: dict) -> None:
+    out.write(json.dumps(row, ensure_ascii=False) + "\n")
+    out.flush()
+
+
+def run_batch(client: anthropic.Anthropic, cases: list[dict], spec: dict, tool: dict, addendum: str,
+              out_path: str, poll_s: int = 60) -> int:
+    """Label cases through one Message Batch; the batch ID in OUT.batch makes a rerun resume it."""
+    state_path = out_path + ".batch"
+    prepared = {c["case_id"]: (c, *request(c, spec, tool, addendum)) for c in cases}
+    if os.path.exists(state_path):
+        with open(state_path, encoding="utf-8") as f:
+            batch_id = json.load(f)["batch_id"]
+        print(f"resuming batch {batch_id}", flush=True)
+    else:
+        if not prepared:
+            print("nothing to label")
+            return 0
+        batch = client.messages.batches.create(
+            requests=[{"custom_id": case_id, "params": params} for case_id, (_, _, params) in prepared.items()])
+        batch_id = batch.id
+        with open(state_path, "w", encoding="utf-8") as f:
+            json.dump({"batch_id": batch_id, "requests": len(prepared)}, f)
+        print(f"submitted batch {batch_id} with {len(prepared)} requests", flush=True)
+
+    while (batch := client.messages.batches.retrieve(batch_id)).processing_status != "ended":
+        counts = batch.request_counts
+        print(f"{batch.processing_status}: {counts.processing} processing, {counts.succeeded} succeeded, "
+              f"{counts.errored} errored", flush=True)
+        time.sleep(poll_s)
+
+    written = Counter()
+    with open(out_path, "a", encoding="utf-8") as out:
+        for result in client.messages.batches.results(batch_id):
+            if result.custom_id not in prepared:
+                continue   # already labeled by an earlier, partly written run
+            case, row, _ = prepared[result.custom_id]
+            row["batch_id"] = batch_id
+            if result.result.type == "succeeded":
+                finish_row(row, result.result.message, case)
+            elif result.result.type == "errored":
+                row["error"] = f"batch {result.result.error.type}"
+            else:
+                row["error"] = f"batch {result.result.type}"
+            write_row(out, row)
+            written["error" if "error" in row else row["verdict"]["risk"]] += 1
+    os.remove(state_path)
+    print(f"wrote {sum(written.values())} rows: {dict(written)}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Label collected cases with the original Claude judge.")
     parser.add_argument("cases", help="cases JSONL from guadian_ml.llm.dataset.collect")
@@ -99,6 +192,7 @@ def main() -> int:
     parser.add_argument("--sleep", type=float, default=0.0, help="seconds to wait between calls")
     parser.add_argument("--addendum", action="store_true", help="append CRITERIA_ADDENDUM to the criteria")
     parser.add_argument("--only-ids", help="file with one case ID per line to label")
+    parser.add_argument("--batch", action="store_true", help="use the Message Batches API (half price, up to 24 h)")
     args = parser.parse_args()
 
     spec = load_verified_spec()
@@ -116,47 +210,20 @@ def main() -> int:
         cases = cases[: args.limit]
     addendum = CRITERIA_ADDENDUM if args.addendum else ""
 
+    todo = [c for c in cases if c["case_id"] not in done]
+    if args.batch:
+        return run_batch(client, todo, spec, tool, addendum, args.out)
     with open(args.out, "a", encoding="utf-8") as out:
-        for i, case in enumerate(cases, 1):
-            if case["case_id"] in done:
-                continue
-            system, user = bp.build_messages(case, spec)
-            system += addendum
-            row = {
-                "case_id": case["case_id"],
-                "model": MODEL,
-                "spec_id": spec["spec_id"],
-                "addendum_sha256": CRITERIA_ADDENDUM_SHA256 if addendum else None,
-                # Lets a later run prove it sent the same prompt.
-                "prompt_sha256": hashlib.sha256(user.encode()).hexdigest(),
-                "labeled_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            }
+        for i, case in enumerate(todo, 1):
+            row, params = request(case, spec, tool, addendum)
             started = time.monotonic()
             try:
-                response = client.messages.create(
-                    model=MODEL,
-                    max_tokens=spec["params"]["max_tokens"],
-                    system=system,
-                    tools=[tool],
-                    tool_choice={"type": "tool", "name": "final_verdict"},
-                    messages=[{"role": "user", "content": user}],
-                )
-                row["usage"] = {"input_tokens": response.usage.input_tokens,
-                                "output_tokens": response.usage.output_tokens}
-                verdict = next((dict(block.input) for block in response.content
-                                if getattr(block, "type", "") == "tool_use" and block.name == "final_verdict"), None)
-                if verdict is None:
-                    row["error"] = f"no final_verdict tool_use block (stop_reason={response.stop_reason})"
-                else:
-                    tool_texts = [item["output"] for item in case["input"]["tool_outputs"]]
-                    row["verdict_raw"] = verdict
-                    row["verdict"] = ja._ground(verdict, tool_texts)
+                finish_row(row, client.messages.create(**params), case)
             except anthropic.APIError as e:
                 row["error"] = f"{type(e).__name__}: {str(e)[:200]}"
-            out.write(json.dumps(row, ensure_ascii=False) + "\n")
-            out.flush()
+            write_row(out, row)
             verdict = row.get("verdict") or {}
-            print(f"[{i}/{len(cases)}] {case['case_id']} {verdict.get('risk', row.get('error'))} "
+            print(f"[{i}/{len(todo)}] {case['case_id']} {verdict.get('risk', row.get('error'))} "
                   f"{verdict.get('type', '')} ({time.monotonic() - started:.1f}s)", flush=True)
             if args.sleep:
                 time.sleep(args.sleep)
