@@ -18,6 +18,7 @@ internal object PyText {
     /** Python's `\w` for these patterns: letters, digits, underscore, in any script. */
     const val PY_WORD = "[\\p{L}\\p{N}_]"
 
+    private val SCHEME = Regex("[A-Za-z][A-Za-z0-9+.-]*")
     private val WHITESPACE = Pattern.compile("$PY_WHITESPACE+")
 
     /** `s[:n]` in Python: the first [n] code points, not UTF-16 units. */
@@ -31,11 +32,16 @@ internal object PyText {
     /** `re.sub(r"\s+", "", s).lower()` */
     fun squash(s: String): String = WHITESPACE.matcher(s).replaceAll("").lowercase()
 
-    /** `urlsplit(url).hostname`: lowercase host without user-info, port, or brackets. */
+    /**
+     * `urlsplit(url).hostname`: lowercase host without user-info, port, or brackets.
+     * As in Python, the host follows "//" right after the scheme, so a URL such as
+     * `blob:https://a.com/x` has none.
+     */
     fun hostname(url: String): String? {
-        val afterScheme = url.substringAfter("://", "")
-        if (afterScheme.isEmpty()) return null
-        val netloc = afterScheme.takeWhile { it != '/' && it != '?' && it != '#' }
+        val colon = url.indexOf(':')
+        val rest = if (colon > 0 && SCHEME.matches(url.substring(0, colon))) url.substring(colon + 1) else url
+        if (!rest.startsWith("//")) return null
+        val netloc = rest.substring(2).takeWhile { it != '/' && it != '?' && it != '#' }
         val hostPort = netloc.substringAfterLast('@')
         val host = if (hostPort.startsWith("[")) {
             hostPort.substringAfter('[').substringBefore(']')
