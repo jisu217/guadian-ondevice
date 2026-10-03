@@ -28,6 +28,13 @@ Deviations from the service, and why:
         WebView with JavaScript on; rendering here in headless Chromium with a
         mobile profile gives training inputs that match what the app will see.
         `--renderer requests` reproduces the service's fetch for comparison.
+    The app's page inspection runs too (browser renderer only).  The teacher
+        reads the original page_signals; the student's input is built from what
+        ml/runtime/page_inspection.js returns on the same rendered page, the
+        script the app runs in its WebView. It is stored as the case's
+        "inspection", outside tool_outputs, so teacher prompts are unchanged. It
+        also records whether each form field is shown, so a closed popup's
+        fields do not reach the prompt.
     Encoding is detected when the server omits it (requests renderer only).
         For a text/html response without a charset, requests decodes as
         ISO-8859-1, which turns UTF-8 Korean into mojibake. The service had this
@@ -92,6 +99,8 @@ ja._get_capped = _get_with_detected_encoding
 MOBILE_VIEWPORT = {"width": 412, "height": 915}
 NAVIGATION_TIMEOUT_MS = 15_000
 SETTLE_TIMEOUT_MS = 5_000
+# The app's page inspection, run on the same rendered page as the HTML signals.
+INSPECTION_SCRIPT = paths.PAGE_INSPECTION.read_text(encoding="utf-8")
 
 
 class BrowserFetcher:
@@ -131,7 +140,12 @@ class BrowserFetcher:
                     break
             html = page.content()
             full_text = ja._text_of(html)
+            try:
+                inspection = json.loads(page.evaluate(INSPECTION_SCRIPT))
+            except Exception as e:
+                inspection = {"error": f"{type(e).__name__}: {str(e)[:120]}"}
             return {
+                "inspection": None if "error" in inspection else inspection,
                 "final_url": page.url,
                 "status": navigations[-1][1] if navigations else 0,
                 "chain": [u for u, _ in navigations] or [page.url],
@@ -191,15 +205,18 @@ def blocked_by(table: dict[str, str], host: str) -> str | None:
     return None
 
 
-def collect(url: str, blocklist: dict[str, str], fetcher: Callable[[str], dict]) -> list[dict]:
-    """Run the oneshot prefetch for one URL and return its tool outputs.
+def collect(url: str, blocklist: dict[str, str], fetcher: Callable[[str], dict]) -> tuple[list[dict], dict | None]:
+    """Run the oneshot prefetch for one URL; return its tool outputs and the app's page inspection.
 
-    `fetcher` is BrowserFetcher or judge_agent.fetch_chain; both return the same fields.
+    `fetcher` is BrowserFetcher or judge_agent.fetch_chain; both return the same fields,
+    and only BrowserFetcher returns an inspection (page_inspection.js), which feeds
+    the student's input but not the teacher's.
 
     Each entry is {"tool", "args", "output"} with `output` serialized exactly as
     run_agent.record() stored it, because build_prompt parses these strings.
     """
     outputs: list[dict] = []
+    inspection = None
 
     def record(tool: str, args: dict, result: dict) -> dict:
         outputs.append({"tool": tool, "args": args, "output": json.dumps(result, ensure_ascii=False)})
@@ -236,10 +253,11 @@ def collect(url: str, blocklist: dict[str, str], fetcher: Callable[[str], dict])
     try:
         page = fetcher(url)
         fetch = record("fetch_page", {"url": url},
-                       {k: v for k, v in page.items() if k not in ("html", "full_text")})
+                       {k: v for k, v in page.items() if k not in ("html", "full_text", "inspection")})
     except Exception as e:
         fetch = record("fetch_page", {"url": url}, {"error": f"{type(e).__name__}: {str(e)[:120]}"})
     if "error" not in fetch:
+        inspection = page.get("inspection")
         final_url = page["final_url"]
         signals = record("page_signals", {"url": final_url},
                          ja.page_signals(page["html"], final_url, body_text=page["full_text"]))
@@ -259,7 +277,7 @@ def collect(url: str, blocklist: dict[str, str], fetcher: Callable[[str], dict])
 
     # Origin domain age.
     domain_age(site)
-    return outputs
+    return outputs, inspection
 
 
 def main() -> int:
@@ -292,11 +310,12 @@ def main() -> int:
             if case_id in done:
                 continue
             started = time.monotonic()
-            tool_outputs = collect(row["url"], blocklist, fetcher)
+            tool_outputs, inspection = collect(row["url"], blocklist, fetcher)
             case = {
                 "case_id": case_id,
                 "url": row["url"],
                 "input": {"url": row["url"], "click_url": None, "tool_outputs": tool_outputs},
+                "inspection": inspection,
                 "meta": {k: v for k, v in row.items() if k not in ("case_id", "url")},
                 "renderer": args.renderer,
                 "collected_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
