@@ -119,6 +119,7 @@ def app_report(ns: dict, examples: list[dict], replies: list[str]) -> dict:
     report.pop("unparseable")
     report["malformed"] = sum(r["reason"] == "LLM_MALFORMED_OUTPUT" for r in readings)
     report["high_lowered"] = sum(r["reason"] == "LLM_UNSUPPORTED_HIGH" for r in readings)
+    report["personal_info_lowered"] = sum(r["reason"] == "LLM_UNSUPPORTED_PERSONAL_INFO" for r in readings)
     return report
 
 

@@ -116,7 +116,7 @@ Each layer decides `CERTAIN` differently:
 | `StoreJudge` | the normalized URL has a cached verdict |
 | `LocalKnowledgeJudge` | a snippet matches; `risk` and `confidence` come from the first snippet |
 | `PageContentJudge` | a shown password field (not one in a closed popup) on a host that is neither an official brand domain nor allowlisted: `HIGH` if the page names a known brand, otherwise `MEDIUM`. A brand name without a password field stays `UNCERTAIN` |
-| `LlmJudge` | the model's reply is readable. `AnswerReader` lowers `HIGH` to `MEDIUM` unless its type is impersonation, credentials, or apk and its evidence is one of the prompt's lines verbatim; an unreadable reply is an uncertain `MEDIUM`. Without a model file it answers uncertain `UNKNOWN` |
+| `LlmJudge` | the model's reply is readable. `AnswerReader` lowers `HIGH` to `MEDIUM` unless its type is impersonation, credentials, or apk and its evidence is one of the prompt's lines verbatim, and lowers a `MEDIUM` personal_info to `LOW` when the prompt shows no personal field, outside form, brand mention, host imitation, or contact wording; an unreadable reply is an uncertain `MEDIUM`. Without a model file it answers uncertain `UNKNOWN` |
 
 Brand-to-domain data lives in `ml/runtime/brand_domains.tsv`, shared with the
 allowlist builder, and registrable domains come from the bundled Public Suffix
@@ -170,9 +170,12 @@ layers together.
 The pipeline passes only a URL between stages, so `PageContentJudge` posts a
 `PageObservation` (title, visible text, form fields, APK links, status,
 redirects) to an `ObservationBoard`, and `LlmJudge` takes it for the
-same URL. The observation is read with the rules the training data was
-collected with, and `PromptBuilder`, `ChatFormat`, and `AnswerReader` are ports
-of `ml/guadian_ml/llm/contract`; parity tests hold them to Python fixtures. Every prompt is
+same URL. `PageContentJudge` reads the page with `ml/runtime/page_inspection.js`,
+the script the training-data collector runs too, which marks the fields the user
+cannot see (a closed popup's password box) so they stay out of the prompt;
+`PageSignals.observe` turns its result into the observation. `PageSignals`,
+`PromptBuilder`, `ChatFormat`, and `AnswerReader` are ports of
+`ml/guadian_ml/llm/contract`; parity tests hold them to Python fixtures. Every prompt is
 logged under the `GuadianLlm` tag, and model load and reply times under
 `GuadianLlama`.
 

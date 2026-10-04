@@ -78,6 +78,7 @@ enum class ReasonCode {
     LLM_VERDICT,
     LLM_MALFORMED_OUTPUT,
     LLM_UNSUPPORTED_HIGH,
+    LLM_UNSUPPORTED_PERSONAL_INFO,
 }
 
 data class Verdict(

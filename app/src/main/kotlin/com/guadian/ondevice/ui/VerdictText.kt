@@ -79,6 +79,7 @@ class VerdictText(private val context: Context) {
         ReasonCode.LLM_VERDICT -> R.string.reason_llm_verdict
         ReasonCode.LLM_MALFORMED_OUTPUT -> R.string.reason_llm_malformed_output
         ReasonCode.LLM_UNSUPPORTED_HIGH -> R.string.reason_llm_unsupported_high
+        ReasonCode.LLM_UNSUPPORTED_PERSONAL_INFO -> R.string.reason_llm_unsupported_personal_info
     }
 
     private companion object {

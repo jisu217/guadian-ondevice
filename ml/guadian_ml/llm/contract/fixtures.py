@@ -188,7 +188,29 @@ def answer_cases() -> list[dict]:
         "",
         "no json at all",
     ]
-    return [{"reply": r, "prompt": prompt, **answer.read(r, prompt)} for r in replies]
+    cases = [(r, prompt) for r in replies]
+    # A personal_info answer is kept only when the page gives it some ground.
+    pi = '{"risk": "MEDIUM", "type": "personal_info", "evidence": ""}'
+    base = ["주소: https://clinic.example.com/consult", "페이지: 상태 200, 본문 900자", "제목: 상담 안내"]
+    for extra in (
+        [],                                                     # no form at all -> LOW
+        ["입력 칸: search"],                                      # search box only -> LOW
+        ["입력 칸: email, search"],                               # email alone is not personal -> LOW
+        ["입력 칸: 일반"],                                         # unnamed fields -> LOW
+        ["입력 칸: name, phone"],                                 # kept
+        ["입력 칸: password"],                                    # kept
+        ["입력 칸: 일반 (외부로 전송)"],                             # posts elsewhere -> kept
+        ["브랜드 언급: 국민은행(공식 kbstar.com) / 실제 clinic.example.com"],   # kept
+        ["주소 흉내: host x embeds kbstar.com"],                   # kept
+        ["본문: 빠른 상담 신청 연락처를 남겨 주세요"],                  # contact word -> kept
+        ["본문: 개인정보 수집 및 이용에 동의합니다"],                    # kept
+        ["본문: 개인정보처리방침 보기"],                               # 개인정보 without 수집/동의 -> LOW
+        ["본문: 이 문장에는 연락처라는 말이 없습니다"],                   # contains 연락처 -> kept
+    ):
+        cases.append((pi, "\n".join(base + extra)))
+    cases.append(('{"risk": "HIGH", "type": "personal_info", "evidence": "제목: 상담 안내"}', "\n".join(base)))
+    cases.append(('{"risk": "LOW", "type": "personal_info", "evidence": ""}', "\n".join(base)))
+    return [{"reply": r, "prompt": p, **answer.read(r, p)} for r, p in cases]
 
 
 def chat_cases(brands: prompt.Brands) -> dict | None:
