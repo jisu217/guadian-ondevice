@@ -49,16 +49,30 @@ class FormPolicyTest(unittest.TestCase):
         self.assertEqual(self.label("https://www.example.com/", lead, "MEDIUM", "personal_info"),
                          ("MEDIUM", "personal_info", "teacher"))
 
+    def test_personal_info_without_a_personal_field_is_low(self):
+        self.assertEqual(self.label("https://clinic.example.com/", [], "MEDIUM", "personal_info"),
+                         ("LOW", "none", "policy:personal_info_unsupported"))
 
-class InvestmentPolicyTest(unittest.TestCase):
-    def label(self, url):
-        return apply_policy(case(url, []), {"risk": "MEDIUM", "type": "investment"}, BRANDS)[:3]
+    def test_password_form_on_a_brand_platform_stays_low(self):
+        login = [form(["text:id", "password:pw"], ["password"])]
+        self.assertEqual(self.label("https://blog.naver.com/someone", login, "LOW", "none"),
+                         ("LOW", "none", "teacher"))
 
-    def test_investment_on_brand_host_is_low(self):
-        self.assertEqual(self.label("https://www.naver.com/"), ("LOW", "none", "policy:official_investment"))
 
-    def test_investment_on_unlisted_host_stays_medium(self):
+class OfficialPolicyTest(unittest.TestCase):
+    def label(self, url, type_="investment"):
+        return apply_policy(case(url, []), {"risk": "MEDIUM", "type": type_}, BRANDS)[:3]
+
+    def test_brand_site_is_low(self):
+        self.assertEqual(self.label("https://www.naver.com/"), ("LOW", "none", "policy:official"))
+        self.assertEqual(self.label("https://shop.kt.com/consult", "urgency"), ("LOW", "none", "policy:official"))
+
+    def test_unlisted_host_stays_medium(self):
         self.assertEqual(self.label("https://www.meritzevent.com/"), ("MEDIUM", "investment", "teacher"))
+
+    def test_user_content_on_a_brand_platform_stays_medium(self):
+        self.assertEqual(self.label("https://m.blog.naver.com/someone/123", "contentfarm"),
+                         ("MEDIUM", "contentfarm", "teacher"))
 
 
 if __name__ == "__main__":

@@ -16,8 +16,11 @@ Precedence, highest first:
                         - forms, from what page inspection reports (asks) and the brand table:
                           a password form on a host the table does not own, or a phone field
                           on such a host, is at least MEDIUM personal_info; a MEDIUM
-                          personal_info whose only personal field is an email address is LOW
-                        - investment: MEDIUM investment on a host the brand table owns is LOW
+                          personal_info whose only personal field is an email address is LOW;
+                          a MEDIUM personal_info the prompt gives no ground for
+                          (answer.personal_info_unsupported, the app's own check) is LOW
+                        - official: a label above LOW on a host the brand table owns is LOW,
+                          except on platforms where anyone publishes (USER_CONTENT_HOSTS)
                         - host rule (host_rules.grade_case, clicked URL and landing page):
                           raises the label to the host verdict when that is higher; never lowers it
     5. Teacher        data/llm/labels_*_addendum.jsonl when present (criteria plus llm.dataset.teacher CRITERIA_ADDENDUM),
@@ -40,8 +43,9 @@ import os
 import sys
 
 from guadian_ml import paths
+from guadian_ml.llm.contract.answer import personal_info_unsupported
 from guadian_ml.llm.contract.host_rules import grade_case
-from guadian_ml.llm.contract.prompt import Brands, ascii_host, observation_from_case
+from guadian_ml.llm.contract.prompt import Brands, ascii_host, observation_from_case, user_message
 
 DATA_DIR = paths.LLM_DATA
 SOURCES = ("gold251_js", "openphish_20260926_js", "openphish_20261001", "tranco_kr_20261001", "naver_20261002")
@@ -49,6 +53,15 @@ OVERRIDES = os.path.join(DATA_DIR, "label_overrides.jsonl")
 OUT = os.path.join(DATA_DIR, "labels_final.jsonl")
 RISK_RANK = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
 HIGH_TYPES = {"impersonation", "credentials", "apk"}
+# Hosts a brand owns but anyone can publish on: a blog post or a cafe page there is
+# not the brand speaking, so the official rule does not apply.
+USER_CONTENT_HOSTS = ("blog.naver.com", "cafe.naver.com", "post.naver.com", "pf.kakao.com", "open.kakao.com",
+                      "story.kakao.com", "sites.google.com", "docs.google.com", "drive.google.com",
+                      "facebook.com", "instagram.com", "youtube.com")
+
+
+def user_content_host(host: str) -> bool:
+    return any(host == d or host.endswith("." + d) for d in USER_CONTENT_HOSTS)
 
 
 def read_jsonl(path: str) -> list[dict]:
@@ -72,7 +85,11 @@ def apply_policy(case: dict, teacher: dict, brands: Brands) -> tuple[str, str, s
     host = grade_case(case["url"], final_url)
     obs = observation_from_case(case)
     asks = {a for form in obs.forms for a in form.asks}
-    official = obs.loaded and brands.official_brand_of(ascii_host(obs.final_url or obs.url)) is not None
+    landing = ascii_host(obs.final_url or obs.url)
+    # Brand-owned hosts include platforms such as blog.naver.com, whose own login form is genuine;
+    # only the brand's own site, not what users publish on its platforms, counts as official content.
+    brand_owned = obs.loaded and brands.official_brand_of(landing) is not None
+    official = brand_owned and not user_content_host(landing)
 
     risk, type_, source, note = teacher["risk"], teacher["type"], "teacher", ""
     if risk == "HIGH" and type_ not in HIGH_TYPES:
@@ -81,15 +98,18 @@ def apply_policy(case: dict, teacher: dict, brands: Brands) -> tuple[str, str, s
     if risk == "HIGH" and no_content and not (host and host.risk == "HIGH"):
         risk, type_, source = "MEDIUM", "unverifiable", "policy:no_evidence"
         note = "page returned no content; missing evidence cannot support HIGH"
-    if risk == "LOW" and not official and asks & {"password", "phone"}:
+    if risk == "LOW" and not brand_owned and asks & {"password", "phone"}:
         risk, type_, source = "MEDIUM", "personal_info", "policy:form"
         note = f"{', '.join(sorted(asks & {'password', 'phone'}))} field on a host the brand table does not own"
     if (risk, type_) == ("MEDIUM", "personal_info") and "email" in asks and asks <= {"email", "search"}:
         risk, type_, source = "LOW", "none", "policy:email_only"
         note = "the only personal field is an email address"
-    if (risk, type_) == ("MEDIUM", "investment") and official:
-        risk, type_, source = "LOW", "none", "policy:official_investment"
-        note = "investment offer on a host the brand table owns"
+    if (risk, type_) == ("MEDIUM", "personal_info") and personal_info_unsupported(user_message(obs, brands)):
+        risk, type_, source = "LOW", "none", "policy:personal_info_unsupported"
+        note = "no personal field or contact wording on the first screen"
+    if risk != "LOW" and official:
+        risk, type_, source = "LOW", "none", "policy:official"
+        note = "the brand's own site, by the brand table"
     if host and RISK_RANK[host.risk] > RISK_RANK[risk]:
         risk, type_, source, note = host.risk, host.type, "policy:host", host.reason
     return risk, type_, source, note
