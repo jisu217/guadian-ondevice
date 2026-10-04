@@ -15,20 +15,25 @@ import nbformat
 from guadian_ml import paths
 
 OUT = paths.NOTEBOOKS / "train_llm.ipynb"
-RUN = "run3"   # the training run this notebook produces; written into its cells
+RUN = "run5"   # the training run this notebook produces; written into its cells
 
 INTRO = """\
 # LoRA fine-tuning of the on-device judge
 
 Fine-tunes `Qwen/Qwen3-1.7B` on the compact examples from `guadian_ml.llm.dataset.sft`
-and exports the merged model as an f16 GGUF. Quantize it to Q5_K_M on the Mac afterwards.
+and exports the merged model as an f16 GGUF. Quantize it on the Mac afterwards (Q4_K_M, Q5_K_M, Q8_0).
 
 **Runtime:** GPU (T4 is enough). **Inputs:** `sft_train.jsonl`, `sft_validation.jsonl`,
 `sft_test.jsonl` from `ml/data/llm/`. They contain collected page text, so upload them
 to this session only; do not commit or share them.
 
-Steps: install → configure → upload data → build examples → load model → train →
-evaluate (zero-shot vs fine-tuned on the test set) → merge → export GGUF."""
+Steps: install → configure → mount Drive → upload data → build examples → load model → train →
+evaluate (zero-shot vs fine-tuned on the test set) → merge → export GGUF.
+
+Everything a run produces (checkpoints, adapter, scores, GGUF) is written to
+`MyDrive/guadian-ondevice/<run>` as it is made, because a free session can end at any
+time and takes its disk with it. If it does, reconnect, run the cells again from the
+top, and training resumes from the last saved epoch."""
 
 INSTALL = """\
 %pip install -q -U transformers peft bitsandbytes accelerate
@@ -46,15 +51,16 @@ QUANTIZE_BASE = False
 MAX_LENGTH = 1024          # longest compact prompt is ~700 tokens
 LORA = dict(r=16, lora_alpha=32, lora_dropout=0.05,
             target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
-# Run 2 took 72 optimizer steps (3 epochs at an effective batch of 16), and its misses
-# were systematic: the f16 file answered LOW on 17 of the 20 risky test cases the Q5
-# file missed. Run 3 takes about four times as many steps; the best epoch by
-# validation loss is kept.
-TRAIN = dict(num_train_epochs=5, learning_rate=2e-4, per_device_train_batch_size=4,
+# Run 3 took 275 optimizer steps (5 epochs of 381 cases at an effective batch of 8).
+# Runs 4 and 5 train on 1,465 cases, so 3 epochs already give about twice as many
+# steps; the best epoch by validation loss is kept (epoch 2 in run 4). Run 5 keeps
+# run 4's settings and changes only the labels, so the two runs compare cleanly.
+TRAIN = dict(num_train_epochs=3, learning_rate=2e-4, per_device_train_batch_size=4,
              gradient_accumulation_steps=2, lr_scheduler_type="cosine")
-# Training copies per risk level. HIGH is the rarest label (59 of 381) and had
-# the lowest recall in run 2; validation and test are never resampled.
-OVERSAMPLE = {"HIGH": 2}
+# Training copies per risk level. HIGH is the rarest label (78 of 1,465 in run 4,
+# down from 59 of 381); three copies bring it back to about the share run 3
+# trained on. Validation and test are never resampled.
+OVERSAMPLE = {"HIGH": 3}
 WARMUP_FRACTION = 0.05     # of all optimizer steps
 MAX_NEW_TOKENS = 96        # the answer is one short JSON line
 RISKS = ["LOW", "MEDIUM", "HIGH"]"""
@@ -75,6 +81,14 @@ def read_jsonl(path):
 
 data = {name.split("_")[1].split(".")[0]: read_jsonl(name) for name in NAMES}
 print({split: len(rows) for split, rows in data.items()})"""
+
+DRIVE = """\
+import os
+from google.colab import drive
+drive.mount("/content/drive")
+OUT = f"/content/drive/MyDrive/guadian-ondevice/{RUN}"
+os.makedirs(OUT, exist_ok=True)
+print("results go to", OUT)"""
 
 EXAMPLES = """\
 import json
@@ -130,6 +144,7 @@ model.print_trainable_parameters()"""
 
 TRAINING = """\
 from transformers import Trainer, TrainingArguments
+from transformers.trainer_utils import get_last_checkpoint
 
 def collate(batch):
     width = max(len(f["input_ids"]) for f in batch)
@@ -145,16 +160,20 @@ import math
 total_steps = math.ceil(len(features["train"]) / (TRAIN["per_device_train_batch_size"]
                                                    * TRAIN["gradient_accumulation_steps"])) * TRAIN["num_train_epochs"]
 args = TrainingArguments(
-    output_dir="checkpoints", seed=SEED, **TRAIN, warmup_steps=max(1, round(WARMUP_FRACTION * total_steps)),
+    output_dir=f"{OUT}/checkpoints", seed=SEED, **TRAIN, warmup_steps=max(1, round(WARMUP_FRACTION * total_steps)),
     per_device_eval_batch_size=4, eval_strategy="epoch", save_strategy="epoch",
     load_best_model_at_end=True, metric_for_best_model="eval_loss", save_total_limit=2,
     logging_steps=10, gradient_checkpointing=True, report_to="none",
     bf16=COMPUTE_DTYPE == torch.bfloat16, fp16=COMPUTE_DTYPE == torch.float16)
 trainer = Trainer(model=model, args=args, data_collator=collate,
                   train_dataset=features["train"], eval_dataset=features["validation"])
-trainer.train()
-model.save_pretrained("adapter")
-tokenizer.save_pretrained("adapter")"""
+# Resumes from the last epoch saved to Drive when an earlier session ended mid-training.
+last = get_last_checkpoint(args.output_dir) if os.path.isdir(args.output_dir) else None
+if last:
+    print("resuming from", last)
+trainer.train(resume_from_checkpoint=last)
+model.save_pretrained(f"{OUT}/adapter")
+tokenizer.save_pretrained(f"{OUT}/adapter")"""
 
 SCORING = """\
 import json, re
@@ -217,27 +236,30 @@ results = {"zero_shot": score(test, zero_shot), "fine_tuned": score(test, fine_t
 for name, report in results.items():
     print(name, {k: round(v, 3) if isinstance(v, float) else v for k, v in report.items()})
 
-with open("test_predictions.jsonl", "w", encoding="utf-8") as f:
+with open(f"{OUT}/test_predictions.jsonl", "w", encoding="utf-8") as f:
     for example, zs, ft in zip(test, zero_shot, fine_tuned):
         f.write(json.dumps({"case_id": example["case_id"], "label_source": example["label_source"],
                             "gold": example["messages"][2]["content"], "zero_shot": zs, "fine_tuned": ft},
                            ensure_ascii=False) + "\\n")
-with open("test_metrics.json", "w") as f:
+with open(f"{OUT}/test_metrics.json", "w") as f:
     json.dump(results, f, indent=2)"""
 
 MERGE = """\
 # Merge the adapter into full-precision weights; GGUF conversion needs a plain model.
-# Runs on its own after a session restart too: it only needs the saved "adapter" folder.
-import torch
+# Runs on its own after a session restart too: it only needs the adapter saved to Drive.
+import os, torch
 from transformers import AutoModelForCausalLM
 for name in ("model", "base", "trainer"):
     globals().pop(name, None)
 torch.cuda.empty_cache()
 MODEL_ID = "Qwen/Qwen3-1.7B"
 RUN = "__RUN__"
+from google.colab import drive
+drive.mount("/content/drive")
+OUT = f"/content/drive/MyDrive/guadian-ondevice/{RUN}"
 from peft import PeftModel
 full = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.float16, device_map="auto")
-merged = PeftModel.from_pretrained(full, "adapter").merge_and_unload()
+merged = PeftModel.from_pretrained(full, f"{OUT}/adapter").merge_and_unload()
 merged.save_pretrained("merged", safe_serialization=True)
 
 # Training does not change the tokenizer. Copy the base model's files rather than
@@ -253,19 +275,9 @@ import os
 if not os.path.exists("llama.cpp"):
     !git clone --depth 1 https://github.com/ggml-org/llama.cpp
 %pip install -q -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
-!python llama.cpp/convert_hf_to_gguf.py merged --outtype f16 --outfile guadian-qwen3-1.7b-{RUN}-f16.gguf"""
-
-SAVE = """\
-# Copy results to Google Drive (the f16 GGUF is ~3.4 GB, too large for a browser download).
-from google.colab import drive
-import os, shutil
-drive.mount("/content/drive")
-target = f"/content/drive/MyDrive/guadian-ondevice/{RUN}"
-os.makedirs(target, exist_ok=True)
-for path in [f"guadian-qwen3-1.7b-{RUN}-f16.gguf", "test_metrics.json", "test_predictions.jsonl"]:
-    shutil.copy(path, target)
-shutil.copytree("adapter", f"{target}/adapter", dirs_exist_ok=True)
-print("saved to", target)"""
+# Written straight to Drive: the f16 GGUF is ~3.4 GB, too large for a browser download.
+!python llama.cpp/convert_hf_to_gguf.py merged --outtype f16 --outfile "{OUT}/guadian-qwen3-1.7b-{RUN}-f16.gguf"
+print("saved to", OUT)"""
 
 OUTRO = """\
 ## After training, on the Mac
@@ -290,9 +302,9 @@ def main() -> None:
     nb = nbformat.v4.new_notebook()
     nb.metadata = {"accelerator": "GPU", "colab": {"gpuType": "T4"},
                    "kernelspec": {"name": "python3", "display_name": "Python 3"}}
-    cells = [("md", INTRO), ("code", INSTALL), ("code", CONFIG), ("code", UPLOAD), ("code", EXAMPLES),
-             ("code", MODEL), ("code", TRAINING), ("code", SCORING), ("code", EVALUATE),
-             ("code", MERGE), ("code", EXPORT), ("code", SAVE), ("md", OUTRO)]
+    cells = [("md", INTRO), ("code", INSTALL), ("code", CONFIG), ("code", DRIVE), ("code", UPLOAD),
+             ("code", EXAMPLES), ("code", MODEL), ("code", TRAINING), ("code", SCORING), ("code", EVALUATE),
+             ("code", MERGE), ("code", EXPORT), ("md", OUTRO)]
     nb.cells = [nbformat.v4.new_markdown_cell(src) if kind == "md" else nbformat.v4.new_code_cell(src)
                 for kind, src in ((kind, src.replace("__RUN__", RUN)) for kind, src in cells)]
     for i, cell in enumerate(nb.cells):   # fixed ids keep the generated file reproducible

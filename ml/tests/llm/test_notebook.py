@@ -56,7 +56,8 @@ class ExampleBuildingTest(unittest.TestCase):
         exec(nb.EXAMPLES.replace("from transformers import AutoTokenizer\n", ""), self.ns)
 
     def test_only_training_high_cases_are_repeated(self):
-        self.assertEqual(len(self.ns["features"]["train"]), 2)        # one HIGH example, two copies
+        # one HIGH example, OVERSAMPLE["HIGH"] copies
+        self.assertEqual(len(self.ns["features"]["train"]), self.ns["OVERSAMPLE"]["HIGH"])
         self.assertEqual(len(self.ns["features"]["validation"]), 1)
 
     def test_loss_covers_only_the_answer(self):
