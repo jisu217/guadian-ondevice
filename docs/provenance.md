@@ -213,10 +213,10 @@ third parties. Collected pages and labels therefore stay in the git-ignored
 
 URL lists for the next dataset version are built by `llm.dataset.urls`: 248
 more OpenPhish URLs (feed fetched 2026-10-01, same terms), 300 `.kr` sites
-from the Tranco top-1m list (downloaded 2026-10-01), and, once an API key is
-set up, Naver Search API (NAVER API HUB) web results for queries by page type. Those are
-organic results, not ad clicks; ad networks were not crawled because scripted
-ad clicks bill advertisers.
+from the Tranco top-1m list (downloaded 2026-10-01), and 995 Naver Search API
+web results (NAVER API HUB, fetched 2026-10-02) for queries by page type. Those
+are organic results, not ad clicks; ad networks were not crawled because
+scripted ad clicks bill advertisers. All 1,543 were labeled by the same teacher.
 
 ## 10. Implementation Boundaries
 

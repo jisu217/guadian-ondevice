@@ -38,7 +38,9 @@ prototype that logs verdicts. Only pages that the earlier stages (rules,
 stored verdicts, local knowledge, page content inspection) leave
 uncertain reach it. A `HIGH` answer counts only when its type is
 impersonation, credentials, or apk and its evidence is one of the prompt's own
-lines; the app lowers it to `MEDIUM` otherwise.
+lines; the app lowers it to `MEDIUM` otherwise. A `MEDIUM personal_info` answer
+counts only when the page shows a personal field or another reason for it; the
+app lowers it to `LOW` otherwise.
 
 It is not meant to judge arbitrary web content, to run without the page
 observation, or to be the only defense against phishing.
@@ -95,7 +97,9 @@ The prompt the app builds (`PromptBuilder.kt`), the chat template
 (`ChatFormat.kt`), and the reply reading (`AnswerReader.kt`) must match the
 Python reference in `guadian_ml/llm/contract/`; parity tests replay the
 cases in `fixtures/llm/`. Decoding is greedy with at most 96 new tokens and a
-1,024-token context. A reply that cannot be read counts as `MEDIUM`.
+1,024-token context. A reply that cannot be read counts as `MEDIUM`. The page
+is read by `ml/runtime/page_inspection.js`, which the training-data collector
+runs as well.
 
 ## 7. Known Limits
 
@@ -104,7 +108,9 @@ Missed risk is the largest problem: about one risky page in three is answered
 Labels come mostly from one teacher model, corrected by policy and a limited
 human review, so they carry that model's judgment. Speed is measured only on
 an arm64 emulator so far (about 4–5 s per verdict with a 4-bit model), not on
-a physical device.
+a physical device. The app's prompt now names form fields and leaves out hidden
+ones, a format run 3 was not trained on; scored on it, run 3 reaches 78.3% on
+the 2026-10 test split (`ml/reports/llm/evaluation-report.md`).
 
 ## 8. Forbidden Claims
 

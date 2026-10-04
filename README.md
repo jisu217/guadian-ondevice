@@ -24,6 +24,11 @@ The 551 cases were split into 381 training, 52 validation, and 118 test cases,
 grouped by site so that test sites do not appear in training. Labels are mostly
 teacher-generated; all 47 hand-reviewed cases are in the test split.
 
+For run 4, I grew the dataset to 2,094 cases with OpenPhish, Tranco, and Naver
+search URLs, aimed at the page types the model missed, such as consultation
+forms. The earlier split was kept, giving 1,465 training, 209 validation, and
+420 test cases, and every test case was reviewed against the criteria.
+
 Qwen3-1.7B reads a compact Korean prompt containing the URL, page text, form
 fields, links, and other page observations. It returns `risk`, `type`, and
 supporting evidence for a `HIGH` judgment in JSON. The task includes learning
@@ -36,10 +41,11 @@ both the risk criteria and the response format the app can read.
 | 1 | QLoRA on a 4-bit base, then merging into fp16 for GGUF export | Accuracy fell by about six percentage points after merging, so I changed the later runs to LoRA on the fp16 base used for export. |
 | 2 | LoRA on fp16 for 3 epochs, with an effective batch size of 16 | Responses followed the format, but quantization changed many answers: Q4_K_M agreed with f16 on only 65.3% of test cases. |
 | 3 | 5 epochs, an effective batch size of 8, and repeating `HIGH` training cases twice | Q4_K_M agreement with f16 rose to 91.5%, and accuracy reached 74.6%. Risky pages classified as `LOW` remained a problem. |
+| 4 | The 2026-10 dataset, 3 epochs, and repeating `HIGH` training cases three times | Missed risk fell sharply, but the model warned on many ordinary pages; on the human-reviewed cases it scored below run 3. |
 
 Run 1 used an earlier dataset version. Eight test prompts also changed between
 runs 2 and 3, so these experiments do not isolate the effect of training
-settings alone.
+settings alone. Run 4 changed the data, the prompt, and the settings together.
 
 ### Evaluation and Model Selection
 
@@ -63,6 +69,13 @@ missed risk. Run 3 Q4_K_M classified 21 of 70 risky pages as `LOW`, compared
 with 20 for run 2 Q5_K_M. Nine of run 3's misses were pages collecting personal
 details. On the 47 hand-reviewed cases, accuracy was 68.1%, with no `HIGH`
 cases correctly identified.
+
+On the 420-case test split, run 4 missed 20 of 208 risky pages against 65 for
+run 3, but it warned on more ordinary pages and scored lower on the
+human-reviewed cases (67.7% against 71.4%). The extra warnings came from
+training labels that called consultation pages `personal_info` even without a
+personal field, which the reviewed test labels do not. I aligned the training
+labels for run 5, and the app keeps shipping run 3 until then.
 
 Details: [Dataset](ml/docs/llm/dataset.md),
 [Model Card](ml/docs/llm/model-card.md), and
@@ -90,8 +103,12 @@ URL
 
 Page inspection uses a hidden WebView. The current local knowledge stage
 matches policy snippets by keyword; retrieval-based Local RAG remains planned.
-The app checks the evidence returned with a `HIGH` answer and lowers the risk
-to `MEDIUM` when the required grounding is missing.
+The app and the training-data collector read pages with the same script, which
+names form fields (email, name, phone, search) and leaves out fields the user
+cannot see. The app checks the evidence returned with a `HIGH` answer and
+lowers the risk to `MEDIUM` when the required grounding is missing, and lowers
+a `personal_info` answer to `LOW` when the page shows no personal field and
+gives no other reason for the warning.
 
 | Area | Verified so far | Still to do |
 | :-- | :-- | :-- |

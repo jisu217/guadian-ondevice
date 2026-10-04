@@ -5,8 +5,9 @@ records in this directory; edit those, not this file.
 
 ## Current model: run 3
 
-All rows below score the same 118-case test split (`data/llm/sft_test.jsonl`),
-grouped by site so no test site was seen in training. Missed risk counts
+All rows below score the same 118-case test split of the 2026-09 dataset
+(`examples_sha256` in each record names the exact file), grouped by site so no
+test site was seen in training. The app still ships this model. Missed risk counts
 `MEDIUM` or `HIGH` cases answered `LOW`, the error that lets a harmful page
 through. GGUF rows were run with `evaluation.gguf` on a Mac with the GPU, so
 their latency fields do not describe a phone.
@@ -37,6 +38,57 @@ against 20 for run 2's Q5_K_M. It catches six that run 2 missed, four of them
 details. Personal-information pages are now the largest group of misses (9 of
 21). The model leans toward `LOW`: `LOW` recall is 95.8% and
 `MEDIUM` recall 61.7%.
+
+## Run 4 on the 2026-10 dataset (not adopted)
+
+Run 4 trains on the 2026-10 dataset: 1,465 training cases (381 before) from the
+team's gold set, OpenPhish, Tranco Korean sites, and Naver search results, with
+prompts that name form fields and leave out fields the user cannot see. Its test
+split has 420 cases, all reviewed against the criteria from the
+model's input (133 by a person, the rest by a Claude model; see
+`ml/docs/llm/dataset.md`). Run 3 is scored on the same split.
+
+| Model | Accuracy | Macro F1 | HIGH recall | Missed risk | Unparseable | Record |
+| :-- | --: | --: | --: | --: | --: | :-- |
+| Qwen3-1.7B, no fine-tuning (Colab, fp16) | 44.3% | 0.24 | 0.0% | 5 | 401 | `run4-colab_test.json` `zero_shot` |
+| run 3 GGUF Q4_K_M | 78.3% | 0.72 | 47.1% | 65 | 0 | `run3-q4_k_m-ds2610_test.json` |
+| run 4 adapter on the base (Colab, fp16) | 82.1% | 0.79 | 64.7% | 17 | 0 | `run4-colab_test.json` `fine_tuned` |
+| run 4 GGUF f16 | 83.3% | 0.80 | 64.7% | 17 | 0 | `run4-f16_test.json` |
+| run 4 GGUF Q8_0 | 82.9% | 0.80 | 64.7% | 16 | 0 | `run4-q8_0_test.json` |
+| run 4 GGUF Q5_K_M | 84.5% | 0.82 | 64.7% | 23 | 0 | `run4-q5_k_m_test.json` |
+| run 4 GGUF Q4_K_M | 84.0% | 0.80 | 61.8% | 20 | 0 | `run4-q4_k_m_test.json` |
+
+Run 4 misses far fewer risky pages: 20 against
+65 for run 3's Q4_K_M. Its 4-bit file keeps the f16
+scores. But it warns on many ordinary pages (lower `LOW` recall), and on the
+human-reviewed cases its accuracy falls below run 3's:
+
+| Model | Reading | Cases | Accuracy | Macro F1 | LOW recall | Missed risk |
+| :-- | :-- | --: | --: | --: | --: | --: |
+| run 3 GGUF Q4_K_M | model | 420 | 78.3% | 0.72 | 94.3% | 65 |
+| run 3 GGUF Q4_K_M | app | 420 | 79.3% | 0.73 | 95.3% | 66 |
+| run 3 GGUF Q4_K_M | model, human-reviewed | 133 | 71.4% | 0.62 | 90.8% | 19 |
+| run 3 GGUF Q4_K_M | app, human-reviewed | 133 | 72.2% | 0.63 | 92.1% | 20 |
+| run 4 GGUF Q4_K_M | model | 420 | 84.0% | 0.80 | 85.4% | 20 |
+| run 4 GGUF Q4_K_M | app | 420 | 86.9% | 0.82 | 92.5% | 23 |
+| run 4 GGUF Q4_K_M | model, human-reviewed | 133 | 67.7% | 0.64 | 72.4% | 8 |
+| run 4 GGUF Q4_K_M | app, human-reviewed | 133 | 74.4% | 0.68 | 85.5% | 9 |
+
+Most of run 4's false alarms are `personal_info` answers on pages with no
+personal field on the first screen. The reviewed test labels call such pages
+`LOW`; the training labels, from the teacher, often did not. Two changes
+followed on 2026-10-04: the app now lowers a `personal_info` answer the prompt
+gives no ground for (`app` rows above), and the training labels follow the same
+rule for run 5. The check was designed after reading run 4's test errors, so the
+`app` rows overstate how well it generalizes.
+
+Run 4: All 4 files give the same risk on 91.4% of the 420 cases. Agreement with f16, per quantized file:
+
+| File | Same risk as f16 |
+| :-- | --: |
+| Q4_K_M | 94.5% |
+| Q5_K_M | 95.0% |
+| Q8_0 | 99.0% |
 
 ## Stability across quantization
 

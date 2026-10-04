@@ -25,7 +25,7 @@ URL-feature model was removed; why, and its version history, are in the
 | `tests/` | unit tests, one directory per subpackage |
 | `data/` | datasets: `raw/` (original GUADIAN gold set), `url/` (labeled URLs for the rule report), `llm/` (git-ignored) |
 | `fixtures/` | small synthetic cases the Kotlin tests read to match the Python reference |
-| `runtime/` | files the app loads: brand tables, allowlist, blocklist filter |
+| `runtime/` | files the app loads: brand tables, allowlist, blocklist filter, page inspection script |
 | `reports/` | generated evaluation records and reports: `llm/`, `pipeline/` |
 | `notebooks/` | the generated Colab training notebook |
 | `docs/` | the LLM's dataset document and model card |
@@ -77,6 +77,7 @@ turns all the records into the
 | `blocklist.bloom`, `blocklist.meta.json` | `python -m guadian_ml.resources.blocklist` |
 | `llm_brands.json` | `python -m guadian_ml.resources.llm_brands` |
 | `brand_domains.tsv` | edited by hand |
+| `page_inspection.js` | edited by hand; run by the app's WebView and by `llm.dataset.collect` |
 | `public_suffix_list.dat` | Mozilla Public Suffix List |
 
 Each `core` module adds the `runtime/` files it reads to its resources, so

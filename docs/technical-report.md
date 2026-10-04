@@ -76,13 +76,17 @@ The LLM reads a short Korean prompt built from what page inspection saw
 (address, title, visible text, form fields, APK links, redirects, and host
 imitation findings) and answers with one JSON line: risk, type, and, for
 `HIGH`, the prompt line that supports it. The app accepts a `HIGH` only when
-that line appears in its own prompt.
+that line appears in its own prompt, and accepts a `personal_info` warning only
+when the page shows a personal field or another reason for it.
 
 The 551 training and evaluation cases are the original team's 251 gold ad URLs
 plus 300 OpenPhish URLs, rendered in a headless mobile browser and labeled by
 the original server's model and criteria, then corrected by a written policy
 and by hand. Run 3 trains a LoRA adapter on the fp16 base, merges it, and
-ships a Q4_K_M GGUF (1.11 GB). The data process is in
+ships a Q4_K_M GGUF (1.11 GB). The 2026-10 dataset grows this to 2,094 cases
+with OpenPhish, Tranco, and Naver search URLs, and its 420 test cases are all
+reviewed (133 by a person, the rest by a Claude model); run 4 trained on it and
+run 5 will. The data process is in
 [LLM Dataset](../ml/docs/llm/dataset.md), and intended use and limits in the
 [LLM Model Card](../ml/docs/llm/model-card.md).
 
@@ -103,6 +107,15 @@ Every GGUF variant and the Colab runs are compared in the
 [LLM Evaluation Report](../ml/reports/llm/evaluation-report.md), generated
 from the committed records. Missed risk is the main weakness: run 3 raised
 accuracy by 7.7 points over run 2 without reducing it.
+
+Run 4, trained on the 2026-10 dataset, answers `LOW` for 20 of 208 risky test
+pages against 65 for run 3 on the same 420 cases (both Q4_K_M), but warns on
+more ordinary pages; on the 133 human-reviewed cases it scores 67.7% against run
+3's 71.4%. The extra warnings were `personal_info` answers on pages without a
+personal field, which the teacher labels in training often called `MEDIUM`. The
+app's new check and matching training labels for run 5 followed; with the check,
+run 4 reaches 74.4% on the human-reviewed cases, a figure the check was tuned
+on. Run 4 is not shipped.
 
 The layers before the LLM are measured on the 668-row URL dataset
 (`ml/data/url/sample_urls.csv`): the rules resolve 135 rows (98 correct) and
@@ -193,10 +206,10 @@ separate nightly or on-demand workflow:
 
 | Type | Scope | Run by |
 | :-- | :-- | :-- |
-| Kotlin unit tests | judges, rules, store, LLM prompt, chat template, and reply parity | CI (`./gradlew test`) |
+| Kotlin unit tests | judges, rules, store, page-inspection reading, LLM prompt, chat template, and reply parity | CI (`./gradlew test`) |
 | Android lint | app sources and resources | CI (`./gradlew lint`) |
 | Robolectric tests | accessibility-node helper logic | CI (`./gradlew test`) |
-| Python tests | prompt contract, notebook, runtime-file builders, evaluation report | CI |
+| Python tests | prompt contract, labeling policy, URL lists, notebook, runtime-file builders, evaluation report | CI |
 | Requirement checks | `scripts/check-model-requirements.sh` | CI |
 | Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | `instrumented.yml` or `./gradlew connectedDebugAndroidTest` |
 
@@ -210,6 +223,8 @@ that output has not yet been verified by hand.
 - No physical-device validation yet.
 - About one risky page in three is answered `LOW` by the LLM.
 - The model file is not distributed (its training data's terms forbid it).
+- Training labels come mostly from one teacher model, and most test labels were
+  reviewed by a Claude model rather than a person.
 - Shield detects candidate browser clicks; it does not prove a click is an ad,
   and it skips page inspection and the LLM.
 - Arbitrary in-app WebViews and native ad surfaces are not covered.
@@ -217,8 +232,8 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Reduce missed risk on personal-information pages: re-collect pages so the
-   prompt can tell email and name fields apart.
-2. Time run 3 Q4_K_M on the emulator and on a physical device.
+1. Train run 5 on the corrected labels and ship it if it beats run 3 on the
+   human-reviewed cases while keeping missed risk near run 4's.
+2. Time the shipped model on the emulator and on a physical device.
 3. Update the bundled blocklist periodically.
 4. Improve accessibility permission onboarding and the result UI.

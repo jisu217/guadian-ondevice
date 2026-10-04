@@ -26,6 +26,18 @@ CURRENT = [
     ("run3-q5_k_m", None, "run 3 GGUF Q5_K_M"),
     ("run3-q4_k_m", None, "run 3 GGUF Q4_K_M"),
 ]
+# The 2026-10 dataset's test split (420 reviewed cases, form kinds and shown fields
+# in the prompt). Run 3 is scored on it too, so the two runs compare row by row.
+RUN4 = [
+    ("run4-colab", "zero_shot", "Qwen3-1.7B, no fine-tuning (Colab, fp16)"),
+    ("run3-q4_k_m-ds2610", None, "run 3 GGUF Q4_K_M"),
+    ("run4-colab", "fine_tuned", "run 4 adapter on the base (Colab, fp16)"),
+    ("run4-f16", None, "run 4 GGUF f16"),
+    ("run4-q8_0", None, "run 4 GGUF Q8_0"),
+    ("run4-q5_k_m", None, "run 4 GGUF Q5_K_M"),
+    ("run4-q4_k_m", None, "run 4 GGUF Q4_K_M"),
+]
+RUN4_Q4 = [("run3-q4_k_m-ds2610", "run 3 GGUF Q4_K_M"), ("run4-q4_k_m", "run 4 GGUF Q4_K_M")]
 # The same split, scored before the 2026-09-28 prompt changes.
 RUN2 = [
     ("run2-colab", "fine_tuned", "run 2 adapter on the base (Colab, fp16)"),
@@ -63,6 +75,19 @@ def table(rows: list[tuple[str, str | None, str]]) -> str:
     return "\n".join(lines)
 
 
+def subset_table(rows: list[tuple[str, str]]) -> str:
+    """Model answers, the app's reading of them, and both on the human-reviewed cases."""
+    lines = ["| Model | Reading | Cases | Accuracy | Macro F1 | LOW recall | Missed risk |",
+             "| :-- | :-- | --: | --: | --: | --: | --: |"]
+    for name, label in rows:
+        r = load(name, None)
+        for reading, m in (("model", r), ("app", r["app"]), ("model, human-reviewed", r["human_review"]),
+                           ("app, human-reviewed", r["app"]["human_review"])):
+            lines.append(f"| {label} | {reading} | {m['n']} | {pct(m['accuracy'])} | {m['macro_f1']:.2f} "
+                         f"| {pct(m['recall_LOW'])} | {m['missed_risk']} |")
+    return "\n".join(lines)
+
+
 def stability(run: str) -> str:
     """Agreement with the run's f16 file, from `evaluation.agreement`."""
     record = load(f"{run}-agreement", None)
@@ -84,8 +109,9 @@ records in this directory; edit those, not this file.
 
 ## Current model: run 3
 
-All rows below score the same {q4['n']}-case test split (`data/llm/sft_test.jsonl`),
-grouped by site so no test site was seen in training. Missed risk counts
+All rows below score the same {q4['n']}-case test split of the 2026-09 dataset
+(`examples_sha256` in each record names the exact file), grouped by site so no
+test site was seen in training. The app still ships this model. Missed risk counts
 `MEDIUM` or `HIGH` cases answered `LOW`, the error that lets a harmful page
 through. GGUF rows were run with `evaluation.gguf` on a Mac with the GPU, so
 their latency fields do not describe a phone.
@@ -109,6 +135,34 @@ against 20 for run 2's Q5_K_M. It catches six that run 2 missed, four of them
 details. Personal-information pages are now the largest group of misses (9 of
 21). The model leans toward `LOW`: `LOW` recall is {pct(q4['recall_LOW'])} and
 `MEDIUM` recall {pct(q4['recall_MEDIUM'])}.
+
+## Run 4 on the 2026-10 dataset (not adopted)
+
+Run 4 trains on the 2026-10 dataset: 1,465 training cases (381 before) from the
+team's gold set, OpenPhish, Tranco Korean sites, and Naver search results, with
+prompts that name form fields and leave out fields the user cannot see. Its test
+split has {load("run4-q4_k_m", None)['n']} cases, all reviewed against the criteria from the
+model's input ({load("run4-q4_k_m", None)['human_review']['n']} by a person, the rest by a Claude model; see
+`ml/docs/llm/dataset.md`). Run 3 is scored on the same split.
+
+{table(RUN4)}
+
+Run 4 misses far fewer risky pages: {load("run4-q4_k_m", None)['missed_risk']} against
+{load("run3-q4_k_m-ds2610", None)['missed_risk']} for run 3's Q4_K_M. Its 4-bit file keeps the f16
+scores. But it warns on many ordinary pages (lower `LOW` recall), and on the
+human-reviewed cases its accuracy falls below run 3's:
+
+{subset_table(RUN4_Q4)}
+
+Most of run 4's false alarms are `personal_info` answers on pages with no
+personal field on the first screen. The reviewed test labels call such pages
+`LOW`; the training labels, from the teacher, often did not. Two changes
+followed on 2026-10-04: the app now lowers a `personal_info` answer the prompt
+gives no ground for (`app` rows above), and the training labels follow the same
+rule for run 5. The check was designed after reading run 4's test errors, so the
+`app` rows overstate how well it generalizes.
+
+Run 4: {stability("run4")}
 
 ## Stability across quantization
 
