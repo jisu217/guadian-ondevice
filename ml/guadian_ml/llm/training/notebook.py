@@ -15,7 +15,7 @@ import nbformat
 from guadian_ml import paths
 
 OUT = paths.NOTEBOOKS / "train_llm.ipynb"
-RUN = "run5"   # the training run this notebook produces; written into its cells
+RUN = "run6"   # the training run this notebook produces; written into its cells
 
 INTRO = """\
 # LoRA fine-tuning of the on-device judge
