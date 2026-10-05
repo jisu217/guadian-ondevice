@@ -1,4 +1,4 @@
-"""Write fixtures/llm: the cases core/llm's Kotlin parity tests read.
+"""Write fixtures/llm: the cases the Kotlin parity tests in core/llm and core/judge read.
 
 Each fixture pairs inputs with what this package's contract produces for them, so
 the Kotlin ports must reproduce the Python behavior exactly. Inputs are synthetic:
@@ -8,6 +8,7 @@ the committed files hold no collected page text.
     page_signal_cases.json    DOM readings -> form asks, external action, text, and
                               page_inspection.js results -> observation (PageSignalsParityTest)
     answer_cases.jsonl        reply -> reading and grounding  (AnswerReaderParityTest)
+    verdict_cases.json        facts -> verdict table decision (core/judge VerdictTableParityTest)
     chat_cases.json           prompt -> model input via the real tokenizer (ChatFormatParityTest;
                               rewritten only when data/llm/cache/tokenizer is present)
 
@@ -17,11 +18,13 @@ Usage:
 
 from __future__ import annotations
 
+import dataclasses
 import json
+import random
 import sys
 
 from guadian_ml import paths
-from guadian_ml.llm.contract import answer, prompt
+from guadian_ml.llm.contract import answer, prompt, verdict_table
 
 
 def observations() -> list[prompt.PageObservation]:
@@ -215,6 +218,46 @@ def answer_cases() -> list[dict]:
     return [{"reply": r, "prompt": p, **answer.read(r, p)} for r, p in cases]
 
 
+def verdict_cases() -> list[dict]:
+    """Facts with the table's decisions: the cases the design names, then a fixed random sample."""
+    vt = verdict_table
+    none = dict(apk_link=False, sensitive_field=False, personal_field=False)
+    quiet = dict(claim="none", sign_in=False, payment=False, investment=False, reward_pressure=False, content_farm=False)
+    named = [
+        vt.Facts(),                                                                  # nothing known yet
+        vt.Facts(blocklisted=True),                                                  # final at gate A
+        vt.Facts(host_imitation="certain"),                                          # final at gate A
+        vt.Facts(host_imitation="suspicious"),
+        vt.Facts(opened=True, official=True, **none),                                # official landing: final at gate B
+        vt.Facts(opened=True, official=True, apk_link=True, sensitive_field=False, personal_field=False),
+        vt.Facts(opened=True, official=False, apk_link=True, sensitive_field=False, personal_field=False),
+        vt.Facts(opened=True, official=False, apk_link=False, sensitive_field=True, personal_field=False),
+        vt.Facts(opened=True, official=False, apk_link=False, sensitive_field=False, personal_field=True),
+        vt.Facts(opened=False, official=False, **none),
+        vt.Facts(opened=True, official=False, **none, **quiet),
+        vt.Facts(opened=True, official=False, **none, **{**quiet, "claim": "listed_other"}),
+        vt.Facts(opened=True, official=False, **none, **{**quiet, "claim": "unlisted"}),
+        vt.Facts(opened=True, official=False, **none, **{**quiet, "claim": "unlisted", "sign_in": True}),
+        vt.Facts(opened=True, official=False, **none, **{**quiet, "sign_in": True}),
+        vt.Facts(opened=True, official=False, **none, **{**quiet, "payment": True, "content_farm": True}),
+        vt.Facts(host_imitation="suspicious", opened=True, official=False, **none, **quiet),
+        vt.Facts(host_imitation="suspicious", opened=True, official=False, **none, **{**quiet, "sign_in": True}),
+    ]
+    rng = random.Random(20261005)
+    fields = [f.name for f in dataclasses.fields(vt.Facts)]
+    def pick(name):
+        if name == "blocklisted":
+            return rng.random() < 0.05
+        if name == "host_imitation":
+            return rng.choice(vt.HOST_IMITATIONS)
+        if rng.random() < 0.3:
+            return None
+        return rng.choice(vt.CLAIMS) if name == "claim" else rng.random() < 0.4
+    sampled = [vt.Facts(**{name: pick(name) for name in fields}) for _ in range(200)]
+    table = vt.VerdictTable.load()
+    return [{"facts": f.to_json(), "decision": table.decide(f).to_json()} for f in named + sampled]
+
+
 def chat_cases(brands: prompt.Brands) -> dict | None:
     """Prompts rendered by the training tokenizer's chat template, or None without a local tokenizer."""
     if not (paths.TOKENIZER / "tokenizer_config.json").exists():
@@ -249,6 +292,7 @@ def main() -> int:
                                         for obs in observations()])
     _write_json("page_signal_cases.json", page_signal_cases())
     _write_jsonl("answer_cases.jsonl", answer_cases())
+    _write_json("verdict_cases.json", verdict_cases())
     chat = chat_cases(brands)
     if chat is not None:
         _write_json("chat_cases.json", chat)

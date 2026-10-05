@@ -18,6 +18,7 @@ LLM_BRANDS = RUNTIME / "llm_brands.json"
 PAGE_INSPECTION = RUNTIME / "page_inspection.js"
 BLOCKLIST = RUNTIME / "blocklist.bloom"
 BLOCKLIST_META = RUNTIME / "blocklist.meta.json"
+VERDICT_TABLE = RUNTIME / "verdict_table.json"
 
 DATA = ML_DIR / "data"
 RAW_DATA = DATA / "raw"                 # original GUADIAN gold set (committed)
