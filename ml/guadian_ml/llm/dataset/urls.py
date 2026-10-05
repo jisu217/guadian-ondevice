@@ -10,20 +10,20 @@
     tranco     Ordinary Korean sites from a Tranco top-sites CSV, for LOW cases.
     openphish  The OpenPhish community feed, for impersonation and credential pages.
                Its terms allow research use and forbid passing the data on, so the
-               lists stay in the git-ignored ml/data/llm/.
+               lists stay in the git-ignored ml/data/llm/sources/.
 
 Ad networks and ad libraries are not used: clicking ads by script is click
 fraud, and the Meta and Google ad libraries give no landing URLs for Korean
 commercial ads (checked 2026-10-01).
 
 Every list drops URLs whose site is already in an earlier list (any
-ml/data/llm/urls_*.jsonl), so new cases never share a site with existing ones
+ml/data/llm/sources/urls_*.jsonl), so new cases never share a site with existing ones
 and the grouped split stays clean, and keeps at most --per-site URLs per site.
 
 Usage:
-    python -m guadian_ml.llm.dataset.urls naver -o ml/data/llm/urls_naver_20261001.jsonl
-    python -m guadian_ml.llm.dataset.urls tranco top-1m.csv --limit 300 -o ml/data/llm/urls_tranco_kr.jsonl
-    python -m guadian_ml.llm.dataset.urls openphish --limit 400 -o ml/data/llm/urls_openphish_20261001.jsonl
+    python -m guadian_ml.llm.dataset.urls naver -o ml/data/llm/sources/urls_naver_20261001.jsonl
+    python -m guadian_ml.llm.dataset.urls tranco top-1m.csv --limit 300 -o ml/data/llm/sources/urls_tranco_kr.jsonl
+    python -m guadian_ml.llm.dataset.urls openphish --limit 400 -o ml/data/llm/sources/urls_openphish_20261001.jsonl
 """
 
 from __future__ import annotations
@@ -91,7 +91,7 @@ def site_of(url: str) -> str:
 def known_sites(exclude: str) -> set[str]:
     """Sites in every existing URL list except the one being written."""
     sites = set()
-    for path in glob.glob(str(paths.LLM_DATA / "urls_*.jsonl")):
+    for path in glob.glob(str(paths.LLM_SOURCES / "urls_*.jsonl")):
         if os.path.abspath(path) == os.path.abspath(exclude):
             continue
         with open(path, encoding="utf-8") as f:

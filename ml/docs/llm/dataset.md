@@ -14,7 +14,11 @@ Claude is used only here, offline; the app does not call it.
 
 Modules are under `guadian_ml/llm/`; inputs and outputs are under
 `data/llm/`, which is excluded from git because collected page text contains
-third-party content and personal data.
+third-party content and personal data. Per-source URL lists, collected cases,
+and teacher labels are in `sources/`; review files in `reviews/`; the merged
+labels, split, and training examples in `final/`; model replies from scoring in
+`eval/`; and the blocklist download, domain-age database, and tokenizer in
+`cache/` (`guadian_ml/paths.py` names each).
 
 | Module | Step |
 | :-- | :-- |
@@ -110,14 +114,14 @@ neither reaches the student's input or the policy rules: domain age needs a
 per-domain online lookup, and no blocklist ships with the app.
 
 Teacher labels that disagreed with the team's earlier gold labels were reviewed
-by hand (`data/llm/review_*.csv`). Human review overrides every other source.
+by hand (`data/llm/reviews/review_*.csv`). Human review overrides every other source.
 
 The 373 test cases without a human label in the 2026-10 version were reviewed
 against the same criteria from the model's input alone: 30 by a person, the
 other 343 by a Claude model (Claude Opus 5.5). Model-reviewed rows live in
-`data/llm/assistant_review_*.csv` and carry `label_source: assistant_review`,
+`data/llm/reviews/assistant_review_*.csv` and carry `label_source: assistant_review`,
 so scores on `human_review` cases still measure agreement with people only.
-`data/llm/label_overrides.jsonl`, if present, holds one-off corrections.
+`data/llm/reviews/label_overrides.jsonl`, if present, holds one-off corrections.
 
 ## Vendored files
 
@@ -138,9 +142,9 @@ its SHA256 against the value published in the source repository.
 
 ```bash
 python -m playwright install chromium    # once
-python -m guadian_ml.llm.dataset.urls naver -o ml/data/llm/urls_NAME.jsonl   # or tranco CSV, openphish
-python -m guadian_ml.llm.dataset.collect ml/data/llm/urls_NAME.jsonl -o ml/data/llm/cases_NAME.jsonl
-python -m guadian_ml.llm.dataset.teacher ml/data/llm/cases_NAME.jsonl -o ml/data/llm/labels_NAME.jsonl --batch
+python -m guadian_ml.llm.dataset.urls naver -o ml/data/llm/sources/urls_NAME.jsonl   # or tranco CSV, openphish
+python -m guadian_ml.llm.dataset.collect ml/data/llm/sources/urls_NAME.jsonl -o ml/data/llm/sources/cases_NAME.jsonl
+python -m guadian_ml.llm.dataset.teacher ml/data/llm/sources/cases_NAME.jsonl -o ml/data/llm/sources/labels_NAME.jsonl --batch
 python -m guadian_ml.llm.dataset.final_labels
 python -m guadian_ml.llm.dataset.split --keep   # new sites only; earlier cases keep their split
 python -m guadian_ml.llm.dataset.sft   # --page-chars sets how much page text the model reads

@@ -64,13 +64,13 @@ def main() -> int:
     parser.add_argument("--page-chars", type=int, default=500)
     args = parser.parse_args()
 
-    labels = {r["case_id"]: r for r in read_jsonl(paths.LLM_DATA / "labels_final.jsonl")}
-    splits = {r["case_id"]: r["split"] for r in read_jsonl(paths.LLM_DATA / "splits.jsonl")}
+    labels = {r["case_id"]: r for r in read_jsonl(paths.LLM_FINAL / "labels_final.jsonl")}
+    splits = {r["case_id"]: r["split"] for r in read_jsonl(paths.LLM_FINAL / "splits.jsonl")}
     cases, teachers = {}, {}
     for source in SOURCES:
-        cases.update({c["case_id"]: c for c in read_jsonl(paths.LLM_DATA / f"cases_{source}.jsonl")})
+        cases.update({c["case_id"]: c for c in read_jsonl(paths.LLM_SOURCES / f"cases_{source}.jsonl")})
         for suffix in ("", "_addendum"):   # addendum labels replace the first pass where present
-            path = paths.LLM_DATA / f"labels_{source}{suffix}.jsonl"
+            path = paths.LLM_SOURCES / f"labels_{source}{suffix}.jsonl"
             if path.exists():
                 teachers.update({r["case_id"]: r["verdict"] for r in read_jsonl(path) if "verdict" in r})
 
@@ -104,14 +104,14 @@ def main() -> int:
 
     # Every collected observation with its prompt, for a stronger local-only parity
     # check; it holds page text, so it stays in the git-ignored data directory.
-    with open(paths.LLM_DATA / "llm_prompt_cases_full.jsonl", "w", encoding="utf-8") as f:
+    with open(paths.LLM_FINAL / "llm_prompt_cases_full.jsonl", "w", encoding="utf-8") as f:
         for case_id in labels:
             obs = observation_from_case(cases[case_id])
             f.write(json.dumps({"observation": obs.to_json(), "prompt": user_message(obs, brands)},
                                ensure_ascii=False) + "\n")
 
     for split, rows in outputs.items():
-        path = paths.LLM_DATA / f"sft_{split}.jsonl"
+        path = paths.LLM_FINAL / f"sft_{split}.jsonl"
         with open(path, "w", encoding="utf-8") as f:
             f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
         print(f"{split:<10} {len(rows):>4} -> {path}")

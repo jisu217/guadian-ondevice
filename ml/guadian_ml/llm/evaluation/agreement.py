@@ -11,7 +11,7 @@ MEDIUM), so replies are compared without the prompts they answered.
 Usage:
     python -m guadian_ml.llm.evaluation.agreement run2 [--split test]
 
-Reads data/llm/eval_<run>-*_<split>_predictions.jsonl (written by
+Reads data/llm/eval/eval_<run>-*_<split>_predictions.jsonl (written by
 evaluation.gguf) and writes reports/llm/<run>-agreement_<split>.json.
 """
 
@@ -54,7 +54,7 @@ def main() -> int:
 
     read = risk_reader()
     answers: dict[str, dict[str, str]] = {}
-    for path in sorted(paths.LLM_DATA.glob(f"eval_{args.run}-*_{args.split}_predictions.jsonl")):
+    for path in sorted(paths.LLM_EVAL.glob(f"eval_{args.run}-*_{args.split}_predictions.jsonl")):
         variant = path.name.removeprefix(f"eval_{args.run}-").removesuffix(f"_{args.split}_predictions.jsonl")
         if variant == "colab":   # the notebook's own predictions: another format, not a GGUF file
             continue

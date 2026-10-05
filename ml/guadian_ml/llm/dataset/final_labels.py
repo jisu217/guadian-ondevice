@@ -1,11 +1,11 @@
 """Merge teacher labels, labeling policy, and human review into one label per case.
 
 Precedence, highest first:
-    1. Human review   data/llm/review_*.csv (final_risk, final_type)
-    2. Assistant review data/llm/assistant_review_*.csv, the same columns filled by a
+    1. Human review   data/llm/reviews/review_*.csv (final_risk, final_type)
+    2. Assistant review data/llm/reviews/assistant_review_*.csv, the same columns filled by a
                       Claude model reading the same input; kept apart from human review
                       so evaluation on human labels stays human
-    3. Manual override data/llm/label_overrides.jsonl, for one-off corrections
+    3. Manual override data/llm/reviews/label_overrides.jsonl, for one-off corrections
     4. Policy         README "Labeling policy", applied in code:
                         - HIGH types: HIGH is kept only for impersonation, credentials, and apk,
                           the three HIGH conditions in the criteria; other HIGH becomes MEDIUM
@@ -23,8 +23,8 @@ Precedence, highest first:
                           except on platforms where anyone publishes (USER_CONTENT_HOSTS)
                         - host rule (host_rules.grade_case, clicked URL and landing page):
                           raises the label to the host verdict when that is higher; never lowers it
-    5. Teacher        data/llm/labels_*_addendum.jsonl when present (criteria plus llm.dataset.teacher CRITERIA_ADDENDUM),
-                      else data/llm/labels_*.jsonl; both after the evidence check
+    5. Teacher        data/llm/sources/labels_*_addendum.jsonl when present (criteria plus llm.dataset.teacher CRITERIA_ADDENDUM),
+                      else data/llm/sources/labels_*.jsonl; both after the evidence check
 
 Every output row records which step produced it, so a later audit can separate
 human-confirmed labels from teacher and policy labels.
@@ -47,10 +47,11 @@ from guadian_ml.llm.contract.answer import personal_info_unsupported
 from guadian_ml.llm.contract.host_rules import grade_case
 from guadian_ml.llm.contract.prompt import Brands, ascii_host, observation_from_case, user_message
 
-DATA_DIR = paths.LLM_DATA
+SOURCES_DIR = paths.LLM_SOURCES
+REVIEWS_DIR = paths.LLM_REVIEWS
 SOURCES = ("gold251_js", "openphish_20260926_js", "openphish_20261001", "tranco_kr_20261001", "naver_20261002")
-OVERRIDES = os.path.join(DATA_DIR, "label_overrides.jsonl")
-OUT = os.path.join(DATA_DIR, "labels_final.jsonl")
+OVERRIDES = os.path.join(REVIEWS_DIR, "label_overrides.jsonl")
+OUT = os.path.join(paths.LLM_FINAL, "labels_final.jsonl")
 RISK_RANK = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
 HIGH_TYPES = {"impersonation", "credentials", "apk"}
 # Hosts a brand owns but anyone can publish on: a blog post or a cafe page there is
@@ -118,7 +119,7 @@ def apply_policy(case: dict, teacher: dict, brands: Brands) -> tuple[str, str, s
 def read_reviews(pattern: str) -> dict[str, dict]:
     """Rows with a final risk and type from review CSVs matching pattern; blank rows are not reviewed yet."""
     reviewed: dict[str, dict] = {}
-    for path in sorted(glob.glob(os.path.join(DATA_DIR, pattern))):
+    for path in sorted(glob.glob(os.path.join(REVIEWS_DIR, pattern))):
         with open(path, encoding="utf-8-sig") as f:
             for row in csv.DictReader(f):
                 if row.get("final_risk") in RISK_RANK and row.get("final_type"):
@@ -134,9 +135,9 @@ def main() -> int:
     brands = Brands.load()
     out_rows = []
     for source in SOURCES:
-        cases = {c["case_id"]: c for c in read_jsonl(os.path.join(DATA_DIR, f"cases_{source}.jsonl"))}
-        labels = {r["case_id"]: r for r in read_jsonl(os.path.join(DATA_DIR, f"labels_{source}.jsonl"))}
-        addendum_path = os.path.join(DATA_DIR, f"labels_{source}_addendum.jsonl")
+        cases = {c["case_id"]: c for c in read_jsonl(os.path.join(SOURCES_DIR, f"cases_{source}.jsonl"))}
+        labels = {r["case_id"]: r for r in read_jsonl(os.path.join(SOURCES_DIR, f"labels_{source}.jsonl"))}
+        addendum_path = os.path.join(SOURCES_DIR, f"labels_{source}_addendum.jsonl")
         if os.path.exists(addendum_path):
             labels.update({r["case_id"]: r for r in read_jsonl(addendum_path) if "verdict" in r})
         if cases.keys() != labels.keys():

@@ -24,7 +24,7 @@ Fine-tunes `Qwen/Qwen3-1.7B` on the compact examples from `guadian_ml.llm.datase
 and exports the merged model as an f16 GGUF. Quantize it on the Mac afterwards (Q4_K_M, Q5_K_M, Q8_0).
 
 **Runtime:** GPU (T4 is enough). **Inputs:** `sft_train.jsonl`, `sft_validation.jsonl`,
-`sft_test.jsonl` from `ml/data/llm/`. They contain collected page text, so upload them
+`sft_test.jsonl` from `ml/data/llm/final/`. They contain collected page text, so upload them
 to this session only; do not commit or share them.
 
 Steps: install → configure → mount Drive → upload data → build examples → load model → train →
@@ -295,7 +295,7 @@ python -m guadian_ml.llm.evaluation.agreement __RUN__
 
 The evaluation confirms quantization kept the scores (Q4_K_M did not for run 2; see
 `ml/reports/llm/evaluation-report.md`).
-`test_predictions.jsonl` holds page text; keep it in `ml/data/llm/`."""
+`test_predictions.jsonl` holds page text; keep it in `ml/data/llm/eval/`."""
 
 
 def main() -> None:

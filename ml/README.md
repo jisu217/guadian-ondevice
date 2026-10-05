@@ -23,7 +23,7 @@ URL-feature model was removed; why, and its version history, are in the
 | :-- | :-- |
 | `guadian_ml/` | Python package: `llm/`, `resources/` (allowlist, blocklist, and brand-data builders), `shared/`, `paths.py` |
 | `tests/` | unit tests, one directory per subpackage |
-| `data/` | datasets: `raw/` (original GUADIAN gold set), `url/` (labeled URLs for the rule report), `llm/` (git-ignored) |
+| `data/` | datasets: `raw/` (original GUADIAN gold set), `url/` (labeled URLs for the rule report), `llm/` (git-ignored: `sources/`, `reviews/`, `final/`, `eval/`, `cache/`) |
 | `fixtures/` | small synthetic cases the Kotlin tests read to match the Python reference |
 | `runtime/` | files the app loads: brand tables, allowlist, blocklist filter, page inspection script |
 | `reports/` | generated evaluation records and reports: `llm/`, `pipeline/` |

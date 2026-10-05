@@ -25,11 +25,11 @@ class PromptBuilderParityTest {
 
     /**
      * The same check over every collected page. The file holds page text, so it
-     * exists only where ml/data/llm was built; elsewhere this test is a no-op.
+     * exists only where ml/data/llm/final was built; elsewhere this test is a no-op.
      */
     @Test
     fun `matches every collected page when the local data is present`() {
-        val file = File("../../ml/data/llm/llm_prompt_cases_full.jsonl")
+        val file = File("../../ml/data/llm/final/llm_prompt_cases_full.jsonl")
         if (!file.exists()) return
         for (row in file.readLines().filter { it.isNotBlank() }.map(::JSONObject)) {
             val obs = observationFromJson(row.getJSONObject("observation"))

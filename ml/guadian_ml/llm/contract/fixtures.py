@@ -9,7 +9,7 @@ the committed files hold no collected page text.
                               page_inspection.js results -> observation (PageSignalsParityTest)
     answer_cases.jsonl        reply -> reading and grounding  (AnswerReaderParityTest)
     chat_cases.json           prompt -> model input via the real tokenizer (ChatFormatParityTest;
-                              rewritten only when data/llm/tokenizer is present)
+                              rewritten only when data/llm/cache/tokenizer is present)
 
 Usage:
     python -m guadian_ml.llm.contract.fixtures

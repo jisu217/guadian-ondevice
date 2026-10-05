@@ -17,7 +17,7 @@ The API key is read from ANTHROPIC_API_KEY, or from `.env` at the repository
 root (excluded from git).
 
 Usage:
-    python -m guadian_ml.llm.dataset.teacher ml/data/llm/cases_NAME.jsonl -o ml/data/llm/labels_NAME.jsonl
+    python -m guadian_ml.llm.dataset.teacher ml/data/llm/sources/cases_NAME.jsonl -o ml/data/llm/sources/labels_NAME.jsonl
 
 Reruns skip cases that already have a verdict and retry cases that failed.
 

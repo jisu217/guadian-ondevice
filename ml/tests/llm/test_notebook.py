@@ -1,7 +1,7 @@
 """Tests for the GPU-free parts of notebooks/train_llm.ipynb: example building and scoring.
 
 Runs the notebook's CONFIG, EXAMPLES, and SCORING cells against a local copy of the
-Qwen3 tokenizer (ml/data/llm/tokenizer). Skipped when that copy is absent.
+Qwen3 tokenizer (ml/data/llm/cache/tokenizer). Skipped when that copy is absent.
 """
 
 import json

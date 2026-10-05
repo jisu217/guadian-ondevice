@@ -45,7 +45,7 @@ Safety:
     a fresh context with downloads refused and no stored state.
 
 Usage:
-    python -m guadian_ml.llm.dataset.collect URLS.jsonl -o ml/data/llm/cases_NAME.jsonl
+    python -m guadian_ml.llm.dataset.collect ml/data/llm/sources/urls_NAME.jsonl -o ml/data/llm/sources/cases_NAME.jsonl
 
 URLS.jsonl holds one object per line with a required `url`. An optional
 `case_id` is kept; every other field is stored under `meta`. Reruns skip
@@ -68,9 +68,9 @@ import requests
 from guadian_ml import paths
 from guadian_ml.llm.vendor import judge_agent as ja
 
-DATA_DIR = paths.LLM_DATA
-BLOCKLIST_CACHE = str(DATA_DIR / "blocklist.txt")
-DOMAIN_AGE_DB = str(DATA_DIR / "domain_age.sqlite")
+CACHE_DIR = paths.LLM_CACHE
+BLOCKLIST_CACHE = str(CACHE_DIR / "blocklist.txt")
+DOMAIN_AGE_DB = str(CACHE_DIR / "domain_age.sqlite")
 BLOCKLIST_MAX_AGE_S = 24 * 3600
 
 # Same sources as server/main.py BLOCKLISTS. License: CC BY-NC-SA 3.0 (non-commercial).
@@ -184,7 +184,7 @@ def load_blocklist(refresh: bool = False) -> dict[str, str]:
             response = requests.get(url, timeout=30)
             response.raise_for_status()
             lines += [f"{name}\t{domain}" for domain in sorted(parse_blocklist(response.text))]
-        os.makedirs(DATA_DIR, exist_ok=True)
+        os.makedirs(CACHE_DIR, exist_ok=True)
         with open(BLOCKLIST_CACHE, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
     table: dict[str, str] = {}

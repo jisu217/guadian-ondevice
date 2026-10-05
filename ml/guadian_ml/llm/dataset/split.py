@@ -36,8 +36,8 @@ from urllib.parse import urlsplit
 from guadian_ml import paths
 from guadian_ml.shared import public_suffix
 
-LABELS = paths.LLM_DATA / "labels_final.jsonl"
-OUT = paths.LLM_DATA / "splits.jsonl"
+LABELS = paths.LLM_FINAL / "labels_final.jsonl"
+OUT = paths.LLM_FINAL / "splits.jsonl"
 TARGETS = {"train": 0.7, "validation": 0.1, "test": 0.2}
 RISK_ORDER = ("HIGH", "MEDIUM", "LOW")
 
