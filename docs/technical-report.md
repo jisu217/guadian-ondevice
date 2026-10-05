@@ -57,18 +57,19 @@ prompt and reply reading to the Python reference.
 
 ```text
 URL
-  -> RuleBasedJudge
-  -> InMemoryVerdictStore (StoreJudge)
-  -> LocalKnowledgeJudge
-  -> PageContentJudge        (manual entry only; skipped for Shield clicks)
-  -> LlmJudge                (manual entry only)
-  -> Verdict
+  -> Cache & URL      stored verdict, then URL facts (blocklist, brand imitation in the host)
+  -> Page             page facts from a hidden WebView
+  -> On-device LLM    manual entry only
+  -> Verdict          verdict table
 ```
 
-Cheap deterministic checks run first, and the rules come before the store so
-that a cached verdict can never skip them. Page inspection and the LLM run
-only when nothing earlier is certain. Control flow and the `Verdict` contract
-are described in [Architecture](architecture.md).
+Only the verdict table (`ml/runtime/verdict_table.json`) sets a risk; the
+stages before it collect facts. After the cache and URL stage and after the page
+stage the pipeline stops when the table says the result is final, so the page is
+loaded and the model run only when they could change it. Until the question
+model of the [Verdict Design](design.md) is trained, the LLM stage passes on the
+risk-grading model's own verdict. Control flow and the `Verdict` contract are
+described in [Architecture](architecture.md).
 
 ## 5. On-device LLM
 
@@ -149,10 +150,12 @@ also scores what needs no label: confirmed phishing URLs from OpenPhish answered
 opened, run 3 answers `LOW` on 12 and run 4 on 4; on the 62 top sites that
 opened, both warn on 4 or 5. These agree with the labeled scores.
 
-The layers before the LLM are measured on the 668-row URL dataset
-(`ml/data/url/sample_urls.csv`): the rules resolve 135 rows (98 correct) and
-local knowledge 86 (55 correct), leaving 447 for page inspection and the LLM
+The cache and URL stage is measured on the 668-row URL dataset
+(`ml/data/url/sample_urls.csv`): it settles 30 rows, all correctly, and the other
+638 go on to open the page
 ([Local Resolution Report](../ml/reports/pipeline/local-resolution-report.md)).
+Before the redesign the rules and local knowledge settled 221 rows, 153 of them
+correctly, mostly from words in the URL.
 
 ## 7. Earlier Approach: URL Model
 
@@ -238,12 +241,12 @@ separate nightly or on-demand workflow:
 
 | Type | Scope | Run by |
 | :-- | :-- | :-- |
-| Kotlin unit tests | judges, rules, store, page-inspection reading, LLM prompt, chat template, and reply parity | CI (`./gradlew test`) |
+| Kotlin unit tests | verdict table and pipeline, URL and page facts, store, page-inspection reading, LLM prompt, chat template, and reply parity | CI (`./gradlew test`) |
 | Android lint | app sources and resources | CI (`./gradlew lint`) |
 | Robolectric tests | accessibility-node helper logic | CI (`./gradlew test`) |
 | Python tests | prompt contract, labeling policy, URL lists, notebook, runtime-file builders, evaluation report | CI |
 | Requirement checks | `scripts/check-model-requirements.sh` | CI |
-| Instrumented tests | `JudgeActivityTest`, `PageContentJudgeTest` | `instrumented.yml` or `./gradlew connectedDebugAndroidTest` |
+| Instrumented tests | `JudgeActivityTest`, `PageInspectorTest` | `instrumented.yml` or `./gradlew connectedDebugAndroidTest` |
 
 On an arm64 emulator, the LLM stage has loaded the model and returned verdicts
 in about 4–5 seconds with a 4-bit run 1 model; run 3 Q4_K_M has not been timed
@@ -264,9 +267,12 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Train run 6 on the guide's labels, and ship it or run 4 if one clears the
-   bar set before run 5: human-reviewed accuracy above run 3's as the app reads
-   it (72.2% on the relabeled split), and at most 25 missed risky pages.
+1. Settle the [Verdict Design](design.md): one table decides the risk, the
+   model only answers questions, and the URL-word stages go. Then train once
+   and ship the result or run 4 if one clears the bar set before run 5:
+   human-reviewed accuracy above run 3's as the app reads it (72.2% on the
+   relabeled split), and at most 25 missed risky pages. Run 6's data is kept as
+   the fallback.
 2. Time the shipped model on the emulator and on a physical device.
 3. Update the bundled blocklist periodically.
 4. Improve accessibility permission onboarding and the result UI.

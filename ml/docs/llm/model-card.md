@@ -34,9 +34,8 @@ The current model is run 3, shipped as `guadian-qwen3-1.7b-run3-Q4_K_M.gguf`
 ## 2. Intended Use
 
 The model grades a page the user is about to visit from an ad, for a
-prototype that logs verdicts. Only pages that the earlier stages (rules,
-stored verdicts, local knowledge, page content inspection) leave
-uncertain reach it. A `HIGH` answer counts only when its type is
+prototype that logs verdicts. Only pages the verdict table cannot settle from
+the earlier stages (stored verdicts, URL facts, page inspection) reach it. A `HIGH` answer counts only when its type is
 impersonation, credentials, or apk and its evidence is one of the prompt's own
 lines; the app lowers it to `MEDIUM` otherwise. A `MEDIUM personal_info` answer
 counts only when the page shows a personal field, or a form whose text names a

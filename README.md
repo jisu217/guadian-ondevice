@@ -93,6 +93,12 @@ run 6. Because I wrote both the guide and the reviewed labels, I also score what
 needs no label: how often a model passes a phishing URL that OpenPhish confirmed,
 and how often it warns on a top site.
 
+The real cost was that the criteria lived in the model, so each change of rules
+meant relabeling and training again, and five parts of the app each decided by
+their own rules. Before training again I am redesigning the verdict so that the
+model answers a few questions and one table decides the risk
+([Verdict Design](docs/design.md)).
+
 Details: [Dataset](ml/docs/llm/dataset.md),
 [Model Card](ml/docs/llm/model-card.md), and
 [Evaluation Report](ml/reports/llm/evaluation-report.md).
@@ -104,34 +110,36 @@ llama.cpp to the Kotlin Android app. The app's prompt construction, chat
 template, and response parsing are checked against Python fixtures so that
 training and runtime use the same contract.
 
-The LLM runs at the end of the manual URL judgment pipeline, when earlier
-stages cannot reach a certain verdict:
+The judgment pipeline, as the app now runs it:
 
 ```text
 URL
-  -> Rules
-  -> Local Verdict Store
-  -> Local Knowledge
-  -> Page Content Inspection
+  -> Cache & URL
+  -> Page
   -> On-device LLM
-  -> Verdict
+  -> Verdict (answer check -> verdict table)
 ```
 
-Page inspection uses a hidden WebView. The current local knowledge stage
-matches policy snippets by keyword; retrieval-based Local RAG remains planned.
-The app and the training-data collector read pages with the same script, which
+When the cache-and-URL stage or the page stage settles the result, the pipeline
+exits early, so the costly model inference runs only when the earlier stages
+reach no conclusion.
+
+Only the verdict table ([Verdict Design](docs/design.md)) sets a risk; the
+stages before it collect facts. Page inspection uses a hidden WebView, and the
+app and the training-data collector read pages with the same script, which
 names form fields (email, name, phone, search) and leaves out fields the user
-cannot see. The app checks the evidence returned with a `HIGH` answer and
-lowers the risk to `MEDIUM` when the required grounding is missing, and lowers
-a `personal_info` answer to `LOW` unless the page shows a personal field or a
-form worded to collect contact details.
+cannot see. Until the question model of the design is trained, the LLM still
+grades the risk itself: the app checks the evidence returned with a `HIGH`
+answer and lowers the risk to `MEDIUM` when the required grounding is missing,
+and lowers a `personal_info` answer to `LOW` unless the page shows a personal
+field or a form worded to collect contact details.
 
 | Area | Verified so far | Still to do |
 | :-- | :-- | :-- |
 | Android runtime | Model loading and verdict generation on an arm64 emulator | Physical-device validation |
 | Inference time | About 4–5 seconds per verdict with a 4-bit run 1 model on the emulator | Timing the selected run 3 model and measuring latency and memory on a real phone |
 | Model setup | Manual copying into the app's private storage for development | The model is not bundled or distributed; data terms constrain distribution |
-| Browser integration | Shield implements browser-click judgment and Logcat output, skipping page inspection and the LLM | Manual verification of Shield logs and broader surface coverage |
+| Browser integration | Shield implements browser-click judgment and Logcat output, running the cache, URL, and page stages but not the LLM | Manual verification of Shield logs, its 3-second budget against page loading, and broader surface coverage |
 
 This reaches model development and Android emulator integration, with real
 device validation still pending. Runtime structure and model-loading commands

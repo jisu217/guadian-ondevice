@@ -40,8 +40,8 @@ runtime.
 | `reference/original-guadian/src/judge_agent.py` | `SKT-FLY-AI-TEAM-6/GUADIAN/server/judge_agent.py` | original server-side judge agent | informed the fallback server boundary (removed 2026-09-27) |
 
 The current implementation is not a direct port. The local-first sequence,
-Kotlin model runtime, Python training workflow, local knowledge fallback, and a FastAPI
-server (removed 2026-09-27) were implemented in this repository.
+Kotlin model runtime, Python training workflow, a local knowledge fallback (removed
+2026-10-05), and a FastAPI server (removed 2026-09-27) were implemented in this repository.
 
 ### 2.1 Consulted But Not Copied
 
@@ -223,7 +223,7 @@ scripted ad clicks bill advertisers. All 1,543 were labeled by the same teacher.
 | Area | New implementation in this repository | Reference influence |
 | :-- | :-- | :-- |
 | Android runtime | `app/`, `core/judge/`, `core/pagecontent/`, `core/llm/`, `core/llamacpp/` | original app and judge concepts |
-| Local pipeline | `HybridJudge`, `DefaultJudgeGraph` | original judge/fallback concept |
+| Local pipeline | `VerdictPipeline`, `VerdictTable`, `DefaultJudgeGraph` | original judge/fallback concept; the verdict table follows the identity × action grading of `reference/original-guadian/docs/risk-grade-rationale.md` |
 | Rules | `rules/*` | GUADIAN risk policy docs |
 | Shield link detection | `shield/WebAccessibilityNode.kt` | adapted from `reference/original-guadian/src/WebNode.kt` (source cited in its KDoc) |
 | On-device LLM | `ml/guadian_ml/llm/*`, `core/llm/` | original judge criteria (`vendor/`) as teacher labels |
