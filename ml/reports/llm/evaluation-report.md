@@ -132,6 +132,91 @@ these answers. Five more are clear impersonation or credential pages answered
 `MEDIUM` instead of `HIGH`; no `HIGH` label changed, and the cause is not yet
 known.
 
+## The original server judge on the same split
+
+The original GUADIAN server judged with `claude-haiku-4-5` under the original
+criteria; its answers are the teacher labels, so it can be scored on the same
+420 test cases at no cost (`teacher-haiku_test.json`).
+
+| Judge | Accuracy | Macro F1 | `LOW` recall | Missed risk | Human-reviewed accuracy | Human-reviewed missed |
+| :-- | --: | --: | --: | --: | --: | --: |
+| original server (Claude haiku) | 81.9% | 0.78 | 78.8% | 12 | 51.1% | 6 |
+| run 3 GGUF Q4_K_M, as the app reads it | 79.3% | 0.73 | 95.3% | 66 | 72.2% | 20 |
+| run 4 GGUF Q4_K_M, as the app reads it | 86.9% | 0.82 | 92.5% | 23 | 74.4% | 9 |
+| run 5 GGUF Q4_K_M, as the app reads it | 85.0% | 0.80 | 89.6% | 28 | 70.7% | 13 |
+
+Only the human-reviewed column is a fair comparison. The assistant review
+started from the teacher's answers and kept them where it agreed, so the server
+matches 276 of those 287 labels, which inflates its overall accuracy. On the
+human-reviewed cases the server warns on 45 of 76 ordinary pages and scores far
+below the on-device models, while it misses the fewest risky pages. The two
+follow different criteria: the reviewed labels apply the rules added since
+(first screen only, brand sites, email-only forms), and the server applies the
+original ones. How close the phone gets to the server therefore depends on
+which criteria are the target; the next section restates the scores under the
+labeling guide that replaced both.
+
+## The relabeled test split (labeling guide)
+
+On 2026-10-05 the labels were rewritten with the labeling guide
+(`ml/docs/llm/labeling-guide.md`): the teacher relabeled every case from the
+student's prompt, 38 pages a bot defense served to the collector were left out
+(6 of them test cases), and the reviewed test labels were reconciled with the
+guide, changing 11 human and 12 assistant-reviewed labels. The app's
+`personal_info` check changed with it: it now needs a personal field or a form
+worded to collect contact details, and no longer keeps answers on a brand
+mention. Earlier runs' saved answers are rescored here on the
+414 relabeled test cases; the sections above keep their original split.
+
+| Model | Reading | Cases | Accuracy | Macro F1 | LOW recall | Missed risk |
+| :-- | :-- | --: | --: | --: | --: | --: |
+| run 3 GGUF Q4_K_M | model | 414 | 79.7% | 0.73 | 94.0% | 56 |
+| run 3 GGUF Q4_K_M | app | 414 | 80.7% | 0.74 | 95.0% | 59 |
+| run 3 GGUF Q4_K_M | model, human-reviewed | 133 | 71.4% | 0.61 | 89.7% | 18 |
+| run 3 GGUF Q4_K_M | app, human-reviewed | 133 | 72.2% | 0.62 | 91.0% | 21 |
+| run 4 GGUF Q4_K_M | model | 414 | 83.1% | 0.79 | 83.0% | 16 |
+| run 4 GGUF Q4_K_M | app | 414 | 88.2% | 0.82 | 94.5% | 22 |
+| run 4 GGUF Q4_K_M | model, human-reviewed | 133 | 68.4% | 0.64 | 73.1% | 6 |
+| run 4 GGUF Q4_K_M | app, human-reviewed | 133 | 77.4% | 0.69 | 89.7% | 9 |
+| run 5 GGUF Q4_K_M | model | 414 | 83.6% | 0.79 | 85.8% | 23 |
+| run 5 GGUF Q4_K_M | app | 414 | 86.5% | 0.81 | 92.2% | 26 |
+| run 5 GGUF Q4_K_M | model, human-reviewed | 133 | 69.2% | 0.62 | 79.5% | 11 |
+| run 5 GGUF Q4_K_M | app, human-reviewed | 133 | 71.4% | 0.63 | 84.6% | 13 |
+
+| Judge | Accuracy | Macro F1 | `LOW` recall | Missed risk | Human-reviewed accuracy | Human-reviewed missed |
+| :-- | --: | --: | --: | --: | --: | --: |
+| teacher by the guide (Claude haiku) | 91.5% | 0.90 | 93.1% | 12 | 83.5% | 3 |
+
+The guide's teacher agrees with people on far more of the human-reviewed cases
+than the original server did (51.1%), so the training labels and the test labels now
+follow the same criteria. Its overall figure is inflated the same way as before:
+the reviewed labels were reconciled with its answers. On this split the bar for
+run 6 is run 3's 72.2% app-read accuracy on the human-reviewed cases, and at most 25
+missed risky pages. Run 4 as the app reads it clears both, but the check it
+relies on was designed after reading this split's errors.
+
+## Scores that do not depend on our labels
+
+The labeling guide and the reviewed test labels were written by the same
+people, so the scores above measure how well a model follows that guide. Two
+scores need no label at all, only where a URL came from. OpenPhish URLs were
+reported and confirmed as phishing by a third party, so a `LOW` answer on one
+is a miss whatever the guide says. Tranco URLs are the most visited sites, so a
+warning on one that opened is a false alarm by the source alone. Pages that did
+not open are counted apart: the guide warns on those as unverifiable.
+
+| Judge | Phishing pages answered `LOW` (opened) | Phishing URLs answered `LOW` (all) | Top sites warned on (opened) | Top sites warned on (all) |
+| :-- | --: | --: | --: | --: |
+| run 3 GGUF Q4_K_M, as the app reads it | 12 / 43 | 12 / 96 | 5 / 62 | 24 / 81 |
+| run 4 GGUF Q4_K_M, as the app reads it | 4 / 43 | 4 / 96 | 4 / 62 | 22 / 81 |
+| run 5 GGUF Q4_K_M, as the app reads it | 5 / 43 | 5 / 96 | 5 / 62 | 21 / 81 |
+| teacher by the guide (Claude haiku) | 5 / 43 | 5 / 96 | 7 / 62 | 25 / 81 |
+
+Most phishing URLs no longer opened when collected, so the opened pages are
+the informative ones. On those, run 4 answers `LOW` on far fewer than run 3,
+and on opened top sites every model warns on only a few, so the gap between
+runs 3 and 4 seen under our labels is confirmed by these label-free scores.
+
 ## Stability across quantization
 
 Run 3: All 4 files give the same risk on 88.1% of the 118 cases. Agreement with f16, per quantized file:

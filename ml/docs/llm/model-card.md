@@ -39,8 +39,9 @@ stored verdicts, local knowledge, page content inspection) leave
 uncertain reach it. A `HIGH` answer counts only when its type is
 impersonation, credentials, or apk and its evidence is one of the prompt's own
 lines; the app lowers it to `MEDIUM` otherwise. A `MEDIUM personal_info` answer
-counts only when the page shows a personal field or another reason for it; the
-app lowers it to `LOW` otherwise.
+counts only when the page shows a personal field, or a form whose text names a
+contact field or asks consent to collect personal information; the app lowers
+it to `LOW` otherwise.
 
 It is not meant to judge arbitrary web content, to run without the page
 observation, or to be the only defense against phishing.

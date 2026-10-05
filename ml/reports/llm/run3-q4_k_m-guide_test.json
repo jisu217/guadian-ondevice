@@ -1,0 +1,96 @@
+{
+  "n": 414,
+  "accuracy": 0.7971014492753623,
+  "unparseable": 0,
+  "recall_LOW": 0.9403669724770642,
+  "recall_MEDIUM": 0.6770186335403726,
+  "recall_HIGH": 0.45714285714285713,
+  "macro_f1": 0.7264215586911679,
+  "missed_risk": 56,
+  "by_source": {
+    "openphish": {
+      "n": 96,
+      "answered_low": 9,
+      "opened": 43,
+      "opened_answered_low": 9
+    },
+    "tranco": {
+      "n": 81,
+      "warned": 25,
+      "opened": 62,
+      "opened_warned": 6
+    }
+  },
+  "human_review": {
+    "n": 133,
+    "accuracy": 0.7142857142857143,
+    "unparseable": 0,
+    "recall_LOW": 0.8974358974358975,
+    "recall_MEDIUM": 0.45,
+    "recall_HIGH": 0.45714285714285713,
+    "macro_f1": 0.611252703120173,
+    "missed_risk": 18
+  },
+  "app": {
+    "n": 414,
+    "accuracy": 0.8067632850241546,
+    "recall_LOW": 0.9495412844036697,
+    "recall_MEDIUM": 0.6894409937888198,
+    "recall_HIGH": 0.45714285714285713,
+    "macro_f1": 0.7406773612234169,
+    "missed_risk": 59,
+    "malformed": 0,
+    "high_lowered": 2,
+    "personal_info_lowered": 5,
+    "by_source": {
+      "openphish": {
+        "n": 96,
+        "answered_low": 12,
+        "opened": 43,
+        "opened_answered_low": 12
+      },
+      "tranco": {
+        "n": 81,
+        "warned": 24,
+        "opened": 62,
+        "opened_warned": 5
+      }
+    },
+    "human_review": {
+      "n": 133,
+      "accuracy": 0.7218045112781954,
+      "recall_LOW": 0.9102564102564102,
+      "recall_MEDIUM": 0.45,
+      "recall_HIGH": 0.45714285714285713,
+      "macro_f1": 0.6199232140408611,
+      "missed_risk": 21,
+      "malformed": 0,
+      "high_lowered": 0,
+      "personal_info_lowered": 4,
+      "by_source": {
+        "openphish": {
+          "n": 42,
+          "answered_low": 10,
+          "opened": 40,
+          "opened_answered_low": 10
+        },
+        "tranco": {
+          "n": 9,
+          "warned": 3,
+          "opened": 7,
+          "opened_warned": 1
+        }
+      }
+    }
+  },
+  "latency_s": {
+    "median": 1.55,
+    "p90": 1.87,
+    "max": 2.55,
+    "threads": 4,
+    "gpu_layers": 0
+  },
+  "model": "guadian-qwen3-1.7b-run3-Q4_K_M.gguf",
+  "examples": "data/llm/final/sft_test.jsonl",
+  "examples_sha256": "94e171915b6d6ad7ddfbdbb4b63753a97c0cabca247fe01dffbddba9ef45b592"
+}

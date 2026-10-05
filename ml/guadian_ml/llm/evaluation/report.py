@@ -62,6 +62,14 @@ RUN1 = [
 ]
 
 
+# Saved answers of runs 3 to 5 rescored on the test split relabeled by the labeling guide.
+GUIDE_Q4 = [
+    ("run3-q4_k_m-guide", "run 3 GGUF Q4_K_M"),
+    ("run4-q4_k_m-guide", "run 4 GGUF Q4_K_M"),
+    ("run5-q4_k_m-guide", "run 5 GGUF Q4_K_M"),
+]
+
+
 def load(name: str, section: str | None) -> dict:
     with open(paths.LLM_REPORTS / f"{name}_test.json", encoding="utf-8") as f:
         record = json.load(f)
@@ -93,6 +101,24 @@ def subset_table(rows: list[tuple[str, str]]) -> str:
                            ("app, human-reviewed", r["app"]["human_review"])):
             lines.append(f"| {label} | {reading} | {m['n']} | {pct(m['accuracy'])} | {m['macro_f1']:.2f} "
                          f"| {pct(m['recall_LOW'])} | {m['missed_risk']} |")
+    return "\n".join(lines)
+
+
+def source_table() -> str:
+    """Misses on confirmed phishing and warnings on top sites, from the URL's source alone."""
+    lines = ["| Judge | Phishing pages answered `LOW` (opened) | Phishing URLs answered `LOW` (all) "
+             "| Top sites warned on (opened) | Top sites warned on (all) |",
+             "| :-- | --: | --: | --: | --: |"]
+    rows = [(name, ("app", "by_source"), label) for name, label in GUIDE_Q4]
+    rows.append(("teacher-guide", ("by_source",), "teacher by the guide (Claude haiku)"))
+    for name, keys, label in rows:
+        m = load(name, None)
+        for key in keys:
+            m = m[key]
+        p, t = m["openphish"], m["tranco"]
+        reading = ", as the app reads it" if keys[0] == "app" else ""
+        lines.append(f"| {label}{reading} | {p['opened_answered_low']} / {p['opened']} | {p['answered_low']} / {p['n']} "
+                     f"| {t['opened_warned']} / {t['opened']} | {t['warned']} / {t['n']} |")
     return "\n".join(lines)
 
 
@@ -199,6 +225,73 @@ tie the two. The app's check keeps the same exception, so it does not catch
 these answers. Five more are clear impersonation or credential pages answered
 `MEDIUM` instead of `HIGH`; no `HIGH` label changed, and the cause is not yet
 known.
+
+## The original server judge on the same split
+
+The original GUADIAN server judged with `claude-haiku-4-5` under the original
+criteria; its answers are the teacher labels, so it can be scored on the same
+{load("teacher-haiku", None)['n']} test cases at no cost (`teacher-haiku_test.json`).
+
+| Judge | Accuracy | Macro F1 | `LOW` recall | Missed risk | Human-reviewed accuracy | Human-reviewed missed |
+| :-- | --: | --: | --: | --: | --: | --: |
+| original server (Claude haiku) | {pct(load("teacher-haiku", None)['accuracy'])} | {load("teacher-haiku", None)['macro_f1']:.2f} | {pct(load("teacher-haiku", None)['recall_LOW'])} | {load("teacher-haiku", None)['missed_risk']} | {pct(load("teacher-haiku", None)['human_review']['accuracy'])} | {load("teacher-haiku", None)['human_review']['missed_risk']} |
+| run 3 GGUF Q4_K_M, as the app reads it | {pct(load("run3-q4_k_m-ds2610", None)['app']['accuracy'])} | {load("run3-q4_k_m-ds2610", None)['app']['macro_f1']:.2f} | {pct(load("run3-q4_k_m-ds2610", None)['app']['recall_LOW'])} | {load("run3-q4_k_m-ds2610", None)['app']['missed_risk']} | {pct(load("run3-q4_k_m-ds2610", None)['app']['human_review']['accuracy'])} | {load("run3-q4_k_m-ds2610", None)['app']['human_review']['missed_risk']} |
+| run 4 GGUF Q4_K_M, as the app reads it | {pct(load("run4-q4_k_m", None)['app']['accuracy'])} | {load("run4-q4_k_m", None)['app']['macro_f1']:.2f} | {pct(load("run4-q4_k_m", None)['app']['recall_LOW'])} | {load("run4-q4_k_m", None)['app']['missed_risk']} | {pct(load("run4-q4_k_m", None)['app']['human_review']['accuracy'])} | {load("run4-q4_k_m", None)['app']['human_review']['missed_risk']} |
+| run 5 GGUF Q4_K_M, as the app reads it | {pct(load("run5-q4_k_m", None)['app']['accuracy'])} | {load("run5-q4_k_m", None)['app']['macro_f1']:.2f} | {pct(load("run5-q4_k_m", None)['app']['recall_LOW'])} | {load("run5-q4_k_m", None)['app']['missed_risk']} | {pct(load("run5-q4_k_m", None)['app']['human_review']['accuracy'])} | {load("run5-q4_k_m", None)['app']['human_review']['missed_risk']} |
+
+Only the human-reviewed column is a fair comparison. The assistant review
+started from the teacher's answers and kept them where it agreed, so the server
+matches 276 of those 287 labels, which inflates its overall accuracy. On the
+human-reviewed cases the server warns on 45 of 76 ordinary pages and scores far
+below the on-device models, while it misses the fewest risky pages. The two
+follow different criteria: the reviewed labels apply the rules added since
+(first screen only, brand sites, email-only forms), and the server applies the
+original ones. How close the phone gets to the server therefore depends on
+which criteria are the target; the next section restates the scores under the
+labeling guide that replaced both.
+
+## The relabeled test split (labeling guide)
+
+On 2026-10-05 the labels were rewritten with the labeling guide
+(`ml/docs/llm/labeling-guide.md`): the teacher relabeled every case from the
+student's prompt, 38 pages a bot defense served to the collector were left out
+(6 of them test cases), and the reviewed test labels were reconciled with the
+guide, changing 11 human and 12 assistant-reviewed labels. The app's
+`personal_info` check changed with it: it now needs a personal field or a form
+worded to collect contact details, and no longer keeps answers on a brand
+mention. Earlier runs' saved answers are rescored here on the
+{load("run3-q4_k_m-guide", None)['n']} relabeled test cases; the sections above keep their original split.
+
+{subset_table(GUIDE_Q4)}
+
+| Judge | Accuracy | Macro F1 | `LOW` recall | Missed risk | Human-reviewed accuracy | Human-reviewed missed |
+| :-- | --: | --: | --: | --: | --: | --: |
+| teacher by the guide (Claude haiku) | {pct(load("teacher-guide", None)['accuracy'])} | {load("teacher-guide", None)['macro_f1']:.2f} | {pct(load("teacher-guide", None)['recall_LOW'])} | {load("teacher-guide", None)['missed_risk']} | {pct(load("teacher-guide", None)['human_review']['accuracy'])} | {load("teacher-guide", None)['human_review']['missed_risk']} |
+
+The guide's teacher agrees with people on far more of the human-reviewed cases
+than the original server did ({pct(load("teacher-haiku", None)['human_review']['accuracy'])}), so the training labels and the test labels now
+follow the same criteria. Its overall figure is inflated the same way as before:
+the reviewed labels were reconciled with its answers. On this split the bar for
+run 6 is run 3's {pct(load("run3-q4_k_m-guide", None)["app"]["human_review"]["accuracy"])} app-read accuracy on the human-reviewed cases, and at most 25
+missed risky pages. Run 4 as the app reads it clears both, but the check it
+relies on was designed after reading this split's errors.
+
+## Scores that do not depend on our labels
+
+The labeling guide and the reviewed test labels were written by the same
+people, so the scores above measure how well a model follows that guide. Two
+scores need no label at all, only where a URL came from. OpenPhish URLs were
+reported and confirmed as phishing by a third party, so a `LOW` answer on one
+is a miss whatever the guide says. Tranco URLs are the most visited sites, so a
+warning on one that opened is a false alarm by the source alone. Pages that did
+not open are counted apart: the guide warns on those as unverifiable.
+
+{source_table()}
+
+Most phishing URLs no longer opened when collected, so the opened pages are
+the informative ones. On those, run 4 answers `LOW` on far fewer than run 3,
+and on opened top sites every model warns on only a few, so the gap between
+runs 3 and 4 seen under our labels is confirmed by these label-free scores.
 
 ## Stability across quantization
 

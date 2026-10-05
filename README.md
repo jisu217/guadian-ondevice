@@ -78,7 +78,20 @@ training labels that called consultation pages `personal_info` even without a
 personal field, which the reviewed test labels do not. Run 5 aligned those
 labels but missed more risky pages (27 against 20) and fell below run 3 on the
 human-reviewed cases as the app reads them, so neither run replaced run 3 in
-the app.
+the app. Scored the same way, the original server judge misses the fewest risky
+pages but warns on most ordinary ones, because the reviewed labels now follow
+stricter criteria than the original.
+
+So I rewrote the criteria as one labeling guide, built on the original
+service's rule that a page is blocked only when the risk is certain, serious,
+and on a site that is not the brand's own. The teacher relabeled every case
+with it, reading the same prompt as the on-device model, and now agrees with
+the human labels on 83.5% of reviewed cases. I left out 38 pages that a bot
+defense served to the collector, settled the remaining disagreements case by
+case, and rescored earlier runs on the relabeled test split before training
+run 6. Because I wrote both the guide and the reviewed labels, I also score what
+needs no label: how often a model passes a phishing URL that OpenPhish confirmed,
+and how often it warns on a top site.
 
 Details: [Dataset](ml/docs/llm/dataset.md),
 [Model Card](ml/docs/llm/model-card.md), and
@@ -110,8 +123,8 @@ The app and the training-data collector read pages with the same script, which
 names form fields (email, name, phone, search) and leaves out fields the user
 cannot see. The app checks the evidence returned with a `HIGH` answer and
 lowers the risk to `MEDIUM` when the required grounding is missing, and lowers
-a `personal_info` answer to `LOW` when the page shows no personal field and
-gives no other reason for the warning.
+a `personal_info` answer to `LOW` unless the page shows a personal field or a
+form worded to collect contact details.
 
 | Area | Verified so far | Still to do |
 | :-- | :-- | :-- |

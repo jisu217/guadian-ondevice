@@ -77,16 +77,19 @@ The LLM reads a short Korean prompt built from what page inspection saw
 imitation findings) and answers with one JSON line: risk, type, and, for
 `HIGH`, the prompt line that supports it. The app accepts a `HIGH` only when
 that line appears in its own prompt, and accepts a `personal_info` warning only
-when the page shows a personal field or another reason for it.
+when the page shows a personal field or a form worded to collect contact
+details, the rule the labeling guide sets for the label.
 
 The 551 training and evaluation cases are the original team's 251 gold ad URLs
 plus 300 OpenPhish URLs, rendered in a headless mobile browser and labeled by
 the original server's model and criteria, then corrected by a written policy
 and by hand. Run 3 trains a LoRA adapter on the fp16 base, merges it, and
 ships a Q4_K_M GGUF (1.11 GB). The 2026-10 dataset grows this to 2,094 cases
-with OpenPhish, Tranco, and Naver search URLs, and its 420 test cases are all
-reviewed (133 by a person, the rest by a Claude model); run 4 trained on it and
-run 5 will. The data process is in
+with OpenPhish, Tranco, and Naver search URLs; runs 4 and 5 trained on it.
+Its labels now follow one labeling guide: the teacher relabeled every case from
+the on-device model's own prompt, and 38 pages that a bot defense served
+instead of the site are left out, leaving 2,056 cases. All 414 test cases are
+reviewed, 133 by a person and the rest by a Claude model. The data process is in
 [LLM Dataset](../ml/docs/llm/dataset.md), and intended use and limits in the
 [LLM Model Card](../ml/docs/llm/model-card.md).
 
@@ -123,6 +126,28 @@ ones, and as the app reads it scores 70.7% on the human-reviewed cases, below
 run 3's 72.2%. The label rule keeps `personal_info` when the prompt has a brand
 mention line, so after the change the model learned to answer `personal_info`
 on pages that only mention a brand. Run 5 is not shipped either.
+
+The original server judge (`claude-haiku-4-5`, the teacher) can be scored on the
+same split from its labels. It misses the fewest risky pages (12) but warns on
+45 of the 76 ordinary pages among the human-reviewed cases, where it scores
+51.1%. Those labels apply the rules added since the original criteria, so the
+gap measures a difference in criteria as much as in judgment.
+
+The criteria were then rewritten as one labeling guide, built on the original
+service's grading principle that `HIGH` needs certainty, severity, and a
+mismatched identity, and the teacher relabeled the dataset with it. On the
+human-reviewed cases it now agrees with people on 83.5% (111 of 133). The 30
+disagreements were settled case by case and 11 human labels changed, so earlier
+scores are restated on the relabeled split: as the app reads them, run 3 scores
+72.2% on the human-reviewed cases with 59 missed risky pages, and run 4 77.4%
+with 22. Run 4's figure still rests on an app check designed after seeing this
+split.
+
+Because the guide and the reviewed labels come from the same people, the report
+also scores what needs no label: confirmed phishing URLs from OpenPhish answered
+`LOW`, and top Tranco sites warned on. On the 43 phishing pages that still
+opened, run 3 answers `LOW` on 12 and run 4 on 4; on the 62 top sites that
+opened, both warn on 4 or 5. These agree with the labeled scores.
 
 The layers before the LLM are measured on the 668-row URL dataset
 (`ml/data/url/sample_urls.csv`): the rules resolve 135 rows (98 correct) and
@@ -239,10 +264,9 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Drop the brand-mention exception from the `personal_info` label rule, train
-   run 6, and ship it or run 4 if one clears the bar set before run 5:
-   human-reviewed accuracy above run 3's as the app reads it, and at most 25
-   missed risky pages.
+1. Train run 6 on the guide's labels, and ship it or run 4 if one clears the
+   bar set before run 5: human-reviewed accuracy above run 3's as the app reads
+   it (72.2% on the relabeled split), and at most 25 missed risky pages.
 2. Time the shipped model on the emulator and on a physical device.
 3. Update the bundled blocklist periodically.
 4. Improve accessibility permission onboarding and the result UI.

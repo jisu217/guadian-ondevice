@@ -116,7 +116,7 @@ Each layer decides `CERTAIN` differently:
 | `StoreJudge` | the normalized URL has a cached verdict |
 | `LocalKnowledgeJudge` | a snippet matches; `risk` and `confidence` come from the first snippet |
 | `PageContentJudge` | a shown password field (not one in a closed popup) on a host that is neither an official brand domain nor allowlisted: `HIGH` if the page names a known brand, otherwise `MEDIUM`. A brand name without a password field stays `UNCERTAIN` |
-| `LlmJudge` | the model's reply is readable. `AnswerReader` lowers `HIGH` to `MEDIUM` unless its type is impersonation, credentials, or apk and its evidence is one of the prompt's lines verbatim, and lowers a `MEDIUM` personal_info to `LOW` when the prompt shows no personal field, outside form, brand mention, host imitation, or contact wording; an unreadable reply is an uncertain `MEDIUM`. Without a model file it answers uncertain `UNKNOWN` |
+| `LlmJudge` | the model's reply is readable. `AnswerReader` lowers `HIGH` to `MEDIUM` unless its type is impersonation, credentials, or apk and its evidence is one of the prompt's lines verbatim, and lowers a `MEDIUM` personal_info to `LOW` unless the prompt shows a personal field, or a form with fields other than search or email together with contact or consent wording; an unreadable reply is an uncertain `MEDIUM`. Without a model file it answers uncertain `UNKNOWN` |
 
 Brand-to-domain data lives in `ml/runtime/brand_domains.tsv`, shared with the
 allowlist builder, and registrable domains come from the bundled Public Suffix

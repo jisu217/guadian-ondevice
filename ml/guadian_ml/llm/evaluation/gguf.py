@@ -30,6 +30,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -112,6 +113,35 @@ def run_model(args, ns: dict, examples: list[dict]) -> tuple[list[str], list[flo
     return replies, latencies
 
 
+def opened(prompt: str) -> bool:
+    """The page opened with a status below 400, by the prompt's 페이지 line."""
+    line = next((l for l in prompt.splitlines() if l.startswith("페이지: ")), "")
+    status = re.match(r"페이지: 상태 (\d+)", line)
+    return bool(status) and int(status.group(1)) < 400
+
+
+def source_report(examples: list[dict], risks: list[str]) -> dict:
+    """Scores that do not depend on our labels, from where each URL came from.
+
+    OpenPhish URLs were reported and confirmed as phishing by a third party, so a
+    `LOW` answer there is a miss whatever the labeling guide says. Tranco URLs are
+    the most visited sites, which are ordinary, so a warning on one that opened
+    is a false alarm by the source alone; pages that did not open are counted apart,
+    since the guide warns on those as unverifiable.
+    """
+    with open(DATA_DIR / "labels_final.jsonl", encoding="utf-8") as f:
+        sources = {r["case_id"]: r["source"] for r in map(json.loads, filter(str.strip, f))}
+    rows = [(sources[e["case_id"]], opened(e["messages"][1]["content"]), risk) for e, risk in zip(examples, risks)]
+    phish = [(o, r) for s, o, r in rows if s.startswith("openphish")]
+    top = [(o, r) for s, o, r in rows if s.startswith("tranco")]
+    return {
+        "openphish": {"n": len(phish), "answered_low": sum(r == "LOW" for _, r in phish),
+                      "opened": sum(o for o, _ in phish), "opened_answered_low": sum(o and r == "LOW" for o, r in phish)},
+        "tranco": {"n": len(top), "warned": sum(r != "LOW" for _, r in top),
+                   "opened": sum(o for o, _ in top), "opened_warned": sum(o and r != "LOW" for o, r in top)},
+    }
+
+
 def app_report(ns: dict, examples: list[dict], replies: list[str]) -> dict:
     """Scores after the app's answer reading; readings become plain risks for the notebook's scorer."""
     readings = [answer.read(r, e["messages"][1]["content"]) for e, r in zip(examples, replies)]
@@ -120,6 +150,7 @@ def app_report(ns: dict, examples: list[dict], replies: list[str]) -> dict:
     report["malformed"] = sum(r["reason"] == "LLM_MALFORMED_OUTPUT" for r in readings)
     report["high_lowered"] = sum(r["reason"] == "LLM_UNSUPPORTED_HIGH" for r in readings)
     report["personal_info_lowered"] = sum(r["reason"] == "LLM_UNSUPPORTED_PERSONAL_INFO" for r in readings)
+    report["by_source"] = source_report(examples, [r["risk"] for r in readings])
     return report
 
 
@@ -148,6 +179,7 @@ def main() -> int:
         replies, latencies = run_model(args, ns, examples)
 
     report = ns["score"](examples, replies)
+    report["by_source"] = source_report(examples, [(ns["parse_answer"](r) or {"risk": "MEDIUM"})["risk"] for r in replies])
     reviewed = [(e, r) for e, r in zip(examples, replies) if e["label_source"] == "human_review"]
     if reviewed:
         report["human_review"] = ns["score"]([e for e, _ in reviewed], [r for _, r in reviewed])
