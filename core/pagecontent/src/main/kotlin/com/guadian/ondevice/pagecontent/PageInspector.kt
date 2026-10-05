@@ -11,18 +11,16 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.guadian.ondevice.judge.Confidence
-import com.guadian.ondevice.judge.Judge
 import com.guadian.ondevice.judge.Layer
 import com.guadian.ondevice.judge.ReasonCode
 import com.guadian.ondevice.judge.Risk
-import com.guadian.ondevice.judge.RiskCategory
 import com.guadian.ondevice.judge.Verdict
+import com.guadian.ondevice.llm.PageFacts
 import com.guadian.ondevice.llm.PageObservation
 import com.guadian.ondevice.llm.PageSignals
-import com.guadian.ondevice.rules.BrandDomains
-import com.guadian.ondevice.url.DomainAllowlist
-import com.guadian.ondevice.url.PublicSuffixList
-import com.guadian.ondevice.url.UrlHost
+import com.guadian.ondevice.verdict.Evidence
+import com.guadian.ondevice.verdict.PageResult
+import com.guadian.ondevice.verdict.PageStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -32,7 +30,9 @@ import org.json.JSONTokener
 import kotlin.coroutines.resume
 
 /**
- * On-device rendered-page inspection for cases URL-only layers cannot resolve.
+ * The page stage (docs/design.md, section 3): opens the page in a hidden WebView,
+ * runs `page_inspection.js`, and turns what it saw into page signals with
+ * [PageFacts]. It decides nothing; the verdict table does.
  *
  * Trade-off: this loads the candidate page itself, so the destination server
  * sees a visit from the device. The WebView is locked down (no downloads,
@@ -40,30 +40,40 @@ import kotlin.coroutines.resume
  * redirects), but JavaScript stays on because evaluateJavascript needs it.
  * No page content leaves the device.
  *
- * Besides its own verdict, each load produces a [PageObservation] for the
- * on-device LLM stage, passed to [onObservation]. It is read with the rules the
- * model's training data was collected with (see [PageSignals]).
+ * Each load also produces a [PageObservation] for the on-device LLM stage, passed
+ * to [onObservation]. It is read with the rules the model's training data was
+ * collected with (see [PageSignals]). A page that fails to load or times out counts
+ * as not opened, as the collector recorded such pages.
  */
-class PageContentJudge(
+class PageInspector(
     private val context: Context,
-    private val officialDomains: BrandDomains = BrandDomains(),
-    private val allowlist: DomainAllowlist = DomainAllowlist.default,
-    private val suffixes: PublicSuffixList = PublicSuffixList.default,
+    private val facts: PageFacts = PageFacts(),
     private val timeoutMs: Long = DEFAULT_TIMEOUT_MS,
     /** Tests add "data" to load inline pages without a network. */
     private val allowedSchemes: Set<String> = setOf("http", "https"),
     private val onObservation: (url: String, observation: PageObservation) -> Unit = { _, _ -> },
-) : Judge {
+) : PageStage {
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    override suspend fun judge(url: String): Verdict {
-        if (schemeOf(url) !in allowedSchemes) return uncertain(ReasonCode.PAGE_UNSUPPORTED_SCHEME)
-        return withTimeoutOrNull(timeoutMs) {
-            withContext(Dispatchers.Main) { inspect(url) }
-        } ?: uncertain(ReasonCode.PAGE_TIMEOUT)
+    private sealed interface Outcome {
+        data class Seen(val observation: PageObservation) : Outcome
+        data class ScriptFailed(val detail: String) : Outcome
     }
 
-    private suspend fun inspect(url: String): Verdict = suspendCancellableCoroutine { cont ->
+    override suspend fun inspect(url: String, known: Evidence): PageResult {
+        if (schemeOf(url) !in allowedSchemes) return PageResult.Unreadable(uncertain(ReasonCode.PAGE_UNSUPPORTED_SCHEME))
+        val outcome = withTimeoutOrNull(timeoutMs) { withContext(Dispatchers.Main) { load(url) } }
+            ?: Outcome.Seen(PageObservation(url = url, loaded = false))
+        return when (outcome) {
+            is Outcome.ScriptFailed -> PageResult.Unreadable(uncertain(ReasonCode.PAGE_SCRIPT_FAILED, outcome.detail))
+            is Outcome.Seen -> {
+                onObservation(url, outcome.observation)
+                PageResult.Observed(facts.evidence(outcome.observation, known))
+            }
+        }
+    }
+
+    private suspend fun load(url: String): Outcome = suspendCancellableCoroutine { cont ->
         val webView = WebView(context)
         var finished = false
         var navigations = 0
@@ -76,17 +86,13 @@ class PageContentJudge(
             webView.destroy()
         }
 
-        fun finish(verdict: Verdict) {
+        fun finish(outcome: Outcome) {
             if (finished) return
             release()
-            if (cont.isActive) cont.resume(verdict)
+            if (cont.isActive) cont.resume(outcome)
         }
 
-        fun failLoad(detail: String?) {
-            if (finished) return
-            onObservation(url, PageObservation(url = url, loaded = false))
-            finish(uncertain(ReasonCode.PAGE_LOAD_FAILED, detail = detail))
-        }
+        fun failLoad() = finish(Outcome.Seen(PageObservation(url = url, loaded = false)))
 
         /*
          * Cancellation (e.g. the timeout) can arrive on any thread; WebView
@@ -101,7 +107,7 @@ class PageContentJudge(
                 if (schemeOf(request.url.toString()) !in allowedSchemes) return true
                 navigations++
                 if (navigations > MAX_REDIRECTS) {
-                    failLoad("too many redirects")
+                    failLoad()
                     return true
                 }
                 return false
@@ -110,12 +116,11 @@ class PageContentJudge(
             override fun onPageFinished(view: WebView, finishedUrl: String) {
                 if (finished) return
                 view.evaluateJavascript(PageSignals.inspectionScript) { rawResult ->
-                    val verdict = runCatching {
-                        val json = payload(rawResult) ?: return@runCatching uncertain(ReasonCode.PAGE_SCRIPT_FAILED, detail = "no data")
-                        onObservation(url, PageSignals.observe(url, finishedUrl, httpStatus ?: 200, navigations, json))
-                        classify(finishedUrl, json)
-                    }.getOrElse { uncertain(ReasonCode.PAGE_SCRIPT_FAILED, detail = it.javaClass.simpleName) }
-                    finish(verdict)
+                    val outcome = runCatching {
+                        val json = payload(rawResult) ?: return@runCatching Outcome.ScriptFailed("no data")
+                        Outcome.Seen(PageSignals.observe(url, finishedUrl, httpStatus ?: 200, navigations, json))
+                    }.getOrElse { Outcome.ScriptFailed(it.javaClass.simpleName) }
+                    finish(outcome)
                 }
             }
 
@@ -133,7 +138,7 @@ class PageContentJudge(
                 request: WebResourceRequest,
                 error: WebResourceError,
             ) {
-                if (request.isForMainFrame) failLoad(error.description?.toString())
+                if (request.isForMainFrame) failLoad()
             }
         }
 
@@ -165,49 +170,11 @@ class PageContentJudge(
         ?.let(::JSONObject)
         ?.takeUnless { it.has("error") }
 
-    private fun classify(finishedUrl: String, json: JSONObject): Verdict {
-        val host = UrlHost.of(finishedUrl)
-        val officialBrand = host?.let { officialDomains.brandForOfficialHost(it) }
-        val mentionedBrand = officialDomains.brandMentionedInText("${json.optString("title")} ${json.optString("bodyText")}")
-        val hasPassword = json.optBoolean("hasPasswordField")
-        val allowlisted = host?.let { allowlist.containsExactly(suffixes.registrableDomain(it) ?: it) } ?: false
-
-        if (hasPassword && officialBrand == null && !allowlisted) {
-            /*
-             * A brand name alone is common ("Log in with Naver"); a brand name
-             * next to a password field on an unrelated host is the phishing shape.
-             */
-            return if (mentionedBrand != null) {
-                certain(Risk.HIGH, ReasonCode.PAGE_BRAND_LOGIN_FORM, RiskCategory.PAGE_BRAND_IMPERSONATION, host, mentionedBrand)
-            } else {
-                certain(Risk.MEDIUM, ReasonCode.PAGE_UNVERIFIED_LOGIN_FORM, RiskCategory.UNVERIFIED_LOGIN_FORM, host, null)
-            }
-        }
-
-        if (mentionedBrand != null && mentionedBrand != officialBrand) {
-            return uncertain(ReasonCode.PAGE_BRAND_MENTION_ONLY, host = host, detail = mentionedBrand)
-        }
-
-        return uncertain(ReasonCode.PAGE_NO_SIGNAL, host = host)
-    }
-
-    private fun certain(risk: Risk, reason: ReasonCode, category: RiskCategory, host: String?, detail: String?) =
-        Verdict(
-            risk = risk,
-            confidence = Confidence.CERTAIN,
-            layer = Layer.PAGE_CONTENT,
-            reason = reason,
-            category = category,
-            host = host,
-            detail = detail,
-        )
-
-    private fun uncertain(reason: ReasonCode, host: String? = null, detail: String? = null) = Verdict(
+    private fun uncertain(reason: ReasonCode, detail: String? = null) = Verdict(
         risk = Risk.UNKNOWN,
         confidence = Confidence.UNCERTAIN,
         layer = Layer.PAGE_CONTENT,
         reason = reason,
-        host = host,
         detail = detail,
     )
 
