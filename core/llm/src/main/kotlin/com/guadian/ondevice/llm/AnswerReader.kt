@@ -20,9 +20,9 @@ import org.json.JSONTokener
  *   Otherwise it becomes `MEDIUM`. This is the original server's `_ground` check;
  *   training taught the model to quote a line, so a missing quote means the model
  *   is guessing.
- * - `MEDIUM` personal_info on a page that shows no personal field and gives no other
- *   reason to doubt it ([personalInfoUnsupported]) becomes `LOW`: the labels only
- *   call a page personal_info when its first screen asks for personal details.
+ * - `MEDIUM` personal_info on a page that shows neither a personal field nor a form
+ *   worded to collect personal information ([personalInfoUnsupported]) becomes `LOW`:
+ *   the labeling guide (rule 5) calls a page personal_info only on that ground.
  */
 object AnswerReader {
     private val TYPES = mapOf(
@@ -40,7 +40,10 @@ object AnswerReader {
     private val HIGH_TYPES = setOf("impersonation", "credentials", "apk")
     /** Asks that make a form collect personal information; email alone does not. */
     private val PERSONAL_ASKS = setOf("name", "phone", "password", "rrn", "card", "account")
-    /** Words in the page text that point to a contact form the collector could not see as a form. */
+    /**
+     * Words that show a shown form with unnamed fields collects contact details. Without such
+     * a form they are only text, often a menu link, and are not ground.
+     */
     private val CONTACT_WORDS = listOf("연락처", "휴대폰", "핸드폰", "전화번호")
 
     fun read(reply: String?, prompt: String, host: String? = null): Verdict {
@@ -67,19 +70,18 @@ object AnswerReader {
 
     /**
      * The prompt gives no ground for a personal-information warning (answer.personal_info_unsupported):
-     * no field asks for personal information, no form posts elsewhere, no brand mention or
-     * host imitation line, and the page text names no contact field.
+     * no field asks for personal information, and no shown form with fields other than search
+     * or email comes with page text naming a contact field or asking consent to collect personal information.
      */
     fun personalInfoUnsupported(prompt: String): Boolean {
         val lines = prompt.lines()
         fun line(key: String) = lines.firstOrNull { it.startsWith("$key: ") } ?: ""
-        val forms = line("입력 칸")
-        if ("외부로 전송" in forms || line("브랜드 언급").isNotEmpty() || line("주소 흉내").isNotEmpty()) return false
-        val asks = if (forms.isEmpty()) emptySet() else forms.removePrefix("입력 칸: ").split(",").map { it.trim() }.toSet()
+        val forms = line("입력 칸").removePrefix("입력 칸: ").replace("(외부로 전송)", "")
+        val asks = forms.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
         if (asks.any { it in PERSONAL_ASKS }) return false
         val body = line("본문")
-        if (CONTACT_WORDS.any { it in body } || ("개인정보" in body && ("수집" in body || "동의" in body))) return false
-        return true
+        val worded = CONTACT_WORDS.any { it in body } || ("개인정보" in body && ("수집" in body || "동의" in body))
+        return !((asks - setOf("search", "email")).isNotEmpty() && worded)
     }
 
     /** The first JSON object in [text], read with a real parser so braces inside strings are handled. */
