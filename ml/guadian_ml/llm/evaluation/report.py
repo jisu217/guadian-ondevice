@@ -38,6 +38,14 @@ RUN4 = [
     ("run4-q4_k_m", None, "run 4 GGUF Q4_K_M"),
 ]
 RUN4_Q4 = [("run3-q4_k_m-ds2610", "run 3 GGUF Q4_K_M"), ("run4-q4_k_m", "run 4 GGUF Q4_K_M")]
+# Run 5 keeps run 4's settings and changes only training labels, on the same test split.
+RUN5 = [
+    ("run4-colab", "fine_tuned", "run 4 adapter on the base (Colab, fp16)"),
+    ("run5-colab", "fine_tuned", "run 5 adapter on the base (Colab, fp16)"),
+    ("run4-q4_k_m", None, "run 4 GGUF Q4_K_M"),
+    ("run5-q4_k_m", None, "run 5 GGUF Q4_K_M"),
+]
+RUN5_Q4 = [("run4-q4_k_m", "run 4 GGUF Q4_K_M"), ("run5-q4_k_m", "run 5 GGUF Q4_K_M")]
 # The same split, scored before the 2026-09-28 prompt changes.
 RUN2 = [
     ("run2-colab", "fine_tuned", "run 2 adapter on the base (Colab, fp16)"),
@@ -163,6 +171,34 @@ rule for run 5. The check was designed after reading run 4's test errors, so the
 `app` rows overstate how well it generalizes.
 
 Run 4: {stability("run4")}
+
+## Run 5: aligned training labels (not adopted)
+
+Run 5 keeps every run 4 setting and changes only training labels: 52 training
+and 5 validation `personal_info` cases with no ground on the first screen, and 4
+cases on brand sites, became `LOW`. The test split is unchanged.
+
+{table(RUN5)}
+
+{subset_table(RUN5_Q4)}
+
+The aligned labels raised `LOW` recall and, read as the model answered, accuracy
+on the human-reviewed cases, but did not pay off where it counts. Run 5 misses
+more risky pages and finds fewer `HIGH` ones than run 4, and the app's check
+lowers far fewer of its answers, so its app-read accuracy on the human-reviewed
+cases falls below both run 4's and run 3's. It falls short of the bar set before
+training: above run 3's {pct(load("run3-q4_k_m-ds2610", None)["app"]["human_review"]["accuracy"])} app-read accuracy on those cases, and at most 25
+missed risky pages.
+
+Comparing the fp16 answers case by case, run 5 fixes 28 run 4 errors and makes
+24 new ones. Nine of the new ones are ordinary pages it calls `personal_info`;
+most have a brand mention line and no form. The label rule keeps `personal_info`
+when a brand mention or host imitation line is present, so after the change such
+labels remained only on pages with a brand mention, and the model learned to
+tie the two. The app's check keeps the same exception, so it does not catch
+these answers. Five more are clear impersonation or credential pages answered
+`MEDIUM` instead of `HIGH`; no `HIGH` label changed, and the cause is not yet
+known.
 
 ## Stability across quantization
 

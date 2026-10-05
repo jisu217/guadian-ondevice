@@ -90,6 +90,48 @@ Run 4: All 4 files give the same risk on 91.4% of the 420 cases. Agreement with 
 | Q5_K_M | 95.0% |
 | Q8_0 | 99.0% |
 
+## Run 5: aligned training labels (not adopted)
+
+Run 5 keeps every run 4 setting and changes only training labels: 52 training
+and 5 validation `personal_info` cases with no ground on the first screen, and 4
+cases on brand sites, became `LOW`. The test split is unchanged.
+
+| Model | Accuracy | Macro F1 | HIGH recall | Missed risk | Unparseable | Record |
+| :-- | --: | --: | --: | --: | --: | :-- |
+| run 4 adapter on the base (Colab, fp16) | 82.1% | 0.79 | 64.7% | 17 | 0 | `run4-colab_test.json` `fine_tuned` |
+| run 5 adapter on the base (Colab, fp16) | 83.1% | 0.76 | 47.1% | 21 | 0 | `run5-colab_test.json` `fine_tuned` |
+| run 4 GGUF Q4_K_M | 84.0% | 0.80 | 61.8% | 20 | 0 | `run4-q4_k_m_test.json` |
+| run 5 GGUF Q4_K_M | 84.5% | 0.80 | 58.8% | 27 | 0 | `run5-q4_k_m_test.json` |
+
+| Model | Reading | Cases | Accuracy | Macro F1 | LOW recall | Missed risk |
+| :-- | :-- | --: | --: | --: | --: | --: |
+| run 4 GGUF Q4_K_M | model | 420 | 84.0% | 0.80 | 85.4% | 20 |
+| run 4 GGUF Q4_K_M | app | 420 | 86.9% | 0.82 | 92.5% | 23 |
+| run 4 GGUF Q4_K_M | model, human-reviewed | 133 | 67.7% | 0.64 | 72.4% | 8 |
+| run 4 GGUF Q4_K_M | app, human-reviewed | 133 | 74.4% | 0.68 | 85.5% | 9 |
+| run 5 GGUF Q4_K_M | model | 420 | 84.5% | 0.80 | 88.2% | 27 |
+| run 5 GGUF Q4_K_M | app | 420 | 85.0% | 0.80 | 89.6% | 28 |
+| run 5 GGUF Q4_K_M | model, human-reviewed | 133 | 69.9% | 0.64 | 80.3% | 12 |
+| run 5 GGUF Q4_K_M | app, human-reviewed | 133 | 70.7% | 0.64 | 82.9% | 13 |
+
+The aligned labels raised `LOW` recall and, read as the model answered, accuracy
+on the human-reviewed cases, but did not pay off where it counts. Run 5 misses
+more risky pages and finds fewer `HIGH` ones than run 4, and the app's check
+lowers far fewer of its answers, so its app-read accuracy on the human-reviewed
+cases falls below both run 4's and run 3's. It falls short of the bar set before
+training: above run 3's 72.2% app-read accuracy on those cases, and at most 25
+missed risky pages.
+
+Comparing the fp16 answers case by case, run 5 fixes 28 run 4 errors and makes
+24 new ones. Nine of the new ones are ordinary pages it calls `personal_info`;
+most have a brand mention line and no form. The label rule keeps `personal_info`
+when a brand mention or host imitation line is present, so after the change such
+labels remained only on pages with a brand mention, and the model learned to
+tie the two. The app's check keeps the same exception, so it does not catch
+these answers. Five more are clear impersonation or credential pages answered
+`MEDIUM` instead of `HIGH`; no `HIGH` label changed, and the cause is not yet
+known.
+
 ## Stability across quantization
 
 Run 3: All 4 files give the same risk on 88.1% of the 118 cases. Agreement with f16, per quantized file:

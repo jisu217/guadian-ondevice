@@ -98,6 +98,12 @@ where anyone publishes (`blog.naver.com`, `cafe.naver.com`, `pf.kakao.com`, and
 the others in `USER_CONTENT_HOSTS`) are not the brand speaking and keep their
 labels.
 
+Counting a brand mention or host imitation line as ground for `personal_info`
+was meant to keep impersonation pages from being lowered, but those pages
+already carry the impersonation type, and a brand mention is not evidence of a
+form. The exception taught run 5 to tie the two (evaluation report, run 5), so it
+is to be dropped from the label rule before run 6.
+
 The model only sees what the phone can observe without revealing the visit.
 The collector records blocklist membership and domain age for the teacher, but
 neither reaches the student's input or the policy rules: domain age needs a

@@ -42,6 +42,7 @@ both the risk criteria and the response format the app can read.
 | 2 | LoRA on fp16 for 3 epochs, with an effective batch size of 16 | Responses followed the format, but quantization changed many answers: Q4_K_M agreed with f16 on only 65.3% of test cases. |
 | 3 | 5 epochs, an effective batch size of 8, and repeating `HIGH` training cases twice | Q4_K_M agreement with f16 rose to 91.5%, and accuracy reached 74.6%. Risky pages classified as `LOW` remained a problem. |
 | 4 | The 2026-10 dataset, 3 epochs, and repeating `HIGH` training cases three times | Missed risk fell sharply, but the model warned on many ordinary pages; on the human-reviewed cases it scored below run 3. |
+| 5 | Run 4's settings with training labels aligned to the reviewed test labels | False alarms fell, but missed risk rose again and the model tied brand mentions to `personal_info`, a link the label rule's exceptions created. |
 
 Run 1 used an earlier dataset version. Eight test prompts also changed between
 runs 2 and 3, so these experiments do not isolate the effect of training
@@ -74,8 +75,10 @@ On the 420-case test split, run 4 missed 20 of 208 risky pages against 65 for
 run 3, but it warned on more ordinary pages and scored lower on the
 human-reviewed cases (67.7% against 71.4%). The extra warnings came from
 training labels that called consultation pages `personal_info` even without a
-personal field, which the reviewed test labels do not. I aligned the training
-labels for run 5, and the app keeps shipping run 3 until then.
+personal field, which the reviewed test labels do not. Run 5 aligned those
+labels but missed more risky pages (27 against 20) and fell below run 3 on the
+human-reviewed cases as the app reads them, so neither run replaced run 3 in
+the app.
 
 Details: [Dataset](ml/docs/llm/dataset.md),
 [Model Card](ml/docs/llm/model-card.md), and

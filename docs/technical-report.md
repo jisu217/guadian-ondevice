@@ -117,6 +117,13 @@ app's new check and matching training labels for run 5 followed; with the check,
 run 4 reaches 74.4% on the human-reviewed cases, a figure the check was tuned
 on. Run 4 is not shipped.
 
+Run 5 keeps run 4's settings and changes only those training labels. It raises
+`LOW` recall but misses more risky pages (27 against 20) and finds fewer `HIGH`
+ones, and as the app reads it scores 70.7% on the human-reviewed cases, below
+run 3's 72.2%. The label rule keeps `personal_info` when the prompt has a brand
+mention line, so after the change the model learned to answer `personal_info`
+on pages that only mention a brand. Run 5 is not shipped either.
+
 The layers before the LLM are measured on the 668-row URL dataset
 (`ml/data/url/sample_urls.csv`): the rules resolve 135 rows (98 correct) and
 local knowledge 86 (55 correct), leaving 447 for page inspection and the LLM
@@ -232,8 +239,10 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Train run 5 on the corrected labels and ship it if it beats run 3 on the
-   human-reviewed cases while keeping missed risk near run 4's.
+1. Drop the brand-mention exception from the `personal_info` label rule, train
+   run 6, and ship it or run 4 if one clears the bar set before run 5:
+   human-reviewed accuracy above run 3's as the app reads it, and at most 25
+   missed risky pages.
 2. Time the shipped model on the emulator and on a physical device.
 3. Update the bundled blocklist periodically.
 4. Improve accessibility permission onboarding and the result UI.
