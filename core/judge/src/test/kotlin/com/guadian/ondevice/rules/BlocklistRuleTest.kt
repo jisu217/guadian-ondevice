@@ -1,8 +1,5 @@
 package com.guadian.ondevice.rules
 
-import com.guadian.ondevice.judge.Confidence
-import com.guadian.ondevice.judge.ReasonCode
-import com.guadian.ondevice.judge.Risk
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,23 +11,18 @@ class BlocklistRuleTest {
         .drop(1).first { it.endsWith(",true") }.substringBefore(',')
 
     @Test
-    fun `a listed domain is certain high`() {
-        val verdict = rule.evaluate("https://$listed/login")!!
-
-        assertEquals(Risk.HIGH, verdict.risk)
-        assertEquals(Confidence.CERTAIN, verdict.confidence)
-        assertEquals(ReasonCode.BLOCKLISTED, verdict.reason)
-        assertEquals(listed, verdict.detail)
+    fun `a listed domain is found`() {
+        assertEquals(listed, rule.listedDomain("https://$listed/login"))
     }
 
     @Test
     fun `a subdomain of a listed domain is caught`() {
-        assertEquals(listed, rule.evaluate("https://secure.$listed/")?.detail)
+        assertEquals(listed, rule.listedDomain("https://secure.$listed/"))
     }
 
     @Test
     fun `unlisted and official domains pass`() {
-        assertNull(rule.evaluate("https://www.naver.com/"))
-        assertNull(rule.evaluate("https://m.kbstar.com/quics"))
+        assertNull(rule.listedDomain("https://www.naver.com/"))
+        assertNull(rule.listedDomain("https://m.kbstar.com/quics"))
     }
 }

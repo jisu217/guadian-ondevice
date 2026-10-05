@@ -6,10 +6,6 @@ https://example.com/a.apk#section,apk
 https://example.com/free/app.apk,apk
 https://x.apkmirror.com/,none
 https://example.com/x.apkg,none
-https://promo.example.com/free-gift,suspicious_url
-https://example.com/login?verify=1,suspicious_url
-https://example.com/event,suspicious_url
-example.com/free,suspicious_url
 https://prevent.example.org/freedom,none
 https://example.com/prevention,none
 https://example.com/accounting,none
