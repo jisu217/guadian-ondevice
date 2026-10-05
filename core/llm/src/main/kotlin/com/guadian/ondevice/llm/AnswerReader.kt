@@ -79,10 +79,17 @@ object AnswerReader {
         val forms = line("입력 칸").removePrefix("입력 칸: ").replace("(외부로 전송)", "")
         val asks = forms.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
         if (asks.any { it in PERSONAL_ASKS }) return false
-        val body = line("본문")
-        val worded = CONTACT_WORDS.any { it in body } || ("개인정보" in body && ("수집" in body || "동의" in body))
-        return !((asks - setOf("search", "email")).isNotEmpty() && worded)
+        return !formWordedForContact(asks, line("본문"))
     }
+
+    /**
+     * A shown form with fields other than search or email whose page text names a
+     * contact field or asks consent to collect personal information (labeling guide,
+     * rule 5). [kinds] are the form kinds as the prompt's 입력 칸 line lists them.
+     */
+    fun formWordedForContact(kinds: Set<String>, body: String): Boolean =
+        (kinds - setOf("search", "email")).isNotEmpty() &&
+            (CONTACT_WORDS.any { it in body } || ("개인정보" in body && ("수집" in body || "동의" in body)))
 
     /** The first JSON object in [text], read with a real parser so braces inside strings are handled. */
     private fun firstJsonObject(text: String): JSONObject? {
