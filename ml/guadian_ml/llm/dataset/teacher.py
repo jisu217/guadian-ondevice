@@ -24,6 +24,14 @@ Reruns skip cases that already have a verdict and retry cases that failed.
 `--addendum` appends CRITERIA_ADDENDUM to the original criteria; each row records
 its SHA256. `--only-ids PATH` labels just the case IDs listed one per line.
 
+`--guide` labels by ml/docs/llm/labeling-guide.md instead of the original
+criteria, from the student's own prompt (what the phone sees) rather than the
+server's tool outputs, so the label and the model's input describe the same
+observation. Its rows record the SHA256 of the guide's rules (the text the
+teacher reads, from "## Principles" on), and a `HIGH` stands only on a prompt
+line of the kind the guide names for its type (dataset.sft EVIDENCE_LINES);
+without one it becomes `MEDIUM`.
+
 `--batch` sends the same requests through the Message Batches API at half the
 price; results arrive within 24 hours. The batch ID is kept in OUT.batch, so an
 interrupted run resumes waiting for the same batch instead of paying twice.
@@ -43,6 +51,9 @@ from datetime import datetime, timezone
 import anthropic
 
 from guadian_ml import paths
+from guadian_ml.llm.contract.answer import TYPES
+from guadian_ml.llm.contract.prompt import Brands, observation_from_case, user_message
+from guadian_ml.llm.dataset.sft import EVIDENCE_LINES
 from guadian_ml.llm.vendor import build_prompt as bp
 from guadian_ml.llm.vendor import judge_agent as ja
 
@@ -65,6 +76,70 @@ CRITERIA_ADDENDUM = (
 )
 CRITERIA_ADDENDUM_SHA256 = hashlib.sha256(CRITERIA_ADDENDUM.encode()).hexdigest()
 TOOL_DESCRIPTION = "최종 판정. evidence는 주어진 결과에서 그대로 옮긴 짧은 구절이어야 한다."
+GUIDE_PATH = paths.ML_DIR / "docs" / "llm" / "labeling-guide.md"
+GUIDE_MAX_TOKENS = 256
+GUIDE_TOOL = {
+    "name": "final_verdict",
+    "description": "The label for this page under the guide.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "risk": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH"]},
+            "type": {"type": "string", "enum": sorted(TYPES)},
+            "evidence": {"type": "string", "description": "For HIGH, one line of the page description copied "
+                                                          "exactly; otherwise an empty string."},
+        },
+        "required": ["risk", "type", "evidence"],
+    },
+}
+
+
+def load_guide() -> tuple[str, str]:
+    """The guide's rules (from "## Principles" on) as the teacher's system prompt, and their SHA256."""
+    text = GUIDE_PATH.read_text(encoding="utf-8")
+    rules = text[text.index("## Principles"):]
+    system = ("You label ad landing pages for a phone app that warns people before they visit them. "
+              "The user message describes one page as the phone observed it. Label it by the guide below, "
+              "using only that description, and answer with the final_verdict tool.\n\n" + rules)
+    return system, hashlib.sha256(rules.encode()).hexdigest()
+
+
+def guide_request(case: dict, system: str, guide_sha256: str, brands: Brands):
+    """Row, Messages API parameters, and grounding for one case labeled by the guide."""
+    prompt = user_message(observation_from_case(case), brands)
+    row = {
+        "case_id": case["case_id"],
+        "model": MODEL,
+        "guide_sha256": guide_sha256,
+        "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+        "labeled_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    params = {
+        "model": MODEL,
+        "max_tokens": GUIDE_MAX_TOKENS,
+        "system": system,
+        "tools": [GUIDE_TOOL],
+        "tool_choice": {"type": "tool", "name": "final_verdict"},
+        "messages": [{"role": "user", "content": prompt}],
+    }
+
+    def ground(verdict: dict) -> dict:
+        """A HIGH rests on a prompt line of the kind the guide names for its type.
+
+        The teacher's quote is widened to the whole line containing it; when that is not
+        such a line, the first one in the prompt is taken, as dataset.sft picks the
+        student's evidence. Without one the answer is MEDIUM.
+        """
+        if verdict.get("risk") != "HIGH":
+            return {**verdict, "evidence": ""}
+        prefixes = EVIDENCE_LINES.get(verdict.get("type"), ())
+        lines = [l.strip() for l in prompt.splitlines()]
+        evidence = str(verdict.get("evidence") or "").strip()
+        line = next((l for l in lines if evidence and evidence in l and l.startswith(prefixes)), None)
+        line = line or next((l for prefix in prefixes for l in lines if l.startswith(prefix)), None)
+        return {**verdict, "evidence": line} if line else {**verdict, "risk": "MEDIUM", "evidence": ""}
+
+    return row, params, ground
 
 
 def read_api_key() -> str:
@@ -117,10 +192,11 @@ def request(case: dict, spec: dict, tool: dict, addendum: str) -> tuple[dict, di
         "tool_choice": {"type": "tool", "name": "final_verdict"},
         "messages": [{"role": "user", "content": user}],
     }
-    return row, params
+    tool_texts = [item["output"] for item in case["input"]["tool_outputs"]]
+    return row, params, lambda verdict: ja._ground(verdict, tool_texts)
 
 
-def finish_row(row: dict, response, case: dict) -> None:
+def finish_row(row: dict, response, ground) -> None:
     """Record usage and the grounded verdict from one response."""
     row["usage"] = {"input_tokens": response.usage.input_tokens, "output_tokens": response.usage.output_tokens}
     verdict = next((dict(block.input) for block in response.content
@@ -128,9 +204,8 @@ def finish_row(row: dict, response, case: dict) -> None:
     if verdict is None:
         row["error"] = f"no final_verdict tool_use block (stop_reason={response.stop_reason})"
     else:
-        tool_texts = [item["output"] for item in case["input"]["tool_outputs"]]
         row["verdict_raw"] = verdict
-        row["verdict"] = ja._ground(verdict, tool_texts)
+        row["verdict"] = ground(verdict)
 
 
 def write_row(out, row: dict) -> None:
@@ -138,11 +213,10 @@ def write_row(out, row: dict) -> None:
     out.flush()
 
 
-def run_batch(client: anthropic.Anthropic, cases: list[dict], spec: dict, tool: dict, addendum: str,
-              out_path: str, poll_s: int = 60) -> int:
+def run_batch(client: anthropic.Anthropic, cases: list[dict], build, out_path: str, poll_s: int = 60) -> int:
     """Label cases through one Message Batch; the batch ID in OUT.batch makes a rerun resume it."""
     state_path = out_path + ".batch"
-    prepared = {c["case_id"]: (c, *request(c, spec, tool, addendum)) for c in cases}
+    prepared = {c["case_id"]: build(c) for c in cases}
     if os.path.exists(state_path):
         with open(state_path, encoding="utf-8") as f:
             batch_id = json.load(f)["batch_id"]
@@ -152,7 +226,7 @@ def run_batch(client: anthropic.Anthropic, cases: list[dict], spec: dict, tool: 
             print("nothing to label")
             return 0
         batch = client.messages.batches.create(
-            requests=[{"custom_id": case_id, "params": params} for case_id, (_, _, params) in prepared.items()])
+            requests=[{"custom_id": case_id, "params": params} for case_id, (_, params, _) in prepared.items()])
         batch_id = batch.id
         with open(state_path, "w", encoding="utf-8") as f:
             json.dump({"batch_id": batch_id, "requests": len(prepared)}, f)
@@ -169,10 +243,10 @@ def run_batch(client: anthropic.Anthropic, cases: list[dict], spec: dict, tool: 
         for result in client.messages.batches.results(batch_id):
             if result.custom_id not in prepared:
                 continue   # already labeled by an earlier, partly written run
-            case, row, _ = prepared[result.custom_id]
+            row, _, ground = prepared[result.custom_id]
             row["batch_id"] = batch_id
             if result.result.type == "succeeded":
-                finish_row(row, result.result.message, case)
+                finish_row(row, result.result.message, ground)
             elif result.result.type == "errored":
                 row["error"] = f"batch {result.result.error.type}"
             else:
@@ -193,6 +267,7 @@ def main() -> int:
     parser.add_argument("--addendum", action="store_true", help="append CRITERIA_ADDENDUM to the criteria")
     parser.add_argument("--only-ids", help="file with one case ID per line to label")
     parser.add_argument("--batch", action="store_true", help="use the Message Batches API (half price, up to 24 h)")
+    parser.add_argument("--guide", action="store_true", help="label by the labeling guide from the student's prompt")
     args = parser.parse_args()
 
     spec = load_verified_spec()
@@ -211,14 +286,20 @@ def main() -> int:
     addendum = CRITERIA_ADDENDUM if args.addendum else ""
 
     todo = [c for c in cases if c["case_id"] not in done]
+    if args.guide:
+        system, guide_sha256 = load_guide()
+        brands = Brands.load()
+        build = lambda c: guide_request(c, system, guide_sha256, brands)
+    else:
+        build = lambda c: request(c, spec, tool, addendum)
     if args.batch:
-        return run_batch(client, todo, spec, tool, addendum, args.out)
+        return run_batch(client, todo, build, args.out)
     with open(args.out, "a", encoding="utf-8") as out:
         for i, case in enumerate(todo, 1):
-            row, params = request(case, spec, tool, addendum)
+            row, params, ground = build(case)
             started = time.monotonic()
             try:
-                finish_row(row, client.messages.create(**params), case)
+                finish_row(row, client.messages.create(**params), ground)
             except anthropic.APIError as e:
                 row["error"] = f"{type(e).__name__}: {str(e)[:200]}"
             write_row(out, row)

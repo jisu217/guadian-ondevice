@@ -28,7 +28,7 @@ URL-feature model was removed; why, and its version history, are in the
 | `runtime/` | files the app loads: brand tables, allowlist, blocklist filter, page inspection script |
 | `reports/` | generated evaluation records and reports: `llm/`, `pipeline/` |
 | `notebooks/` | the generated Colab training notebook |
-| `docs/` | the LLM's dataset document and model card |
+| `docs/` | the LLM's dataset document, labeling guide, and model card |
 
 `paths.py` names every one of these locations, so no module builds paths of its
 own.
