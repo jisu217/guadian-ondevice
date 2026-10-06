@@ -5,10 +5,12 @@ Builds the training and evaluation data for the on-device Qwen judge (#11).
 `dataset.urls` builds URL lists, and `dataset.collect` gathers, for each
 landing-page URL, the evidence a judge needs: rendered page text, HTML signals,
 blocklist membership, official-domain lookups, and domain age, plus the result
-of the app's page inspection script for the model's input. `dataset.teacher` labels each case with a teacher model
-(`claude-haiku-4-5`, the original GUADIAN server's judge) by the
-[Labeling Guide](labeling-guide.md), reading the same prompt the on-device model
-reads. A few checks in code and human review then correct the teacher.
+of the app's page inspection script for the model's input. `dataset.teacher` has a
+teacher model (`claude-sonnet-5-5`) answer the six questions of the
+[Question Guide](question-guide.md) for each case, reading the same prompt the
+on-device model reads, and the verdict table of the
+[Verdict Design](../../../docs/design.md) turns the answers and the page's facts into a
+risk. Human review corrects the risk of reviewed cases.
 Claude is used only here, offline; the app does not call it.
 
 ## Pipeline
@@ -26,28 +28,49 @@ labels, split, and training examples in `final/`; model replies from scoring in
 | `dataset.urls` | Naver search, Tranco, or OpenPhish → `urls_*.jsonl`, skipping sites already listed |
 | `dataset.collect` | URL list → `cases_*.jsonl` |
 | `dataset.bot_check` | recognizes pages a bot defense served to the collector, which are left out |
-| `dataset.teacher` | `cases_*.jsonl` → `labels_*_guide.jsonl` (`--guide`); without it, the original criteria → `labels_*.jsonl` |
-| `dataset.final_labels` | guide labels + the guide's checks + human review + assistant review + overrides → `labels_final.jsonl`, and bot-check pages → `excluded.jsonl` |
+| `dataset.teacher` | `cases_*.jsonl` → `labels_*_questions.jsonl` (`--questions`); `labels_*_guide.jsonl` (`--guide`, run 6); the original criteria → `labels_*.jsonl` (runs 3 to 5) |
+| `dataset.final_labels` | the teacher's answers + facts + the verdict table + human review + assistant review + overrides → `labels_final.jsonl`, and bot-check pages → `excluded.jsonl` |
 | `dataset.split` | `labels_final.jsonl` → `splits.jsonl` (train / validation / test, grouped by site) |
 | `dataset.sft` | labels + cases → `sft_{train,validation,test}.jsonl`, compact chat examples |
 | `contract.prompt` | the model's input: `PageObservation` → prompt, ported to `PromptBuilder.kt` |
-| `contract.host_rules` | host-only brand-imitation grading, used by `dataset.final_labels` and the prompt |
-| `contract.answer` | the app's reply reading, grounding, and personal_info check (`AnswerReader.kt`), for offline scoring and the guide's personal_info rule |
+| `contract.host_rules` | host-only brand-imitation grading, used by the facts and the prompt |
+| `contract.facts` | the verdict table's facts from a URL, a page, and the model's answers, as the app computes them (`UrlSignals.kt`, `PageFacts.kt`, `LlmBrands.claimKind`) |
+| `contract.verdict_table` | the verdict table (`ml/runtime/verdict_table.json`, `VerdictTable.kt`) |
+| `contract.answer` | the app's reply reading (`AnswerReader.kt`): a question model's answers with the claim's evidence check, or a risk model's risk with its grounding and personal_info checks |
 | `vendor/` | unmodified files from the original repositories |
 
 ## Labels
 
-The labels in force follow the [Labeling Guide](labeling-guide.md), adopted on
-2026-10-05 to replace the original criteria and the policy rules added on top
-of them (below). The teacher reads the guide's rules as its instructions and
-labels each case from the student's own prompt (`dataset.teacher --guide`), so
-the label and the model's input describe the same observation. A `HIGH` stands
-only on a prompt line of the kind the guide names for its type (host
-imitation, brand mention, form, APK link, or title); without one it is `MEDIUM`.
-Each label row records the SHA256 of the guide text the teacher read.
+The labels in force, adopted on 2026-10-06, are the teacher's answers to the six
+questions of the [Question Guide](question-guide.md) (docs/design.md, section 5).
+`claude-sonnet-5-5` answers them from the student's own prompt
+(`dataset.teacher --questions --model claude-sonnet-5-5`), and a claim stands only
+on a prompt line naming the organization; each row records the model and the
+SHA256 of the guide text it read. `dataset.final_labels` computes the page's facts
+with `contract.facts`, the same signals the app computes, and the verdict table turns
+the answers and the facts into each case's risk; no other rule runs. The answers are
+the training target and the risk is the label a model is scored against, so a
+reviewed case keeps its reviewed risk. Pages a bot defense served to the collector
+instead of the site (Akamai "Access Denied", Cloudflare challenges, and similar, with
+an error status) are left out of training and evaluation (`dataset.bot_check`): 38
+cases, listed in `final/excluded.jsonl`.
 
-`dataset.final_labels` then applies the guide's rules that need no judgment.
-Off the brand's own site: a name or phone field, or a form with fields other
+On the 133 human-reviewed test cases, the risk the table computes from Claude Sonnet
+5.5's answers matches the human label on 118 (88.7%), with 11 risky pages answered
+`LOW`. From Claude Haiku 4.5's answers it matched on 73.7% in a pilot, and Claude
+Haiku 4.5 labeling the risk directly by the Labeling Guide matched on 83.5%. Two human
+labels were changed to follow decisions settled in the design (a page that did not
+open on an official domain is unverifiable; a sign-in box beside an ordinary page is
+not personal information).
+
+### Risk labels by the guide (run 6)
+
+Run 6's data, kept as the fallback, labeled the risk directly: the teacher
+(`claude-haiku-4-5`) read the [Labeling Guide](labeling-guide.md) and labeled each
+case from the student's prompt (`dataset.teacher --guide`), and a `HIGH` stood only
+on a prompt line of the kind the guide names for its type.
+`dataset.final_labels --teacher guide` reproduces these labels and applies the guide's
+rules that need no judgment. Off the brand's own site: a name or phone field, or a form with fields other
 than search or email whose text names a contact field or asks consent to collect
 personal information, makes a page `MEDIUM personal_info`, and a
 `personal_info` label without that ground is `LOW` (the same check the app
@@ -56,12 +79,9 @@ applies to the model's answer); a resident registration or card number field is
 returned an error status is `MEDIUM unverifiable`. On the brand's own site
 every label is `LOW`, except `MEDIUM apk` for an `.apk` link. `HIGH` of another
 type than impersonation, credentials, or apk is `MEDIUM`, and the host rule
-below can raise a label. Pages a bot defense served to the collector instead of
-the site (Akamai "Access Denied", Cloudflare challenges, and similar, with an
-error status) are left out of training and evaluation (`dataset.bot_check`):
-38 cases, listed in `final/excluded.jsonl`.
+below can raise a label.
 
-On the 133 human-reviewed test cases the guide's teacher agrees with the human
+On the 133 human-reviewed test cases the guide's teacher agreed with the human
 label on 111 (83.5%), against 51.1% for the original criteria. The 30 it
 disagreed with were reviewed case by case against the guide
 (`reviews/reconcile_guide_test_20261005.csv`), and the rules settled in that
@@ -187,8 +207,8 @@ its SHA256 against the value published in the source repository.
 python -m playwright install chromium    # once
 python -m guadian_ml.llm.dataset.urls naver -o ml/data/llm/sources/urls_NAME.jsonl   # or tranco CSV, openphish
 python -m guadian_ml.llm.dataset.collect ml/data/llm/sources/urls_NAME.jsonl -o ml/data/llm/sources/cases_NAME.jsonl
-python -m guadian_ml.llm.dataset.teacher ml/data/llm/sources/cases_NAME.jsonl -o ml/data/llm/sources/labels_NAME_guide.jsonl --guide --batch
-python -m guadian_ml.llm.dataset.final_labels   # --teacher original: the criteria and policy runs 3 to 5 used
+python -m guadian_ml.llm.dataset.teacher ml/data/llm/sources/cases_NAME.jsonl -o ml/data/llm/sources/labels_NAME_questions.jsonl --questions --model claude-sonnet-5-5 --batch
+python -m guadian_ml.llm.dataset.final_labels   # --teacher guide: run 6's labels; --teacher original: runs 3 to 5
 python -m guadian_ml.llm.dataset.split --keep   # new sites only; earlier cases keep their split
 python -m guadian_ml.llm.dataset.sft   # --page-chars sets how much page text the model reads
 ```

@@ -55,8 +55,9 @@ it. How the data was collected, labeled, and split is in
 [LLM Dataset](docs/llm/dataset.md); intended use, results, and limits are in
 the [LLM Model Card](docs/llm/model-card.md).
 
-The prompt format and the reply reading are a contract between training and
-the app, and so is the verdict table of the [Verdict Design](../docs/design.md).
+The prompt format, the reply reading, and the page facts are a contract between
+training and the app, and so is the verdict table of the
+[Verdict Design](../docs/design.md).
 `guadian_ml/llm/contract/` is the reference, `core/llm` and `core/judge` port it
 to Kotlin, and `python -m guadian_ml.llm.contract.fixtures` writes the cases in
 `fixtures/llm/` that the Kotlin parity tests replay.

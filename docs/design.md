@@ -208,9 +208,9 @@ file (`python -m guadian_ml.llm.contract.verdict_table` prints it).
 
 ## 8. Data, Training, and Evaluation
 
-The teacher (`claude-haiku-4-5`, through the Message Batches API) answers the six
-questions for every case from the student's prompt, and the labeling guide is
-rewritten as instructions for answering them; the risk rules move to the table.
+The teacher (`claude-sonnet-5-5`, through the Message Batches API) answers the six
+questions for every case from the student's prompt, by the
+[Question Guide](../ml/docs/llm/question-guide.md); the risk rules move to the table.
 Each case's risk is computed from its answers and signals by the table. Test
 answers are reviewed by a person question by question, without seeing the
 teacher's answer or an earlier suggestion, which also measures how far the
@@ -244,10 +244,14 @@ the fallback if this design is not adopted.
    `PageInspector`, `PageFacts`; until the question model exists, the LLM stage
    passes on the current model's risk).
 4. Rewrite the labeling guide as question instructions, label the questions with
-   the teacher, and review the test answers blind.
-5. Change the prompt's instructions, `AnswerReader`, `LlmJudge`, the dataset
-   builders, the notebook, and the evaluation scripts to the answer format;
-   train and score once.
+   the teacher, and review the test answers blind (done: `ml/docs/llm/question-guide.md`,
+   `contract/facts.py`, the teacher's `--questions` mode; the blind review is left
+   until the first question model is scored).
+5. Change `AnswerReader`, `LlmJudge`, the dataset builders, the notebook, and the
+   evaluation scripts to the answer format; train and score once (code done: the app
+   reads both reply formats, so run 3 keeps working; the prompt and its system line
+   are unchanged, so either kind of model takes the same input; run 7 is ready to
+   train).
 6. Update the documents that describe the pipeline and the labels.
 
 Page inspection, the brand and blocklist data, URL parsing, the llama.cpp
@@ -303,3 +307,25 @@ Settled when step 3 started (same day):
 Still to check: Shield now runs the page stage, but its per-click budget is
 3 seconds, which can end before the page has loaded. The budget and whether
 Shield runs the model are decided together after timing on a phone.
+
+Settled during step 4 (2026-10-06):
+
+- **Teacher model.** On the 133 human-reviewed test cases, the risks the table
+  computes from Claude Sonnet 5.5's answers match the human label on 88.0%
+  (11 risky pages answered `LOW`), against 73.7% (5) for Claude Haiku 4.5's
+  answers; Claude Sonnet 5.5 labels the questions. It refuses forced tool use, so
+  its answers come back as structured output.
+- **Claims of brands outside the table without a sign-in screen or a sensitive
+  field** stay unknown. Raising them to `MEDIUM` or `HIGH` would have caught 3 more
+  risky pages in the pilot but warned on 4 ordinary ones (a public wiki, a county
+  government, a law firm's own name), because the teacher still reads some sites'
+  own names as claims.
+
+Known gaps, left for after the first model is trained:
+
+- **Fake software downloads.** Pages that push a desktop installer ("PDF Viewer,
+  Windows computer required") have no row: only `.apk` links count as off-store
+  installs.
+- **Near-empty pages.** A page that opens but shows almost nothing (a user-agent
+  echo, a PHP error) is not unverifiable, since only a page that did not open is.
+

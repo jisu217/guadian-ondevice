@@ -128,11 +128,14 @@ Only the verdict table ([Verdict Design](docs/design.md)) sets a risk; the
 stages before it collect facts. Page inspection uses a hidden WebView, and the
 app and the training-data collector read pages with the same script, which
 names form fields (email, name, phone, search) and leaves out fields the user
-cannot see. Until the question model of the design is trained, the LLM still
-grades the risk itself: the app checks the evidence returned with a `HIGH`
-answer and lowers the risk to `MEDIUM` when the required grounding is missing,
-and lowers a `personal_info` answer to `LOW` unless the page shows a personal
-field or a form worded to collect contact details.
+cannot see. The app reads both kinds of model reply. A question model's answers
+go to the verdict table, and a claim counts only when its evidence is one of the
+prompt's lines. The shipped run 3 model still grades the risk itself, so its reply
+is read as before: the app checks the evidence returned with a `HIGH` answer and
+lowers the risk to `MEDIUM` when the required grounding is missing, and lowers a
+`personal_info` answer to `LOW` unless the page shows a personal field or a form
+worded to collect contact details. The first question model, run 7, is labeled
+and ready to train.
 
 | Area | Verified so far | Still to do |
 | :-- | :-- | :-- |

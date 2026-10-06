@@ -3,8 +3,9 @@
 This document describes the runtime structure of the Android app. For project
 motivation, evaluation, and limitations, see
 [Technical Report](technical-report.md); the reasons for this structure and the
-verdict table are in [Verdict Design](design.md). The on-device LLM still grades
-the risk itself until the question model of the design replaces it.
+verdict table are in [Verdict Design](design.md). The LLM stage reads both a
+question model's answers and the reply of the shipped run 3 model, which grades the
+risk itself.
 
 ## Table of Contents
 
@@ -55,7 +56,7 @@ Paths are relative to `<module>/src/main/kotlin/com/guadian/ondevice/`.
 | `UrlSignals` | `core/llm` | `llm/UrlSignals.kt` | URL facts: the blocklist (`BlocklistRule`), brand imitation in the host (`HostRules`), a URL that is itself an `.apk` file |
 | `PageInspector` | `core/pagecontent` | `pagecontent/PageInspector.kt` | loads the page in a hidden WebView and runs `page_inspection.js` |
 | `PageFacts` | `core/llm` | `llm/PageFacts.kt` | page facts from what the page showed: the brand's own site after redirects, opened or not, `.apk` links, registration or card number fields, personal fields |
-| `LlmJudge` | `core/llm` | `llm/LlmJudge.kt` | builds the prompt (`PromptBuilder`), runs the model (`LlmRuntime`), and reads the reply (`AnswerReader`); its verdict is used as it is until the question model replaces it |
+| `LlmJudge` | `core/llm` | `llm/LlmJudge.kt` | builds the prompt (`PromptBuilder`), runs the model (`LlmRuntime`), and reads the reply (`AnswerReader`): a question model's answers go to the table, with the claimed brand matched to the brand table (`LlmBrands.claimKind`); a risk model's verdict is used as it is |
 
 ### 2.2 Control Flow
 
@@ -110,9 +111,11 @@ Korean strings in `strings.xml`.
 A table decision is always `CERTAIN`. A verdict is `UNCERTAIN` when no decision
 was made: the page stage could not read the page (an unsupported scheme or a
 script failure), a pipeline without the LLM stage stopped before it
-(`NOT_FINAL`), or the model's reply was unreadable or no model was loaded. Until
-the question model replaces it, the LLM stage passes on `AnswerReader`'s reading
-of the risk-grading model: it lowers `HIGH` to `MEDIUM` unless its type is
+(`NOT_FINAL`), or the model's reply was unreadable or no model was loaded. A
+question model's reply (`AnswerReader.readAnswers`) must give every yes/no answer as
+a JSON boolean, and a claim counts only when its evidence is one of the prompt's
+lines, verbatim. A reply that grades the risk itself (run 3) is passed on as
+`AnswerReader.read` reads it: it lowers `HIGH` to `MEDIUM` unless its type is
 impersonation, credentials, or apk and its evidence is one of the prompt's lines
 verbatim, and lowers a `MEDIUM` personal_info to `LOW` unless the prompt shows a
 personal field, or a form with fields other than search or email together with

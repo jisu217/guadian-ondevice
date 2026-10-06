@@ -66,9 +66,10 @@ URL
 Only the verdict table (`ml/runtime/verdict_table.json`) sets a risk; the
 stages before it collect facts. After the cache and URL stage and after the page
 stage the pipeline stops when the table says the result is final, so the page is
-loaded and the model run only when they could change it. Until the question
-model of the [Verdict Design](design.md) is trained, the LLM stage passes on the
-risk-grading model's own verdict. Control flow and the `Verdict` contract are
+loaded and the model run only when they could change it. The LLM stage reads a
+question model's answers into the table, and passes on the verdict of a model that
+grades the risk itself, as the shipped run 3 does; the
+[Verdict Design](design.md) explains the change. Control flow and the `Verdict` contract are
 described in [Architecture](architecture.md).
 
 ## 5. On-device LLM
@@ -267,9 +268,9 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Settle the [Verdict Design](design.md): one table decides the risk, the
-   model only answers questions, and the URL-word stages go. Then train once
-   and ship the result or run 4 if one clears the bar set before run 5:
+1. Train run 7, the first question model of the [Verdict Design](design.md),
+   on Claude Sonnet 5.5's answers (the table and the app are in place), and ship
+   it or run 4 if one clears the bar set before run 5:
    human-reviewed accuracy above run 3's as the app reads it (72.2% on the
    relabeled split), and at most 25 missed risky pages. Run 6's data is kept as
    the fallback.
