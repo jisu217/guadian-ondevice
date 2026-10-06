@@ -91,6 +91,47 @@ object AnswerReader {
         (kinds - setOf("search", "email")).isNotEmpty() &&
             (CONTACT_WORDS.any { it in body } || ("개인정보" in body && ("수집" in body || "동의" in body)))
 
+    /** The question model's answers (docs/design.md, section 5). */
+    data class Answers(
+        /** The organization the page claims to be; null when it claims none or the claim has no evidence. */
+        val claims: String?,
+        /** The prompt line that shows the claim, or empty. */
+        val evidence: String,
+        val signIn: Boolean,
+        val payment: Boolean,
+        val investment: Boolean,
+        val rewardPressure: Boolean,
+        val contentFarm: Boolean,
+    )
+
+    private val QUESTION_KEYS = listOf("sign_in", "payment", "investment", "reward_pressure", "content_farm")
+
+    /** The reply grades the risk itself (run 3 and earlier) rather than answering the questions. */
+    fun isGraded(reply: String?): Boolean = reply?.let(::firstJsonObject)?.has("risk") == true
+
+    /**
+     * The question model's answers (answer.read_answers), or null when the reply is unreadable:
+     * every yes/no key must be a JSON boolean and `claims` a string or null. A claim whose
+     * evidence is not one of the prompt's lines, verbatim, is dropped.
+     */
+    fun readAnswers(reply: String?, prompt: String): Answers? {
+        val answer = reply?.let(::firstJsonObject) ?: return null
+        if (QUESTION_KEYS.any { answer.opt(it) !is Boolean }) return null
+        val rawClaims = if (answer.isNull("claims")) null else answer.opt("claims") as? String ?: return null
+        val claims = rawClaims?.trim()?.ifEmpty { null }
+        val evidence = answer.optString("evidence").trim()
+        val grounded = claims != null && evidence.isNotEmpty() && prompt.lineSequence().any { it.trim() == evidence }
+        return Answers(
+            claims = if (grounded) claims else null,
+            evidence = if (grounded) evidence else "",
+            signIn = answer.getBoolean("sign_in"),
+            payment = answer.getBoolean("payment"),
+            investment = answer.getBoolean("investment"),
+            rewardPressure = answer.getBoolean("reward_pressure"),
+            contentFarm = answer.getBoolean("content_farm"),
+        )
+    }
+
     /** The first JSON object in [text], read with a real parser so braces inside strings are handled. */
     private fun firstJsonObject(text: String): JSONObject? {
         var start = text.indexOf('{')

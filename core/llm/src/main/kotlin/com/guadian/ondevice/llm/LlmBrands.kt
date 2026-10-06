@@ -1,6 +1,8 @@
 package com.guadian.ondevice.llm
 
+import com.guadian.ondevice.verdict.VerdictTable
 import org.json.JSONArray
+import java.util.Locale
 import org.json.JSONObject
 
 /**
@@ -21,6 +23,8 @@ class LlmBrands(json: JSONObject) {
     val hostTokens: List<Pair<String, List<String>>> = json.getJSONArray("host_tokens").arrays()
         .map { it.getString(0) to it.getJSONArray(1).strings() }
     val accountWords: List<String> = json.getJSONArray("account_words").strings()
+    /** Hosts a brand owns but anyone can publish on; a page there is not the brand speaking. */
+    val userContentHosts: List<String> = json.getJSONArray("user_content_hosts").strings()
 
     /** The brand that owns [host]: the Korean table first, then the global brands (`Brands.official_brand_of`). */
     fun officialBrandOf(host: String): String? {
@@ -34,16 +38,29 @@ class LlmBrands(json: JSONObject) {
      * anyone publishes, where a page is not the brand speaking (docs/design.md, section 4).
      */
     fun officialSiteOf(host: String): String? =
-        officialBrandOf(host)?.takeUnless { USER_CONTENT_HOSTS.any { covers(host, it) } }
+        officialBrandOf(host)?.takeUnless { userContentHosts.any { covers(host, it) } }
+
+    /**
+     * The verdict table's claim for the organization the model says the page claims to be
+     * (facts.claim_kind): a brand whose name appears in [name], Korean table first, that
+     * does or does not own [landingHost], or a brand the table does not list.
+     */
+    fun claimKind(name: String?, landingHost: String): VerdictTable.Claim {
+        if (name.isNullOrEmpty()) return VerdictTable.Claim.NONE
+        val squashed = PyText.squash(name)
+        val host = landingHost.removePrefix("www.")
+        fun owned(domains: List<String>) = if (domains.any { covers(host, it) }) VerdictTable.Claim.NONE else VerdictTable.Claim.LISTED_OTHER
+        korean.firstOrNull { brand ->
+            brand.aliases.any { val a = PyText.squash(it); PyText.length(a) >= MIN_ALIAS_CHARS && a in squashed }
+        }?.let { return owned(it.domains) }
+        val words = Regex("[a-z0-9]+").findAll(name.lowercase(Locale.ROOT)).map { it.value }.toSet()
+        val token = textMentions.firstOrNull { (n, _) -> PyText.squash(n) in words || PyText.squash(n) == squashed }?.second
+            ?: globalBrands.keys.firstOrNull { it in words || it == squashed }
+        return token?.let { owned(globalBrands.getValue(it)) } ?: VerdictTable.Claim.UNLISTED
+    }
 
     companion object {
-        /** Kept identical to `USER_CONTENT_HOSTS` in ml/guadian_ml/llm/dataset/final_labels.py. */
-        val USER_CONTENT_HOSTS = listOf(
-            "blog.naver.com", "cafe.naver.com", "post.naver.com", "pf.kakao.com", "open.kakao.com",
-            "story.kakao.com", "sites.google.com", "docs.google.com", "drive.google.com",
-            "facebook.com", "instagram.com", "youtube.com",
-        )
-
+        private const val MIN_ALIAS_CHARS = 3
         val default: LlmBrands by lazy {
             val stream = LlmBrands::class.java.getResourceAsStream("/llm_brands.json")
                 ?: error("llm_brands.json resource is missing")

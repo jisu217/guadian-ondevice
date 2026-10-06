@@ -3,7 +3,8 @@
 Port of core/llm AnswerReader.kt, so offline scores (llm.evaluation.gguf) count
 what the phone would actually show. fixtures/llm/answer_cases.jsonl, written by
 guadian_ml.llm.contract.fixtures, holds replies with their expected readings
-for the Kotlin parity test.
+for the Kotlin parity test; question_answer_cases.jsonl does the same for the question
+model's answers (read_answers).
 
 Rules:
     unreadable reply (no JSON object, risk or type outside the schema) -> uncertain MEDIUM
@@ -66,9 +67,15 @@ def personal_info_unsupported(prompt: str) -> bool:
     asks = {a.strip() for a in forms.split(",") if a.strip()}
     if asks & PERSONAL_ASKS:
         return False
-    body = line("본문")
+    return not form_worded_for_contact(asks, line("본문"))
+
+
+def form_worded_for_contact(kinds: set[str], body: str) -> bool:
+    """A shown form with fields other than search or email whose page text names a contact
+    field or asks consent to collect personal information (labeling guide, rule 5).
+    `kinds` are the form kinds as the prompt's 입력 칸 line lists them."""
     worded = any(word in body for word in CONTACT_WORDS) or ("개인정보" in body and ("수집" in body or "동의" in body))
-    return not (asks - {"search", "email"} and worded)
+    return bool(kinds - {"search", "email"}) and worded
 
 
 def read(reply: str | None, prompt: str) -> dict:
@@ -87,3 +94,33 @@ def read(reply: str | None, prompt: str) -> dict:
     if risk == "MEDIUM" and type_ == "personal_info" and personal_info_unsupported(prompt):
         return {"risk": "LOW", "certain": True, "reason": "LLM_UNSUPPORTED_PERSONAL_INFO"}
     return {"risk": risk, "certain": True, "reason": "LLM_VERDICT"}
+
+
+# The question model's yes/no answers (docs/design.md, section 5); `claims` and `evidence` come with them.
+QUESTION_KEYS = ("sign_in", "payment", "investment", "reward_pressure", "content_farm")
+
+
+def is_graded(reply: str | None) -> bool:
+    """The reply grades the risk itself (run 3 and earlier) rather than answering the questions."""
+    answer = first_json_object(reply) if reply else None
+    return answer is not None and "risk" in answer
+
+
+def read_answers(reply: str | None, prompt: str) -> dict | None:
+    """The question model's answers as the app reads them, or None when the reply is unreadable.
+
+    Every yes/no key must be a JSON boolean and `claims` a string or null. A claim whose
+    evidence is not one of the prompt's lines, verbatim, is dropped.
+    """
+    answer = first_json_object(reply) if reply else None
+    if answer is None or any(not isinstance(answer.get(key), bool) for key in QUESTION_KEYS):
+        return None
+    claims = answer.get("claims")
+    if claims is not None and not isinstance(claims, str):
+        return None
+    claims = (claims or "").strip() or None
+    evidence = _as_string(answer.get("evidence")).strip()
+    grounded = claims is not None and bool(evidence) and any(line.strip() == evidence for line in prompt.splitlines())
+    return {"claims": claims if grounded else None, "evidence": evidence if grounded else "",
+            **{key: answer[key] for key in QUESTION_KEYS}}
+

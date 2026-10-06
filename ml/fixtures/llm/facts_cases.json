@@ -1,0 +1,932 @@
+{
+ "urls": [
+  {
+   "url": "https://roblox.com.mu/login",
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "certain",
+    "opened": null,
+    "official": null,
+    "apk_link": null,
+    "sensitive_field": null,
+    "personal_field": null,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "url": "https://xfinityuserverification.weebly.com/",
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "suspicious",
+    "opened": null,
+    "official": null,
+    "apk_link": null,
+    "sensitive_field": null,
+    "personal_field": null,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "url": "https://files.example.net/app.apk",
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": true,
+    "sensitive_field": null,
+    "personal_field": null,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "url": "https://www.naver.com/download/app.apk",
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": true,
+    "apk_link": true,
+    "sensitive_field": null,
+    "personal_field": null,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "url": "https://www.example.org/read",
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": null,
+    "official": null,
+    "apk_link": null,
+    "sensitive_field": null,
+    "personal_field": null,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "url": "example.com/free",
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": null,
+    "official": null,
+    "apk_link": null,
+    "sensitive_field": null,
+    "personal_field": null,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  }
+ ],
+ "pages": [
+  {
+   "observation": {
+    "url": "https://unreachable.example/path",
+    "loaded": false,
+    "final_url": null,
+    "status": null,
+    "redirects": 0,
+    "title": "",
+    "text": "",
+    "text_chars": 0,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": false,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://roblox.com.mu/games/1",
+    "loaded": false,
+    "final_url": null,
+    "status": null,
+    "redirects": 0,
+    "title": "",
+    "text": "",
+    "text_chars": 0,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "certain",
+    "opened": false,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://shop.example.com/sale",
+    "loaded": true,
+    "final_url": "https://shop.example.com/sale",
+    "status": 200,
+    "redirects": 0,
+    "title": "여름 세일",
+    "text": "안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내",
+    "text_chars": 4000,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://ad.example.net/click?id=1",
+    "loaded": true,
+    "final_url": "https://landing.example.org/",
+    "status": 200,
+    "redirects": 2,
+    "title": "Landing",
+    "text": "상품 소개 페이지입니다.",
+    "text_chars": 900,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://m.kbstar.com/quics",
+    "loaded": true,
+    "final_url": "https://m.kbstar.com/quics",
+    "status": 200,
+    "redirects": 0,
+    "title": "",
+    "text": "",
+    "text_chars": 12,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": true,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://gone.example/",
+    "loaded": true,
+    "final_url": "https://gone.example/",
+    "status": 404,
+    "redirects": 0,
+    "title": "Not Found",
+    "text": "Not Found",
+    "text_chars": 9,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": false,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://kb-star-bank.top/login",
+    "loaded": true,
+    "final_url": "https://kb-star-bank.top/login",
+    "status": 200,
+    "redirects": 0,
+    "title": "KB국민은행 본인 인증",
+    "text": "KB 국민은행 고객님 본인 인증이 필요합니다.",
+    "text_chars": 300,
+    "forms": [
+     {
+      "asks": [
+       "password",
+       "rrn"
+      ],
+      "external_action": true
+     }
+    ],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": true,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://www.roblox.ly/users/1/profile",
+    "loaded": true,
+    "final_url": "https://www.roblox.ly/users/1/profile",
+    "status": 200,
+    "redirects": 0,
+    "title": "Player - Roblox",
+    "text": "Player - Roblox Log in to Roblox",
+    "text_chars": 250,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "certain",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://form.example.com/",
+    "loaded": true,
+    "final_url": "https://form.example.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "Newsletter",
+    "text": "이메일을 입력하세요",
+    "text_chars": 400,
+    "forms": [
+     {
+      "asks": [],
+      "external_action": false
+     },
+     {
+      "asks": [
+       "phone"
+      ],
+      "external_action": false
+     }
+    ],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": true,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://lead.example.com/",
+    "loaded": true,
+    "final_url": "https://lead.example.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "자료 받기",
+    "text": "자료를 받으려면 입력하세요",
+    "text_chars": 400,
+    "forms": [
+     {
+      "asks": [
+       "search"
+      ],
+      "external_action": false
+     },
+     {
+      "asks": [
+       "email",
+       "name",
+       "phone"
+      ],
+      "external_action": false
+     }
+    ],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": true,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://apk.example.com/",
+    "loaded": true,
+    "final_url": "https://apk.example.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "Download",
+    "text": "앱 설치",
+    "text_chars": 300,
+    "forms": [],
+    "apk_links": [
+     "https://apk.example.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/app.apk"
+    ]
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": true,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://알뜰상조.com/?utm=1",
+    "loaded": true,
+    "final_url": "https://xn--ig2bl5pwvd7zd.com/?utm=1",
+    "status": 200,
+    "redirects": 0,
+    "title": "상조",
+    "text": "상조 서비스",
+    "text_chars": 500,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://long.example.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "loaded": true,
+    "final_url": "https://long.example.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+    "text": "내용",
+    "text_chars": 500,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "http://www.xfinityuserverification.weebly.com/",
+    "loaded": true,
+    "final_url": "http://www.xfinityuserverification.weebly.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "Xfinity Sign In",
+    "text": "Xfinity account verification",
+    "text_chars": 240,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "suspicious",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://m.naver.com/",
+    "loaded": true,
+    "final_url": "https://m.naver.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "NAVER",
+    "text": "네이버 메인 네이버페이",
+    "text_chars": 5000,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": true,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://many.example/",
+    "loaded": true,
+    "final_url": "https://many.example/",
+    "status": 200,
+    "redirects": 0,
+    "title": "제휴",
+    "text": "네이버 카카오 구글 애플 삼성전자 쿠팡 roblox paypal",
+    "text_chars": 600,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://tiny.cc/abc",
+    "loaded": true,
+    "final_url": "https://www.roblox.com.bi/users/2",
+    "status": 200,
+    "redirects": 1,
+    "title": "Roblox",
+    "text": "Roblox",
+    "text_chars": 180,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "certain",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://short.example/f",
+    "loaded": true,
+    "final_url": "https://m.facebook.com/login",
+    "status": 200,
+    "redirects": 3,
+    "title": "Facebook",
+    "text": "Facebook 로그인",
+    "text_chars": 40,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://phish.example.com/h/google.html",
+    "loaded": true,
+    "final_url": "blob:https://phish.example.com/6fb6-1f8c#",
+    "status": 200,
+    "redirects": 1,
+    "title": "Sign in - Google Accounts",
+    "text": "Sign in - Google Accounts",
+    "text_chars": 25,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://token.xyz/",
+    "loaded": true,
+    "final_url": "https://token.xyz/",
+    "status": 200,
+    "redirects": 0,
+    "title": "TokenPocket wallet",
+    "text": "Download TokenPocket and imToken",
+    "text_chars": 300,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://ad.example/c",
+    "loaded": true,
+    "final_url": "https://www.naver.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "",
+    "text": "",
+    "text_chars": 0,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": true,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://ad.example/c",
+    "loaded": true,
+    "final_url": "https://m.blog.naver.com/a/1",
+    "status": 200,
+    "redirects": 0,
+    "title": "",
+    "text": "",
+    "text_chars": 0,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://ad.example/c",
+    "loaded": true,
+    "final_url": "https://shop.example.com/",
+    "status": 404,
+    "redirects": 0,
+    "title": "",
+    "text": "",
+    "text_chars": 0,
+    "forms": [],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": false,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://ad.example/c",
+    "loaded": true,
+    "final_url": "https://shop.example.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "",
+    "text": "개인정보 수집 및 이용에 동의합니다",
+    "text_chars": 17,
+    "forms": [
+     {
+      "asks": [],
+      "external_action": false
+     }
+    ],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": true,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  },
+  {
+   "observation": {
+    "url": "https://ad.example/c",
+    "loaded": true,
+    "final_url": "https://shop.example.com/",
+    "status": 200,
+    "redirects": 0,
+    "title": "",
+    "text": "상담신청",
+    "text_chars": 4,
+    "forms": [
+     {
+      "asks": [],
+      "external_action": false
+     }
+    ],
+    "apk_links": []
+   },
+   "facts": {
+    "blocklisted": false,
+    "host_imitation": "none",
+    "opened": true,
+    "official": false,
+    "apk_link": false,
+    "sensitive_field": false,
+    "personal_field": false,
+    "claim": null,
+    "sign_in": null,
+    "payment": null,
+    "investment": null,
+    "reward_pressure": null,
+    "content_farm": null
+   }
+  }
+ ],
+ "claims": [
+  {
+   "name": null,
+   "host": "x.example",
+   "kind": "none"
+  },
+  {
+   "name": "SHOPEE INDONESIA",
+   "host": "x.blogspot.com",
+   "kind": "listed_other"
+  },
+  {
+   "name": "Meta for Business",
+   "host": "x.pages.dev",
+   "kind": "unlisted"
+  },
+  {
+   "name": "국민은행",
+   "host": "kb-bank.top",
+   "kind": "listed_other"
+  },
+  {
+   "name": "KB국민은행 본인인증",
+   "host": "obank.kbstar.com",
+   "kind": "none"
+  },
+  {
+   "name": "Orange",
+   "host": "f.framer.app",
+   "kind": "unlisted"
+  },
+  {
+   "name": "Facebook",
+   "host": "www.facebook.com",
+   "kind": "none"
+  },
+  {
+   "name": "webmail",
+   "host": "w.io",
+   "kind": "unlisted"
+  },
+  {
+   "name": "메리츠증권",
+   "host": "meritzevent.com",
+   "kind": "unlisted"
+  }
+ ]
+}

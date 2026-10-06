@@ -9,6 +9,9 @@ the committed files hold no collected page text.
                               page_inspection.js results -> observation (PageSignalsParityTest)
     answer_cases.jsonl        reply -> reading and grounding  (AnswerReaderParityTest)
     verdict_cases.json        facts -> verdict table decision (core/judge VerdictTableParityTest)
+    facts_cases.json          URL or observation -> verdict table facts, claimed name -> claim
+                              (core/llm FactsParityTest)
+    question_answer_cases.jsonl  question-model reply -> answers (AnswerReaderParityTest)
     chat_cases.json           prompt -> model input via the real tokenizer (ChatFormatParityTest;
                               rewritten only when data/llm/cache/tokenizer is present)
 
@@ -24,7 +27,7 @@ import random
 import sys
 
 from guadian_ml import paths
-from guadian_ml.llm.contract import answer, prompt, verdict_table
+from guadian_ml.llm.contract import answer, facts, prompt, verdict_table
 
 
 def observations() -> list[prompt.PageObservation]:
@@ -218,6 +221,60 @@ def answer_cases() -> list[dict]:
     return [{"reply": r, "prompt": p, **answer.read(r, p)} for r, p in cases]
 
 
+def question_answer_cases() -> list[dict]:
+    """Question-model replies with the answers the app reads from them."""
+    prompt_text = "\n".join(["주소: https://kb-star-bank.top/login", "페이지: 상태 200, 본문 300자",
+                              "제목: KB국민은행 본인인증", "입력 칸: password"])
+    quiet = {"sign_in": False, "payment": False, "investment": False, "reward_pressure": False, "content_farm": False}
+    reply = lambda **fields: json.dumps({"claims": None, "evidence": "", **quiet, **fields}, ensure_ascii=False)
+    replies = [
+        reply(),
+        reply(claims="KB국민은행", evidence="제목: KB국민은행 본인인증", sign_in=True),
+        reply(claims="KB국민은행", evidence="  제목: KB국민은행 본인인증  "),
+        reply(claims="KB국민은행", evidence="제목: 다른 제목"),
+        reply(claims="KB국민은행", evidence=""),
+        reply(claims="   ", evidence="제목: KB국민은행 본인인증"),
+        reply(payment=True, content_farm=True),
+        '{"claims": null, "evidence": "", "sign_in": "true", "payment": false, "investment": false, '
+        '"reward_pressure": false, "content_farm": false}',
+        '{"claims": 3, "evidence": "", "sign_in": false, "payment": false, "investment": false, '
+        '"reward_pressure": false, "content_farm": false}',
+        '{"claims": null, "sign_in": false, "payment": false}',
+        '```json\n' + reply(investment=True) + '\n``` trailing',
+        '{"risk": "HIGH", "type": "impersonation", "evidence": "제목: KB국민은행 본인인증"}',
+        "",
+        "no json",
+    ]
+    return [{"reply": r, "prompt": prompt_text, "graded": answer.is_graded(r),
+             "answers": answer.read_answers(r, prompt_text)} for r in replies]
+
+
+def facts_cases(brands: prompt.Brands) -> dict:
+    """URLs and observations with the verdict table facts computed from them."""
+    urls = ["https://roblox.com.mu/login", "https://xfinityuserverification.weebly.com/",
+            "https://files.example.net/app.apk", "https://www.naver.com/download/app.apk",
+            "https://www.example.org/read", "example.com/free"]
+    contact = prompt.FormObservation(asks=(), external_action=False)
+    pages = observations() + [
+        prompt.PageObservation(url="https://ad.example/c", loaded=True, final_url="https://www.naver.com/", status=200),
+        prompt.PageObservation(url="https://ad.example/c", loaded=True, final_url="https://m.blog.naver.com/a/1", status=200),
+        prompt.PageObservation(url="https://ad.example/c", loaded=True, final_url="https://shop.example.com/", status=404),
+        prompt.PageObservation(url="https://ad.example/c", loaded=True, final_url="https://shop.example.com/", status=200,
+                               text="개인정보 수집 및 이용에 동의합니다", text_chars=17, forms=(contact,)),
+        prompt.PageObservation(url="https://ad.example/c", loaded=True, final_url="https://shop.example.com/", status=200,
+                               text="상담신청", text_chars=4, forms=(contact,)),
+    ]
+    return {
+        "urls": [{"url": u, "facts": facts.url_facts(u, brands).to_json()} for u in urls],
+        "pages": [{"observation": obs.to_json(),
+                   "facts": facts.page_facts(obs, facts.url_facts(obs.url, brands), brands).to_json()} for obs in pages],
+        "claims": [{"name": name, "host": host, "kind": facts.claim_kind(name, host, brands)} for name, host in [
+            (None, "x.example"), ("SHOPEE INDONESIA", "x.blogspot.com"), ("Meta for Business", "x.pages.dev"),
+            ("국민은행", "kb-bank.top"), ("KB국민은행 본인인증", "obank.kbstar.com"), ("Orange", "f.framer.app"),
+            ("Facebook", "www.facebook.com"), ("webmail", "w.io"), ("메리츠증권", "meritzevent.com")]],
+    }
+
+
 def verdict_cases() -> list[dict]:
     """Facts with the table's decisions: the cases the design names, then a fixed random sample."""
     vt = verdict_table
@@ -293,6 +350,8 @@ def main() -> int:
     _write_json("page_signal_cases.json", page_signal_cases())
     _write_jsonl("answer_cases.jsonl", answer_cases())
     _write_json("verdict_cases.json", verdict_cases())
+    _write_json("facts_cases.json", facts_cases(brands))
+    _write_jsonl("question_answer_cases.jsonl", question_answer_cases())
     chat = chat_cases(brands)
     if chat is not None:
         _write_json("chat_cases.json", chat)
