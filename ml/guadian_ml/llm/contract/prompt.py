@@ -181,6 +181,7 @@ class Brands:
         self.korean = data["korean"]
         self.text_mentions = [tuple(pair) for pair in data["text_mentions"]]
         self.global_brands = dict((token, domains) for token, domains in data["global_brands"])
+        self.user_content_hosts = tuple(data["user_content_hosts"])
 
     @classmethod
     def load(cls, path: str = BRANDS_PATH) -> "Brands":
@@ -193,6 +194,12 @@ class Brands:
         korean = next((b["name"] for b in self.korean if any(_covers(host, d) for d in b["domains"])), None)
         return korean or next((token for token, domains in self.global_brands.items()
                                if any(_covers(host, d) for d in domains)), None)
+
+    def official_site_of(self, host: str) -> str | None:
+        """The brand whose own site `host` is: owned by the table and not a platform where anyone
+        publishes, where a page is not the brand speaking (docs/design.md, section 4)."""
+        brand = self.official_brand_of(host)
+        return None if brand is None or any(_covers(host, d) for d in self.user_content_hosts) else brand
 
     def mismatches(self, words: str, host: str) -> list[tuple[str, str]]:
         """(brand, first official domain) for brands named in `words` that do not own `host`."""

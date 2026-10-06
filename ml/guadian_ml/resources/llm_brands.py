@@ -2,7 +2,7 @@
 
 Sources: the Korean brand table vendored from the original judge
 (llm/vendor/judge_agent.py BRANDS) and the global brands, text mentions, host
-tokens, and account words in llm/contract/host_rules.py. The app reads the file
+tokens, account words, and user-content hosts in llm/contract/host_rules.py. The app reads the file
 as a resource (core/llm LlmBrands.kt); lists keep their order because order
 decides ties.
 
@@ -27,6 +27,7 @@ def export_brands() -> dict:
         "text_mentions": [[name, token] for name, token in host_rules.TEXT_MENTIONS.items()],
         "host_tokens": [[token, list(domains)] for token, domains in host_rules._BRANDS.items()],
         "account_words": list(host_rules.ACCOUNT_WORDS),
+        "user_content_hosts": list(host_rules.USER_CONTENT_HOSTS),
         "min_token_length": host_rules.MIN_TOKEN_LENGTH,
     }
 
