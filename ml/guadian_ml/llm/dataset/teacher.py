@@ -32,6 +32,15 @@ teacher reads, from "## Principles" on), and a `HIGH` stands only on a prompt
 line of the kind the guide names for its type (dataset.sft EVIDENCE_LINES);
 without one it becomes `MEDIUM`.
 
+`--questions` answers the six questions of ml/docs/llm/question-guide.md instead of
+labeling a risk (docs/design.md, section 5): the verdict table sets the risk from the
+answers. Its rows record the SHA256 of the guide text the teacher reads (from
+"## Scope" on), and a `claims` answer whose evidence is not one of the prompt's
+lines (the one its evidence quotes, else one naming the claimed organization) becomes
+`null`.
+
+`--model` picks the teacher for `--questions`; rows record it.
+
 `--batch` sends the same requests through the Message Batches API at half the
 price; results arrive within 24 hours. The batch ID is kept in OUT.batch, so an
 interrupted run resumes waiting for the same batch instead of paying twice.
@@ -43,6 +52,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from collections import Counter
@@ -142,6 +152,79 @@ def guide_request(case: dict, system: str, guide_sha256: str, brands: Brands):
     return row, params, ground
 
 
+QUESTIONS_PATH = paths.ML_DIR / "docs" / "llm" / "question-guide.md"
+QUESTION_KEYS = ("sign_in", "payment", "investment", "reward_pressure", "content_farm")
+QUESTIONS_TOOL = {
+    "name": "page_answers",
+    "description": "Answers to the six questions of the guide for this page.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "claims": {"type": ["string", "null"], "description": "The organization the page claims to be, or null."},
+            "evidence": {"type": "string", "description": "For a claim, one line of the page description copied "
+                                                          "exactly; otherwise an empty string."},
+            **{key: {"type": "boolean"} for key in QUESTION_KEYS},
+        },
+        "required": ["claims", "evidence", *QUESTION_KEYS],
+    },
+}
+
+
+# Room for a newer teacher's thinking before its JSON answer.
+QUESTIONS_MAX_TOKENS = 8000
+
+
+def load_questions() -> tuple[str, str]:
+    """The question guide (from "## Scope" on) as the teacher's system prompt, and its SHA256."""
+    text = QUESTIONS_PATH.read_text(encoding="utf-8")
+    rules = text[text.index("## Scope"):]
+    system = ("You read descriptions of ad landing pages for a phone app that warns people before they visit "
+              "them. The user message describes one page as the phone observed it. Answer the six questions of "
+              "the guide below about it, using only that description, with the page_answers tool.\n\n" + rules)
+    return system, hashlib.sha256(rules.encode()).hexdigest()
+
+
+def question_request(case: dict, system: str, guide_sha256: str, brands: Brands, model: str = MODEL):
+    """Row, Messages API parameters, and grounding for one case answered by the question guide."""
+    prompt = user_message(observation_from_case(case), brands)
+    row = {
+        "case_id": case["case_id"],
+        "model": model,
+        "guide_sha256": guide_sha256,
+        "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+        "labeled_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    params = {"model": model, "system": system, "messages": [{"role": "user", "content": prompt}]}
+    if model == MODEL:
+        params.update(max_tokens=GUIDE_MAX_TOKENS, tools=[QUESTIONS_TOOL],
+                      tool_choice={"type": "tool", "name": QUESTIONS_TOOL["name"]})
+    else:
+        # Newer models refuse forced tool use; structured output returns the same object as JSON
+        # text, and leaves room for their thinking before it.
+        schema = {**QUESTIONS_TOOL["input_schema"], "additionalProperties": False}
+        schema["properties"] = {**schema["properties"], "claims": {"type": "string", "description":
+                                "The organization the page claims to be, or an empty string."}}
+        params.update(max_tokens=QUESTIONS_MAX_TOKENS, output_config={"format": {"type": "json_schema", "schema": schema}})
+
+    def ground(answers: dict) -> dict:
+        """A claim rests on a whole prompt line: the one its quoted evidence comes from, with or
+        without the line's label, else the first line naming the claimed organization; without
+        one it is null."""
+        grounded = {key: bool(answers.get(key)) for key in QUESTION_KEYS}
+        claims = str(answers.get("claims") or "").strip() or None
+        quote = str(answers.get("evidence") or "").strip()
+        quote = quote.split(": ", 1)[1] if ": " in quote and quote.index(": ") < 20 else quote
+        lines = [l.strip() for l in prompt.splitlines()]
+        squash = lambda text: re.sub(r"\s+", "", text).lower()
+        line = None
+        if claims:
+            line = next((l for l in lines if quote and quote in l), None) or \
+                next((l for l in lines if squash(claims) in squash(l)), None)
+        return {"claims": claims if line else None, "evidence": line or "", **grounded}
+
+    return row, params, ground
+
+
 def read_api_key() -> str:
     key = os.environ.get("ANTHROPIC_API_KEY")
     env_path = os.path.join(paths.REPO_DIR, ".env")
@@ -197,12 +280,15 @@ def request(case: dict, spec: dict, tool: dict, addendum: str) -> tuple[dict, di
 
 
 def finish_row(row: dict, response, ground) -> None:
-    """Record usage and the grounded verdict from one response."""
+    """Record usage and the grounded verdict from one response; every mode forces its one tool."""
     row["usage"] = {"input_tokens": response.usage.input_tokens, "output_tokens": response.usage.output_tokens}
     verdict = next((dict(block.input) for block in response.content
-                    if getattr(block, "type", "") == "tool_use" and block.name == "final_verdict"), None)
+                    if getattr(block, "type", "") == "tool_use"), None)
+    if verdict is None:   # structured output: one text block of JSON
+        text = next((block.text for block in response.content if getattr(block, "type", "") == "text"), None)
+        verdict = json.loads(text) if text and response.stop_reason == "end_turn" else None
     if verdict is None:
-        row["error"] = f"no final_verdict tool_use block (stop_reason={response.stop_reason})"
+        row["error"] = f"no answer (stop_reason={response.stop_reason})"
     else:
         row["verdict_raw"] = verdict
         row["verdict"] = ground(verdict)
@@ -252,7 +338,7 @@ def run_batch(client: anthropic.Anthropic, cases: list[dict], build, out_path: s
             else:
                 row["error"] = f"batch {result.result.type}"
             write_row(out, row)
-            written["error" if "error" in row else row["verdict"]["risk"]] += 1
+            written["error" if "error" in row else row["verdict"].get("risk", "answered")] += 1
     os.remove(state_path)
     print(f"wrote {sum(written.values())} rows: {dict(written)}")
     return 0
@@ -268,6 +354,8 @@ def main() -> int:
     parser.add_argument("--only-ids", help="file with one case ID per line to label")
     parser.add_argument("--batch", action="store_true", help="use the Message Batches API (half price, up to 24 h)")
     parser.add_argument("--guide", action="store_true", help="label by the labeling guide from the student's prompt")
+    parser.add_argument("--questions", action="store_true", help="answer the question guide's six questions")
+    parser.add_argument("--model", default=MODEL, help=f"teacher model for --questions (default {MODEL})")
     args = parser.parse_args()
 
     spec = load_verified_spec()
@@ -286,7 +374,11 @@ def main() -> int:
     addendum = CRITERIA_ADDENDUM if args.addendum else ""
 
     todo = [c for c in cases if c["case_id"] not in done]
-    if args.guide:
+    if args.questions:
+        system, guide_sha256 = load_questions()
+        brands = Brands.load()
+        build = lambda c: question_request(c, system, guide_sha256, brands, args.model)
+    elif args.guide:
         system, guide_sha256 = load_guide()
         brands = Brands.load()
         build = lambda c: guide_request(c, system, guide_sha256, brands)
@@ -304,7 +396,9 @@ def main() -> int:
                 row["error"] = f"{type(e).__name__}: {str(e)[:200]}"
             write_row(out, row)
             verdict = row.get("verdict") or {}
-            print(f"[{i}/{len(todo)}] {case['case_id']} {verdict.get('risk', row.get('error'))} "
+            summary = verdict.get("risk", row.get("error")) if "risk" in verdict or not verdict else \
+                " ".join(k for k, v in verdict.items() if v and k != "evidence")
+            print(f"[{i}/{len(todo)}] {case['case_id']} {summary} "
                   f"{verdict.get('type', '')} ({time.monotonic() - started:.1f}s)", flush=True)
             if args.sleep:
                 time.sleep(args.sleep)
