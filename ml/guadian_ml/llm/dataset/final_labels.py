@@ -38,6 +38,13 @@ HIGH apk (rule 2), and MEDIUM apk on the brand's own site; a LOW on a page that 
 open or returned an error status is MEDIUM unverifiable (rule 1); the brand's own site is
 otherwise LOW, loaded or not (rules 0 and 1); and the host rule.
 
+--teacher questions (the default) reads data/llm/sources/labels_*_questions.jsonl, the
+teacher's answers to the six questions of docs/llm/question-guide.md (docs/design.md,
+section 8). The verdict table (contract/verdict_table.py) turns those answers and the
+facts code computes (contract/facts.py, the app's own signals) into the risk, and no
+other rule runs. Each row also keeps the answers, the training target, and the facts
+without them, so a model's answers can be scored the way the app reads them.
+
 Every output row records which step produced it, so a later audit can separate
 human-confirmed labels from teacher and policy labels.
 
@@ -45,7 +52,7 @@ Pages a bot defense served to the collector (dataset.bot_check) are left out of 
 labels, and so of training and evaluation, and listed in final/excluded.jsonl.
 
 Usage:
-    python -m guadian_ml.llm.dataset.final_labels [--teacher guide|original]
+    python -m guadian_ml.llm.dataset.final_labels [--teacher questions|guide|original]
 """
 
 from __future__ import annotations
@@ -60,8 +67,10 @@ import sys
 
 from guadian_ml import paths
 from guadian_ml.llm.contract.answer import personal_info_unsupported
-from guadian_ml.llm.contract.host_rules import grade_case
+from guadian_ml.llm.contract.host_rules import USER_CONTENT_HOSTS, grade_case
 from guadian_ml.llm.contract.prompt import Brands, ascii_host, observation_from_case, user_message
+from guadian_ml.llm.contract import facts as verdict_facts
+from guadian_ml.llm.contract.verdict_table import VerdictTable
 from guadian_ml.llm.dataset.bot_check import bot_check
 
 SOURCES_DIR = paths.LLM_SOURCES
@@ -76,11 +85,6 @@ HIGH_TYPES = {"impersonation", "credentials", "apk"}
 # credentials (rule 4). A password field needs judgment (a sign-in screen or a comment box),
 # so the teacher decides it, and it does not by itself make a page personal_info here.
 SENSITIVE_FIELDS = {"rrn", "card"}
-# Hosts a brand owns but anyone can publish on: a blog post or a cafe page there is
-# not the brand speaking, so the official rule does not apply.
-USER_CONTENT_HOSTS = ("blog.naver.com", "cafe.naver.com", "post.naver.com", "pf.kakao.com", "open.kakao.com",
-                      "story.kakao.com", "sites.google.com", "docs.google.com", "drive.google.com",
-                      "facebook.com", "instagram.com", "youtube.com")
 
 
 def user_content_host(host: str) -> bool:
@@ -195,19 +199,21 @@ def read_reviews(pattern: str) -> dict[str, dict]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Merge teacher labels, policy, and review into final labels.")
-    parser.add_argument("--teacher", choices=("guide", "original"), default="guide",
-                        help="guide: labels_*_guide.jsonl and the guide's checks; original: the criteria and policy")
+    parser.add_argument("--teacher", choices=("questions", "guide", "original"), default="questions",
+                        help="questions: the teacher's answers and the verdict table; guide: labels_*_guide.jsonl "
+                             "and the guide's checks (run 6); original: the criteria and policy (runs 3 to 5)")
     args = parser.parse_args()
     reviewed = read_reviews("review_*.csv")
     assistant = read_reviews("assistant_review_*.csv")
     overrides = {row["case_id"]: row for row in read_jsonl(OVERRIDES)} if os.path.exists(OVERRIDES) else {}
 
     brands = Brands.load()
+    table = VerdictTable.load()
     out_rows, excluded = [], []
     for source in SOURCES:
         cases = {c["case_id"]: c for c in read_jsonl(os.path.join(SOURCES_DIR, f"cases_{source}.jsonl"))}
-        if args.teacher == "guide":
-            labels = {r["case_id"]: r for r in read_jsonl(os.path.join(SOURCES_DIR, f"labels_{source}_guide.jsonl"))}
+        if args.teacher in ("questions", "guide"):
+            labels = {r["case_id"]: r for r in read_jsonl(os.path.join(SOURCES_DIR, f"labels_{source}_{args.teacher}.jsonl"))}
         else:
             labels = {r["case_id"]: r for r in read_jsonl(os.path.join(SOURCES_DIR, f"labels_{source}.jsonl"))}
             addendum_path = os.path.join(SOURCES_DIR, f"labels_{source}_addendum.jsonl")
@@ -219,13 +225,20 @@ def main() -> int:
             if "verdict" not in label:
                 sys.exit(f"{case_id}: no teacher verdict ({label.get('error')})")
             teacher = label["verdict"]
-            blocked = bot_check(observation_from_case(cases[case_id]))
+            obs = observation_from_case(cases[case_id])
+            blocked = bot_check(obs)
             if blocked:
                 excluded.append({"case_id": case_id, "source": source, "url": cases[case_id]["url"],
                                  "reason": f"bot_check:{blocked}"})
                 continue
+            extra = {}
+            if args.teacher == "questions":
+                known = verdict_facts.page_facts(obs, verdict_facts.url_facts(cases[case_id]["url"], brands), brands)
+                decision = table.decide(verdict_facts.answer_facts(teacher, obs, known, brands))
+                extra = {"answers": teacher, "facts": known.to_json()}
+                teacher = {"risk": decision.risk, "type": decision.type, "reason": decision.reason}
             row = {"case_id": case_id, "source": source, "url": cases[case_id]["url"],
-                   "teacher_risk": teacher["risk"], "teacher_type": teacher["type"]}
+                   "teacher_risk": teacher["risk"], "teacher_type": teacher["type"], **extra}
             if case_id in reviewed:
                 r = reviewed[case_id]
                 row.update(risk=r["final_risk"], type=r["final_type"], label_source="human_review", note=r["note"])
@@ -235,6 +248,8 @@ def main() -> int:
             elif case_id in overrides:
                 o = overrides[case_id]
                 row.update(risk=o["risk"], type=o["type"], label_source="override", note=o["reason"])
+            elif args.teacher == "questions":
+                row.update(risk=teacher["risk"], type=teacher["type"], label_source="verdict_table", note=teacher["reason"])
             else:
                 checks = apply_guide_checks if args.teacher == "guide" else apply_policy
                 risk, type_, label_source, note = checks(cases[case_id], teacher, brands)
