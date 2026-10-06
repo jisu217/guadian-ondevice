@@ -15,20 +15,23 @@ import nbformat
 from guadian_ml import paths
 
 OUT = paths.NOTEBOOKS / "train_llm.ipynb"
-RUN = "run6"   # the training run this notebook produces; written into its cells
+RUN = "run7"   # the training run this notebook produces; written into its cells
 
 INTRO = """\
 # LoRA fine-tuning of the on-device judge
 
-Fine-tunes `Qwen/Qwen3-1.7B` on the compact examples from `guadian_ml.llm.dataset.sft`
-and exports the merged model as an f16 GGUF. Quantize it on the Mac afterwards (Q4_K_M, Q5_K_M, Q8_0).
+Fine-tunes `Qwen/Qwen3-1.7B` on the compact examples from `guadian_ml.llm.dataset.sft`:
+it learns to answer the six questions of `ml/docs/llm/question-guide.md` as one JSON line,
+and the app's verdict table turns the answers into a risk (`docs/design.md`). It exports the merged model as an f16 GGUF. Quantize it on the Mac afterwards (Q4_K_M, Q5_K_M, Q8_0).
 
 **Runtime:** GPU (T4 is enough). **Inputs:** `sft_train.jsonl`, `sft_validation.jsonl`,
 `sft_test.jsonl` from `ml/data/llm/final/`. They contain collected page text, so upload them
 to this session only; do not commit or share them.
 
 Steps: install → configure → mount Drive → upload data → build examples → load model → train →
-evaluate (zero-shot vs fine-tuned on the test set) → merge → export GGUF.
+evaluate (zero-shot vs fine-tuned answers on the test set) → merge → export GGUF. The risk
+the app would show is scored on the Mac (`guadian_ml.llm.evaluation.gguf`), where the
+verdict table and the page facts are.
 
 Everything a run produces (checkpoints, adapter, scores, GGUF) is written to
 `MyDrive/guadian-ondevice/<run>` as it is made, because a free session can end at any
@@ -62,8 +65,9 @@ TRAIN = dict(num_train_epochs=3, learning_rate=2e-4, per_device_train_batch_size
 # trained on. Validation and test are never resampled.
 OVERSAMPLE = {"HIGH": 3}
 WARMUP_FRACTION = 0.05     # of all optimizer steps
-MAX_NEW_TOKENS = 96        # the answer is one short JSON line
-RISKS = ["LOW", "MEDIUM", "HIGH"]"""
+MAX_NEW_TOKENS = 384       # one JSON line; a claim quotes a prompt line, rarely the long text line
+RISKS = ["LOW", "MEDIUM", "HIGH"]
+QUESTION_KEYS = ["sign_in", "payment", "investment", "reward_pressure", "content_farm"]"""
 
 UPLOAD = """\
 import json, os
@@ -111,8 +115,8 @@ def to_features(example):
     return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}
 
 def copies(example, split):
-    risk = json.loads(example["messages"][2]["content"])["risk"]
-    return OVERSAMPLE.get(risk, 1) if split == "train" else 1
+    \"\"\"Training examples whose final risk is rare are repeated; the risk is not the target, the answers are.\"\"\"
+    return OVERSAMPLE.get(example["risk"], 1) if split == "train" else 1
 
 features = {split: [to_features(e) for e in rows for _ in range(copies(e, split))]
             for split, rows in data.items() if split != "test"}
@@ -176,29 +180,55 @@ model.save_pretrained(f"{OUT}/adapter")
 tokenizer.save_pretrained(f"{OUT}/adapter")"""
 
 SCORING = """\
-import json, re
+import json
+
+def first_json_object(text):
+    \"\"\"The first JSON object in the text, parsed properly so braces inside strings are handled.\"\"\"
+    decoder = json.JSONDecoder()
+    start = text.find("{")
+    while start >= 0:
+        try:
+            value, _ = decoder.raw_decode(text, start)
+            if isinstance(value, dict):
+                return value
+        except ValueError:
+            pass
+        start = text.find("{", start + 1)
+    return None
 
 def parse_answer(text):
-    \"\"\"The first JSON object in the reply, or None if there is none or it lacks a valid risk.\"\"\"
-    match = re.search(r"\\{.*?\\}", text, re.S)
-    if not match:
+    \"\"\"The answers in the reply, or None when a yes/no key is not a boolean or claims is not a string or null.\"\"\"
+    answer = first_json_object(text)
+    if answer is None or any(not isinstance(answer.get(k), bool) for k in QUESTION_KEYS):
         return None
-    try:
-        answer = json.loads(match.group(0))
-    except json.JSONDecodeError:
-        return None
-    return answer if answer.get("risk") in RISKS else None
+    claims = answer.get("claims")
+    return answer if claims is None or isinstance(claims, str) else None
 
 def score(examples, replies):
-    \"\"\"Accuracy, macro F1, per-risk recall, missed risk, and unparseable replies.
+    \"\"\"Per-question agreement with the teacher's answers, and unparseable replies (wrong on every question).
 
-    A reply that cannot be parsed counts as MEDIUM, the app's fallback for malformed output.
+    For each question: accuracy, and recall and precision of yes. `claims` counts whether a claim
+    was made, not the name.
     \"\"\"
-    gold = [json.loads(e["messages"][2]["content"])["risk"] for e in examples]
+    gold = [json.loads(e["messages"][2]["content"]) for e in examples]
     parsed = [parse_answer(r) for r in replies]
-    pred = [p["risk"] if p else "MEDIUM" for p in parsed]
-    report = {"n": len(gold), "accuracy": sum(g == p for g, p in zip(gold, pred)) / len(gold),
-              "unparseable": sum(p is None for p in parsed)}
+    report = {"n": len(gold), "unparseable": sum(p is None for p in parsed)}
+    for key in ["claims"] + QUESTION_KEYS:
+        g = [bool(a[key]) for a in gold]
+        p = [bool(a[key]) if a is not None else None for a in parsed]
+        hits = [x is not None and x == y for x, y in zip(p, g)]
+        report[f"{key}_accuracy"] = sum(hits) / len(g)
+        yes = sum(g)
+        said = sum(1 for x in p if x)
+        report[f"{key}_recall"] = sum(1 for x, y in zip(p, g) if x and y) / yes if yes else 0.0
+        report[f"{key}_precision"] = sum(1 for x, y in zip(p, g) if x and y) / said if said else 0.0
+    report["all_correct"] = sum(p is not None and all(bool(p[k]) == bool(g[k]) for k in ["claims"] + QUESTION_KEYS)
+                                for p, g in zip(parsed, gold)) / len(gold)
+    return report
+
+def risk_report(gold, pred):
+    \"\"\"Accuracy, macro F1, per-risk recall, and missed risk for two lists of risks.\"\"\"
+    report = {"n": len(gold), "accuracy": sum(g == p for g, p in zip(gold, pred)) / len(gold)}
     f1s = []
     for risk in RISKS:
         tp = sum(g == p == risk for g, p in zip(gold, pred))

@@ -1,12 +1,13 @@
-"""How often one run's GGUF files give the same risk on the same case.
+"""How often one run's GGUF files give the same answer on the same case.
 
 Quantization changes the weights slightly. A model that is sure of an answer
 gives it at every precision; a case whose answer flips between f16, Q8, Q5,
 and Q4 sits on the model's decision boundary. The pairwise rates show how far
 each quantization moves the model from f16, which accuracy alone can hide.
 
-Risk is read as the notebook's scoring reads it (an unparseable reply counts as
-MEDIUM), so replies are compared without the prompts they answered.
+A reply is read as the notebook's scoring reads it, without the prompt it answered: a
+risk model's risk, or a question model's answers (whether it made a claim, and each
+yes/no answer); an unparseable reply counts as MEDIUM, as the app shows it.
 
 Usage:
     python -m guadian_ml.llm.evaluation.agreement run2 [--split test]
@@ -26,15 +27,24 @@ from guadian_ml import paths
 from guadian_ml.llm.training import notebook as nb
 
 
-def risk_reader():
+def answer_reader():
     ns: dict = {}
     exec(nb.CONFIG, ns)
     exec(nb.SCORING, ns)
-    return lambda reply: (ns["parse_answer"](reply) or {"risk": "MEDIUM"})["risk"]
+    keys = ["claims"] + ns["QUESTION_KEYS"]
+
+    def read(reply: str) -> str:
+        answer = ns["first_json_object"](reply)
+        if answer is not None and "risk" in answer:
+            return answer["risk"] if answer["risk"] in ns["RISKS"] else "MEDIUM"
+        parsed = ns["parse_answer"](reply)
+        return json.dumps({k: bool(parsed[k]) for k in keys}, sort_keys=True) if parsed else "MEDIUM"
+
+    return read
 
 
 def agreement(answers: dict[str, dict[str, str]]) -> dict:
-    """answers: variant -> case_id -> risk. Only cases every variant answered are compared."""
+    """answers: variant -> case_id -> answer. Only cases every variant answered are compared."""
     variants = sorted(answers)
     cases = sorted(set.intersection(*(set(a) for a in answers.values())))
     same = lambda group: sum(len({answers[v][c] for v in group}) == 1 for c in cases) / len(cases)
@@ -52,7 +62,7 @@ def main() -> int:
     parser.add_argument("--split", default="test", choices=("validation", "test"))
     args = parser.parse_args()
 
-    read = risk_reader()
+    read = answer_reader()
     answers: dict[str, dict[str, str]] = {}
     for path in sorted(paths.LLM_EVAL.glob(f"eval_{args.run}-*_{args.split}_predictions.jsonl")):
         variant = path.name.removeprefix(f"eval_{args.run}-").removesuffix(f"_{args.split}_predictions.jsonl")

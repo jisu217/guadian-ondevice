@@ -15,11 +15,19 @@ from guadian_ml.llm.training import notebook as nb
 TOKENIZER_DIR = str(paths.TOKENIZER)
 
 
-def example(risk, type_="none", user="주소: https://a.example/\n차단 목록: 없음"):
-    answer = json.dumps({"risk": risk, "type": type_, "evidence": ""}, ensure_ascii=False)
-    return {"case_id": "t", "label_source": "teacher", "messages": [
+QUIET = {"claims": None, "evidence": "", "sign_in": False, "payment": False, "investment": False,
+         "reward_pressure": False, "content_farm": False}
+
+
+def example(risk="LOW", user="주소: https://a.example/", **answers):
+    answer = json.dumps({**QUIET, **answers}, ensure_ascii=False)
+    return {"case_id": "t", "label_source": "teacher", "risk": risk, "facts": {}, "messages": [
         {"role": "system", "content": "S"}, {"role": "user", "content": user},
         {"role": "assistant", "content": answer}]}
+
+
+def reply(**answers):
+    return json.dumps({**QUIET, **answers}, ensure_ascii=False)
 
 
 class ScoringTest(unittest.TestCase):
@@ -28,20 +36,25 @@ class ScoringTest(unittest.TestCase):
         exec(nb.CONFIG, self.ns)
         exec(nb.SCORING, self.ns)
 
-    def test_parse_answer_takes_first_json_object(self):
+    def test_parse_answer_needs_boolean_answers(self):
         parse = self.ns["parse_answer"]
-        self.assertEqual(parse('{"risk": "HIGH", "type": "apk", "evidence": "x"} trailing')["risk"], "HIGH")
-        self.assertIsNone(parse('{"risk": "중간"}'))
+        self.assertTrue(parse(reply(sign_in=True) + " trailing")["sign_in"])
+        self.assertIsNone(parse('{"claims": null, "sign_in": "yes"}'))
         self.assertIsNone(parse("no json here"))
 
-    def test_score_counts_unparseable_as_medium_and_missed_risk(self):
-        examples = [example("LOW"), example("MEDIUM"), example("HIGH"), example("HIGH")]
-        replies = ['{"risk": "LOW"}', "garbage", '{"risk": "LOW"}', '{"risk": "HIGH"}']
+    def test_score_counts_unparseable_as_wrong(self):
+        examples = [example(sign_in=True), example(), example(claims="KB", evidence="제목: KB")]
+        replies = [reply(sign_in=True), "garbage", reply()]
         report = self.ns["score"](examples, replies)
         self.assertEqual(report["unparseable"], 1)
-        self.assertEqual(report["accuracy"], 3 / 4)       # garbage -> MEDIUM, which is correct
-        self.assertEqual(report["missed_risk"], 1)        # HIGH answered LOW
-        self.assertEqual(report["recall_HIGH"], 1 / 2)
+        self.assertEqual(report["sign_in_accuracy"], 2 / 3)    # garbage is wrong even where gold is no
+        self.assertEqual(report["claims_recall"], 0.0)
+        self.assertEqual(report["all_correct"], 1 / 3)
+
+    def test_risk_report_counts_missed_risk(self):
+        report = self.ns["risk_report"](["HIGH", "MEDIUM", "LOW"], ["LOW", "MEDIUM", "LOW"])
+        self.assertEqual(report["missed_risk"], 1)
+        self.assertEqual(report["accuracy"], 2 / 3)
 
 
 @unittest.skipUnless(os.path.exists(os.path.join(TOKENIZER_DIR, "tokenizer_config.json"))
@@ -49,7 +62,7 @@ class ScoringTest(unittest.TestCase):
 class ExampleBuildingTest(unittest.TestCase):
     def setUp(self):
         from transformers import AutoTokenizer
-        self.ns = {"data": {"train": [example("HIGH", "apk")], "validation": [example("LOW")], "test": []}}
+        self.ns = {"data": {"train": [example("HIGH")], "validation": [example("LOW")], "test": []}}
         exec(nb.CONFIG, self.ns)
         self.ns["MODEL_ID"] = TOKENIZER_DIR
         self.ns["AutoTokenizer"] = AutoTokenizer
@@ -65,7 +78,7 @@ class ExampleBuildingTest(unittest.TestCase):
         features = self.ns["features"]["train"][0]
         answer_ids = [t for t, l in zip(features["input_ids"], features["labels"]) if l != -100]
         decoded = tokenizer.decode(answer_ids)
-        self.assertEqual(decoded, '{"risk": "HIGH", "type": "apk", "evidence": ""}<|im_end|>\n')
+        self.assertEqual(decoded, reply() + "<|im_end|>\n")
 
     def test_prompt_matches_inference_format(self):
         prompt = self.ns["prompt_text"](example("LOW")["messages"])
