@@ -28,7 +28,7 @@ labels, split, and training examples in `final/`; model replies from scoring in
 | `dataset.urls` | Naver search, Tranco, or OpenPhish → `urls_*.jsonl`, skipping sites already listed |
 | `dataset.collect` | URL list → `cases_*.jsonl` |
 | `dataset.bot_check` | recognizes pages a bot defense served to the collector, which are left out |
-| `dataset.teacher` | `cases_*.jsonl` → `labels_*_questions.jsonl` (`--questions`); `labels_*_guide.jsonl` (`--guide`, run 6); the original criteria → `labels_*.jsonl` (runs 3 to 5) |
+| `dataset.teacher` | `cases_*.jsonl` → `labels_*_questions.jsonl` (`--questions`); `labels_*_guide.jsonl` (`--guide`, the fallback guide labels); the original criteria → `labels_*.jsonl` (runs 3 to 5) |
 | `dataset.final_labels` | the teacher's answers + facts + the verdict table + human review + assistant review + overrides → `labels_final.jsonl`, and bot-check pages → `excluded.jsonl` |
 | `dataset.split` | `labels_final.jsonl` → `splits.jsonl` (train / validation / test, grouped by site) |
 | `dataset.sft` | labels + cases → `sft_{train,validation,test}.jsonl`, compact chat examples |
@@ -63,9 +63,9 @@ labels were changed to follow decisions settled in the design (a page that did n
 open on an official domain is unverifiable; a sign-in box beside an ordinary page is
 not personal information).
 
-### Risk labels by the guide (run 6)
+### Risk labels by the guide (fallback)
 
-Run 6's data, kept as the fallback, labeled the risk directly: the teacher
+The guide labels of 2026-10-05, kept as the fallback, labeled the risk directly: the teacher
 (`claude-haiku-4-5`) read the [Labeling Guide](labeling-guide.md) and labeled each
 case from the student's prompt (`dataset.teacher --guide`), and a `HIGH` stood only
 on a prompt line of the kind the guide names for its type.
@@ -208,7 +208,7 @@ python -m playwright install chromium    # once
 python -m guadian_ml.llm.dataset.urls naver -o ml/data/llm/sources/urls_NAME.jsonl   # or tranco CSV, openphish
 python -m guadian_ml.llm.dataset.collect ml/data/llm/sources/urls_NAME.jsonl -o ml/data/llm/sources/cases_NAME.jsonl
 python -m guadian_ml.llm.dataset.teacher ml/data/llm/sources/cases_NAME.jsonl -o ml/data/llm/sources/labels_NAME_questions.jsonl --questions --model claude-sonnet-5-5 --batch
-python -m guadian_ml.llm.dataset.final_labels   # --teacher guide: run 6's labels; --teacher original: runs 3 to 5
+python -m guadian_ml.llm.dataset.final_labels   # --teacher guide: the fallback guide labels; --teacher original: runs 3 to 5
 python -m guadian_ml.llm.dataset.split --keep   # new sites only; earlier cases keep their split
 python -m guadian_ml.llm.dataset.sft   # --page-chars sets how much page text the model reads
 ```

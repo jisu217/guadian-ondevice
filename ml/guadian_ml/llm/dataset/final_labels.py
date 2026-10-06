@@ -201,7 +201,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Merge teacher labels, policy, and review into final labels.")
     parser.add_argument("--teacher", choices=("questions", "guide", "original"), default="questions",
                         help="questions: the teacher's answers and the verdict table; guide: labels_*_guide.jsonl "
-                             "and the guide's checks (run 6); original: the criteria and policy (runs 3 to 5)")
+                             "and the guide's checks (the fallback guide labels); original: the criteria and policy (runs 3 to 5)")
     args = parser.parse_args()
     reviewed = read_reviews("review_*.csv")
     assistant = read_reviews("assistant_review_*.csv")

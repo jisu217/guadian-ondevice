@@ -268,12 +268,12 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Train run 7, the first question model of the [Verdict Design](design.md),
+1. Train run 6, the first question model of the [Verdict Design](design.md),
    on Claude Sonnet 5.5's answers (the table and the app are in place), and ship
    it or run 4 if one clears the bar set before run 5:
    human-reviewed accuracy above run 3's as the app reads it (72.2% on the
-   relabeled split), and at most 25 missed risky pages. Run 6's data is kept as
-   the fallback.
+   relabeled split), and at most 25 missed risky pages. The guide labels of
+   2026-10-05 are kept as the fallback.
 2. Time the shipped model on the emulator and on a physical device.
 3. Update the bundled blocklist periodically.
 4. Improve accessibility permission onboarding and the result UI.

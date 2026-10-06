@@ -229,8 +229,8 @@ Evaluation reports three layers:
 
 The bar for shipping stays the one set before run 5, on the relabeled split:
 human-reviewed accuracy as the app reads it above run 3's 72.2%, and at most 25
-missed risky pages. Run 6's data (risk labels by the labeling guide) is kept as
-the fallback if this design is not adopted.
+missed risky pages. The guide labels of 2026-10-05 (risk labels by the labeling
+guide) are kept as the fallback if this design is not adopted.
 
 ## 9. Migration
 
@@ -250,7 +250,7 @@ the fallback if this design is not adopted.
 5. Change `AnswerReader`, `LlmJudge`, the dataset builders, the notebook, and the
    evaluation scripts to the answer format; train and score once (code done: the app
    reads both reply formats, so run 3 keeps working; the prompt and its system line
-   are unchanged, so either kind of model takes the same input; run 7 is ready to
+   are unchanged, so either kind of model takes the same input; run 6 is ready to
    train).
 6. Update the documents that describe the pipeline and the labels.
 

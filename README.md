@@ -134,7 +134,7 @@ prompt's lines. The shipped run 3 model still grades the risk itself, so its rep
 is read as before: the app checks the evidence returned with a `HIGH` answer and
 lowers the risk to `MEDIUM` when the required grounding is missing, and lowers a
 `personal_info` answer to `LOW` unless the page shows a personal field or a form
-worded to collect contact details. The first question model, run 7, is labeled
+worded to collect contact details. The first question model, run 6, is labeled
 and ready to train.
 
 | Area | Verified so far | Still to do |

@@ -5,7 +5,7 @@ The teacher reads this guide, from "Scope" on, as its instructions for answering
 the six questions, and people reviewing answers read the same text. The risk is
 not asked: the verdict table (`ml/runtime/verdict_table.json`) sets it from these
 answers and from facts code computes. The [Labeling Guide](labeling-guide.md),
-which asked for a risk, stays as the record of run 6's labels.
+which asked for a risk, stays as the record of the guide labels kept as a fallback.
 
 ## Scope
 
