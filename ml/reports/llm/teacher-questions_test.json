@@ -1,0 +1,57 @@
+{
+  "note": "the teacher's answers (claude-sonnet-5-5, docs/llm/question-guide.md) read through the verdict table as the app reads a model's answers: the most a student trained on them can reach",
+  "app": {
+    "n": 414,
+    "accuracy": 0.9202898550724637,
+    "recall_LOW": 0.9770642201834863,
+    "recall_MEDIUM": 0.8571428571428571,
+    "recall_HIGH": 0.8571428571428571,
+    "macro_f1": 0.9157055500999421,
+    "missed_risk": 27,
+    "malformed": 0,
+    "high_lowered": 0,
+    "personal_info_lowered": 0,
+    "by_source": {
+      "openphish": {
+        "n": 96,
+        "answered_low": 10,
+        "opened": 43,
+        "opened_answered_low": 10
+      },
+      "tranco": {
+        "n": 81,
+        "warned": 21,
+        "opened": 62,
+        "opened_warned": 2
+      }
+    },
+    "human_review": {
+      "n": 133,
+      "accuracy": 0.8872180451127819,
+      "recall_LOW": 0.9615384615384616,
+      "recall_MEDIUM": 0.65,
+      "recall_HIGH": 0.8571428571428571,
+      "macro_f1": 0.8486490925515316,
+      "missed_risk": 11,
+      "malformed": 0,
+      "high_lowered": 0,
+      "personal_info_lowered": 0,
+      "by_source": {
+        "openphish": {
+          "n": 42,
+          "answered_low": 7,
+          "opened": 40,
+          "opened_answered_low": 7
+        },
+        "tranco": {
+          "n": 9,
+          "warned": 3,
+          "opened": 7,
+          "opened_warned": 1
+        }
+      }
+    }
+  },
+  "examples": "data/llm/final/sft_test.jsonl",
+  "examples_sha256": "e742fd288121ce0cc256c22c213549f99a3683ccd26ea87a6abda43ddfd02cd9"
+}
