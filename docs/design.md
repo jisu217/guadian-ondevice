@@ -250,8 +250,11 @@ guide) are kept as the fallback if this design is not adopted.
 5. Change `AnswerReader`, `LlmJudge`, the dataset builders, the notebook, and the
    evaluation scripts to the answer format; train and score once (code done: the app
    reads both reply formats, so run 3 keeps working; the prompt and its system line
-   are unchanged, so either kind of model takes the same input; run 6 is ready to
-   train).
+   are unchanged, so either kind of model takes the same input). Run 6 is trained
+   and scored: 85.0% on the human-reviewed cases as the app reads Q4_K_M, but 34
+   missed risky pages against the bar of 25, most of which the teacher's answers miss
+   too. Before the known gaps below are closed, the 21 missed pages whose labels a
+   Claude model wrote are reviewed by hand.
 6. Update the documents that describe the pipeline and the labels.
 
 Page inspection, the brand and blocklist data, URL parsing, the llama.cpp

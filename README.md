@@ -43,10 +43,12 @@ both the risk criteria and the response format the app can read.
 | 3 | 5 epochs, an effective batch size of 8, and repeating `HIGH` training cases twice | Q4_K_M agreement with f16 rose to 91.5%, and accuracy reached 74.6%. Risky pages classified as `LOW` remained a problem. |
 | 4 | The 2026-10 dataset, 3 epochs, and repeating `HIGH` training cases three times | Missed risk fell sharply, but the model warned on many ordinary pages; on the human-reviewed cases it scored below run 3. |
 | 5 | Run 4's settings with training labels aligned to the reviewed test labels | False alarms fell, but missed risk rose again and the model tied brand mentions to `personal_info`, a link the label rule's exceptions created. |
+| 6 | Run 4's settings, but the model answers six questions about the page and a verdict table sets the risk; labels from Claude Sonnet 5.5 | Human-reviewed accuracy rose to 85.0% (Q4_K_M) and warnings on top sites nearly vanished, but 34 risky pages were missed, over the bar of 25; most of them the teacher's answers miss too. |
 
 Run 1 used an earlier dataset version. Eight test prompts also changed between
 runs 2 and 3, so these experiments do not isolate the effect of training
-settings alone. Run 4 changed the data, the prompt, and the settings together.
+settings alone. Run 4 changed the data, the prompt, and the settings together,
+and run 6 changed what the model outputs.
 
 ### Evaluation and Model Selection
 
@@ -95,9 +97,14 @@ and how often it warns on a top site.
 
 The real cost was that the criteria lived in the model, so each change of rules
 meant relabeling and training again, and five parts of the app each decided by
-their own rules. Before training again I am redesigning the verdict so that the
-model answers a few questions and one table decides the risk
-([Verdict Design](docs/design.md)).
+their own rules. So I redesigned the verdict: the model answers six questions
+about the page and one table decides the risk ([Verdict Design](docs/design.md)).
+Run 6, the first model trained this way, scores 85.0% on the human-reviewed cases
+as the app reads it, against 77.4% for run 4, and warns on 1 of 62 top sites that
+opened. It still misses 34 risky pages, above the 25 I allowed, but the teacher's own
+answers miss 27 through the same table, so most of the gap is in the labels and the
+table rather than the model. I am checking the 21 missed pages whose labels a Claude
+model wrote, by hand, before changing the table.
 
 Details: [Dataset](ml/docs/llm/dataset.md),
 [Model Card](ml/docs/llm/model-card.md), and
@@ -134,8 +141,8 @@ prompt's lines. The shipped run 3 model still grades the risk itself, so its rep
 is read as before: the app checks the evidence returned with a `HIGH` answer and
 lowers the risk to `MEDIUM` when the required grounding is missing, and lowers a
 `personal_info` answer to `LOW` unless the page shows a personal field or a form
-worded to collect contact details. The first question model, run 6, is labeled
-and ready to train.
+worded to collect contact details. The first question model, run 6, is trained
+and scored but not shipped yet.
 
 | Area | Verified so far | Still to do |
 | :-- | :-- | :-- |

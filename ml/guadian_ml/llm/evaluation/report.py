@@ -63,6 +63,14 @@ RUN1 = [
 
 
 # Saved answers of runs 3 to 5 rescored on the test split relabeled by the labeling guide.
+# Run 6 answers questions; its risk comes from the verdict table, as in the app.
+RUN6_APP = [
+    ("run4-q4_k_m-guide", "run 4 GGUF Q4_K_M (risk model, relabeled split)"),
+    ("run6-q4_k_m", "run 6 GGUF Q4_K_M"),
+    ("run6-q8_0", "run 6 GGUF Q8_0"),
+    ("teacher-questions", "teacher's answers (Claude Sonnet 5.5)"),
+]
+
 GUIDE_Q4 = [
     ("run3-q4_k_m-guide", "run 3 GGUF Q4_K_M"),
     ("run4-q4_k_m-guide", "run 4 GGUF Q4_K_M"),
@@ -119,6 +127,30 @@ def source_table() -> str:
         reading = ", as the app reads it" if keys[0] == "app" else ""
         lines.append(f"| {label}{reading} | {p['opened_answered_low']} / {p['opened']} | {p['answered_low']} / {p['n']} "
                      f"| {t['opened_warned']} / {t['opened']} | {t['warned']} / {t['n']} |")
+    return "\n".join(lines)
+
+
+QUESTIONS = ["claims", "sign_in", "payment", "investment", "reward_pressure", "content_farm"]
+
+
+def question_table(name: str) -> str:
+    """Per-question agreement with the teacher's answers, from a question model's record."""
+    m = load(name, "fine_tuned")
+    lines = ["| Question | Accuracy | Recall of yes | Precision of yes |", "| :-- | --: | --: | --: |"]
+    lines += [f"| `{q}` | {pct(m[q + '_accuracy'])} | {pct(m[q + '_recall'])} | {pct(m[q + '_precision'])} |"
+              for q in QUESTIONS]
+    return "\n".join(lines)
+
+
+def question_app_table(rows: list[tuple[str, str]]) -> str:
+    """The risk the app would show from each judge's answers, with the scores that need no label."""
+    lines = ["| Judge | Human-reviewed accuracy | Accuracy | Missed risk | Opened phishing answered `LOW` "
+             "| Opened top sites warned on |", "| :-- | --: | --: | --: | --: | --: |"]
+    for name, label in rows:
+        a = load(name, "app")
+        p, t = a["by_source"]["openphish"], a["by_source"]["tranco"]
+        lines.append(f"| {label} | {pct(a['human_review']['accuracy'])} | {pct(a['accuracy'])} | {a['missed_risk']} "
+                     f"| {p['opened_answered_low']} / {p['opened']} | {t['opened_warned']} / {t['opened']} |")
     return "\n".join(lines)
 
 
@@ -292,6 +324,51 @@ Most phishing URLs no longer opened when collected, so the opened pages are
 the informative ones. On those, run 4 answers `LOW` on far fewer than run 3,
 and on opened top sites every model warns on only a few, so the gap between
 runs 3 and 4 seen under our labels is confirmed by these label-free scores.
+
+## Run 6: the first question model
+
+Run 6 is the first model of the [Verdict Design](../../../docs/design.md): instead of
+grading the risk, it answers the six questions of the
+[Question Guide](../../docs/llm/question-guide.md) as one JSON line, and the verdict
+table turns its answers and the page's facts into the risk. Its training targets are
+Claude Sonnet 5.5's answers (`ml/docs/llm/dataset.md`); the training settings are run
+4's. The prompt and its system line are unchanged, so the app sends the same input as
+to run 3.
+
+Agreement with the teacher's answers on the {load("run6-colab", "fine_tuned")['n']} test cases, scored in Colab on the
+fp16 base (`run6-colab_test.json`): every reply parses (the untuned model parsed none),
+and all six answers match on {pct(load("run6-colab", "fine_tuned")['all_correct'])} of the cases.
+
+{question_table("run6-colab")}
+
+No test case has a yes answer for `payment` or `reward_pressure`, so their accuracy
+says nothing about finding them; the model never answers yes to `content_farm`.
+
+The risk the app would show, against the reviewed test labels:
+
+{question_app_table(RUN6_APP)}
+
+Run 6 clears the accuracy part of the bar ({pct(load("run3-q4_k_m-guide", None)["app"]["human_review"]["accuracy"])} for run 3) by a wide margin and warns on almost no
+top site, but it misses more risky pages than the 25 allowed, so it is not adopted
+yet. Q4_K_M loses part of the claims: the teacher's claims it recalls fall from
+{pct(load("run6-q8_0", None)['claims_recall'])} (Q8_0, as in fp16) to {pct(load("run6-q4_k_m", None)['claims_recall'])}, and two of the three impersonation pages of listed
+brands it misses (TokenPocket, imToken) are found again by Q8_0.
+
+Most of the misses are not the model's own. The teacher's answers already miss
+{load("teacher-questions", "app")['missed_risk']} risky pages through the table, and 25 of run 6's misses (fp16) are pages the teacher
+also misses. By cause, Q4_K_M's 34 misses are: content farms the model does not
+recognize (9, six of which the teacher does not call content farms either); nearly
+empty pages and error screens (8); payment, urgency, or investment calls (7, mostly
+not made by the teacher either); impersonation of listed brands lost to Q4 (3);
+claims of brands outside the table without a sign-in screen (3); and others (4). Of
+the 34, 21 have labels a Claude model reviewed rather than a person, so they are being
+reviewed by a person without seeing the earlier label (`reviews/blind_misses_run6_20261008.csv`).
+
+Simulated on Q4_K_M's answers, the table changes that would catch the known gaps
+trade misses for false alarms: treating a page under 100 characters as unverifiable
+gives 30 misses and 8 false alarms (from 34 and 5), adding brand claims outside the
+table as `MEDIUM` gives 28 and 9, and a 200-character threshold gives 26 and 12 while
+human-reviewed accuracy falls to 81.2%. None reaches 25 without new false alarms.
 
 ## Stability across quantization
 

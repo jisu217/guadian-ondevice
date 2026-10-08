@@ -217,6 +217,63 @@ the informative ones. On those, run 4 answers `LOW` on far fewer than run 3,
 and on opened top sites every model warns on only a few, so the gap between
 runs 3 and 4 seen under our labels is confirmed by these label-free scores.
 
+## Run 6: the first question model
+
+Run 6 is the first model of the [Verdict Design](../../../docs/design.md): instead of
+grading the risk, it answers the six questions of the
+[Question Guide](../../docs/llm/question-guide.md) as one JSON line, and the verdict
+table turns its answers and the page's facts into the risk. Its training targets are
+Claude Sonnet 5.5's answers (`ml/docs/llm/dataset.md`); the training settings are run
+4's. The prompt and its system line are unchanged, so the app sends the same input as
+to run 3.
+
+Agreement with the teacher's answers on the 414 test cases, scored in Colab on the
+fp16 base (`run6-colab_test.json`): every reply parses (the untuned model parsed none),
+and all six answers match on 92.3% of the cases.
+
+| Question | Accuracy | Recall of yes | Precision of yes |
+| :-- | --: | --: | --: |
+| `claims` | 95.4% | 80.0% | 78.3% |
+| `sign_in` | 99.5% | 95.5% | 95.5% |
+| `payment` | 100.0% | 0.0% | 0.0% |
+| `investment` | 98.8% | 85.7% | 60.0% |
+| `reward_pressure` | 100.0% | 0.0% | 0.0% |
+| `content_farm` | 98.1% | 0.0% | 0.0% |
+
+No test case has a yes answer for `payment` or `reward_pressure`, so their accuracy
+says nothing about finding them; the model never answers yes to `content_farm`.
+
+The risk the app would show, against the reviewed test labels:
+
+| Judge | Human-reviewed accuracy | Accuracy | Missed risk | Opened phishing answered `LOW` | Opened top sites warned on |
+| :-- | --: | --: | --: | --: | --: |
+| run 4 GGUF Q4_K_M (risk model, relabeled split) | 77.4% | 88.2% | 22 | 4 / 43 | 4 / 62 |
+| run 6 GGUF Q4_K_M | 85.0% | 89.6% | 34 | 13 / 43 | 1 / 62 |
+| run 6 GGUF Q8_0 | 85.7% | 90.1% | 32 | 11 / 43 | 2 / 62 |
+| teacher's answers (Claude Sonnet 5.5) | 88.7% | 92.0% | 27 | 10 / 43 | 2 / 62 |
+
+Run 6 clears the accuracy part of the bar (72.2% for run 3) by a wide margin and warns on almost no
+top site, but it misses more risky pages than the 25 allowed, so it is not adopted
+yet. Q4_K_M loses part of the claims: the teacher's claims it recalls fall from
+80.0% (Q8_0, as in fp16) to 68.9%, and two of the three impersonation pages of listed
+brands it misses (TokenPocket, imToken) are found again by Q8_0.
+
+Most of the misses are not the model's own. The teacher's answers already miss
+27 risky pages through the table, and 25 of run 6's misses (fp16) are pages the teacher
+also misses. By cause, Q4_K_M's 34 misses are: content farms the model does not
+recognize (9, six of which the teacher does not call content farms either); nearly
+empty pages and error screens (8); payment, urgency, or investment calls (7, mostly
+not made by the teacher either); impersonation of listed brands lost to Q4 (3);
+claims of brands outside the table without a sign-in screen (3); and others (4). Of
+the 34, 21 have labels a Claude model reviewed rather than a person, so they are being
+reviewed by a person without seeing the earlier label (`reviews/blind_misses_run6_20261008.csv`).
+
+Simulated on Q4_K_M's answers, the table changes that would catch the known gaps
+trade misses for false alarms: treating a page under 100 characters as unverifiable
+gives 30 misses and 8 false alarms (from 34 and 5), adding brand claims outside the
+table as `MEDIUM` gives 28 and 9, and a 200-character threshold gives 26 and 12 while
+human-reviewed accuracy falls to 81.2%. None reaches 25 without new false alarms.
+
 ## Stability across quantization
 
 Run 3: All 4 files give the same risk on 88.1% of the 118 cases. Agreement with f16, per quantized file:

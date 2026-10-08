@@ -151,6 +151,15 @@ also scores what needs no label: confirmed phishing URLs from OpenPhish answered
 opened, run 3 answers `LOW` on 12 and run 4 on 4; on the 62 top sites that
 opened, both warn on 4 or 5. These agree with the labeled scores.
 
+Run 6 is the first model of the verdict design: it answers six questions about the
+page, labeled by Claude Sonnet 5.5, and the verdict table sets the risk. As the app
+reads it, its Q4_K_M file scores 85.0% on the human-reviewed cases (run 4: 77.4%) and
+warns on 1 of 62 opened top sites, but misses 34 risky pages, over the bar of 25. The
+teacher's answers miss 27 through the same table, so most misses come from the labels
+and the table; Q4_K_M also loses some impersonation claims that Q8_0 keeps (claims
+recall 68.9% against 80.0%). The causes and the simulated table changes are in the
+[LLM Evaluation Report](../ml/reports/llm/evaluation-report.md).
+
 The cache and URL stage is measured on the 668-row URL dataset
 (`ml/data/url/sample_urls.csv`): it settles 30 rows, all correctly, and the other
 638 go on to open the page
@@ -268,9 +277,10 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Train run 6, the first question model of the [Verdict Design](design.md),
-   on Claude Sonnet 5.5's answers (the table and the app are in place), and ship
-   it or run 4 if one clears the bar set before run 5:
+1. Settle run 6's missed risk: review by hand the 21 missed pages whose labels a
+   Claude model wrote, then decide the table changes for nearly empty pages and
+   brand claims outside the table, and ship run 6 or run 4 if one clears the bar
+   set before run 5:
    human-reviewed accuracy above run 3's as the app reads it (72.2% on the
    relabeled split), and at most 25 missed risky pages. The guide labels of
    2026-10-05 are kept as the fallback.
