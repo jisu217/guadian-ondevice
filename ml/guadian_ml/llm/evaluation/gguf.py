@@ -193,7 +193,7 @@ def app_report(ns: dict, examples: list[dict], replies: list[str]) -> dict:
 
 def model_report(ns: dict, examples: list[dict], replies: list[str]) -> dict:
     """The replies as answered: per-question agreement for a question model, raw risk for a risk model."""
-    if all("facts" in e for e in examples):
+    if all("facts" in e for e in examples) and not any(answer.is_graded(r) for r in replies):
         return ns["score"](examples, replies)
     parsed = [answer.first_json_object(r) if r else None for r in replies]
     risks = [p["risk"] if p and p.get("risk") in ns["RISKS"] else None for p in parsed]
