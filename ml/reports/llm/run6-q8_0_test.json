@@ -21,36 +21,36 @@
   "content_farm_precision": 0.0,
   "all_correct": 0.9227053140096618,
   "human_review": {
-    "n": 133,
+    "n": 156,
     "unparseable": 0,
-    "claims_accuracy": 0.924812030075188,
+    "claims_accuracy": 0.9358974358974359,
     "claims_recall": 0.8717948717948718,
     "claims_precision": 0.8717948717948718,
-    "sign_in_accuracy": 0.9849624060150376,
-    "sign_in_recall": 0.9523809523809523,
-    "sign_in_precision": 0.9523809523809523,
+    "sign_in_accuracy": 0.9871794871794872,
+    "sign_in_recall": 0.9545454545454546,
+    "sign_in_precision": 0.9545454545454546,
     "payment_accuracy": 1.0,
     "payment_recall": 0.0,
     "payment_precision": 0.0,
-    "investment_accuracy": 0.9849624060150376,
-    "investment_recall": 1.0,
+    "investment_accuracy": 0.9807692307692307,
+    "investment_recall": 0.5,
     "investment_precision": 0.3333333333333333,
     "reward_pressure_accuracy": 1.0,
     "reward_pressure_recall": 0.0,
     "reward_pressure_precision": 0.0,
-    "content_farm_accuracy": 0.9774436090225563,
+    "content_farm_accuracy": 0.9551282051282052,
     "content_farm_recall": 0.0,
     "content_farm_precision": 0.0,
-    "all_correct": 0.8872180451127819
+    "all_correct": 0.8717948717948718
   },
   "app": {
     "n": 414,
-    "accuracy": 0.9009661835748792,
-    "recall_LOW": 0.9724770642201835,
-    "recall_MEDIUM": 0.8198757763975155,
+    "accuracy": 0.9202898550724637,
+    "recall_LOW": 0.9734513274336283,
+    "recall_MEDIUM": 0.8627450980392157,
     "recall_HIGH": 0.8285714285714286,
-    "macro_f1": 0.8887879011175572,
-    "missed_risk": 32,
+    "macro_f1": 0.9030194498007876,
+    "missed_risk": 24,
     "malformed": 0,
     "high_lowered": 0,
     "personal_info_lowered": 0,
@@ -69,40 +69,40 @@
       }
     },
     "human_review": {
-      "n": 133,
-      "accuracy": 0.8571428571428571,
-      "recall_LOW": 0.9487179487179487,
-      "recall_MEDIUM": 0.55,
+      "n": 156,
+      "accuracy": 0.7884615384615384,
+      "recall_LOW": 0.9318181818181818,
+      "recall_MEDIUM": 0.36363636363636365,
       "recall_HIGH": 0.8285714285714286,
-      "macro_f1": 0.798894031584239,
-      "missed_risk": 12,
+      "macro_f1": 0.7272069006091435,
+      "missed_risk": 24,
       "malformed": 0,
       "high_lowered": 0,
       "personal_info_lowered": 0,
       "by_source": {
         "openphish": {
-          "n": 42,
-          "answered_low": 8,
-          "opened": 40,
-          "opened_answered_low": 8
+          "n": 44,
+          "answered_low": 10,
+          "opened": 42,
+          "opened_answered_low": 10
         },
         "tranco": {
-          "n": 9,
-          "warned": 3,
-          "opened": 7,
-          "opened_warned": 1
+          "n": 13,
+          "warned": 4,
+          "opened": 11,
+          "opened_warned": 2
         }
       }
     }
   },
   "latency_s": {
-    "median": 2.627679624943994,
-    "p90": 3.207269125035964,
-    "max": 7.597528082900681,
+    "median": 2.63,
+    "p90": 3.21,
+    "max": 7.6,
     "threads": 4,
-    "gpu_layers": 99
+    "gpu_layers": 0
   },
   "model": "guadian-qwen3-1.7b-run6-Q8_0.gguf",
   "examples": "data/llm/final/sft_test.jsonl",
-  "examples_sha256": "e742fd288121ce0cc256c22c213549f99a3683ccd26ea87a6abda43ddfd02cd9"
+  "examples_sha256": "fc39ca08814a0f94a69b2134aada106ad9798769221a18fb6d8e1dcfbfc171ac"
 }

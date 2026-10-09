@@ -1,44 +1,30 @@
 {
   "n": 414,
-  "accuracy": 0.8309178743961353,
-  "unparseable": 0,
-  "recall_LOW": 0.8302752293577982,
-  "recall_MEDIUM": 0.8819875776397516,
+  "accuracy": 0.8188405797101449,
+  "recall_LOW": 0.8053097345132744,
+  "recall_MEDIUM": 0.8888888888888888,
   "recall_HIGH": 0.6,
-  "macro_f1": 0.7892106428695408,
-  "missed_risk": 16,
-  "by_source": {
-    "openphish": {
-      "n": 96,
-      "answered_low": 3,
-      "opened": 43,
-      "opened_answered_low": 3
-    },
-    "tranco": {
-      "n": 81,
-      "warned": 24,
-      "opened": 62,
-      "opened_warned": 6
-    }
-  },
+  "macro_f1": 0.7799141197150624,
+  "missed_risk": 15,
+  "unparseable": 0,
   "human_review": {
-    "n": 133,
-    "accuracy": 0.6842105263157895,
-    "unparseable": 0,
-    "recall_LOW": 0.7307692307692307,
-    "recall_MEDIUM": 0.65,
+    "n": 156,
+    "accuracy": 0.6474358974358975,
+    "recall_LOW": 0.6704545454545454,
+    "recall_MEDIUM": 0.6363636363636364,
     "recall_HIGH": 0.6,
-    "macro_f1": 0.6381048130056425,
-    "missed_risk": 6
+    "macro_f1": 0.6312146512254242,
+    "missed_risk": 11,
+    "unparseable": 0
   },
   "app": {
     "n": 414,
-    "accuracy": 0.8816425120772947,
-    "recall_LOW": 0.944954128440367,
-    "recall_MEDIUM": 0.8571428571428571,
+    "accuracy": 0.8743961352657005,
+    "recall_LOW": 0.9203539823008849,
+    "recall_MEDIUM": 0.869281045751634,
     "recall_HIGH": 0.6,
-    "macro_f1": 0.8240348301398607,
-    "missed_risk": 22,
+    "macro_f1": 0.8182214684087848,
+    "missed_risk": 20,
     "malformed": 0,
     "high_lowered": 0,
     "personal_info_lowered": 31,
@@ -57,28 +43,28 @@
       }
     },
     "human_review": {
-      "n": 133,
-      "accuracy": 0.7744360902255639,
-      "recall_LOW": 0.8974358974358975,
-      "recall_MEDIUM": 0.6,
+      "n": 156,
+      "accuracy": 0.717948717948718,
+      "recall_LOW": 0.8295454545454546,
+      "recall_MEDIUM": 0.5454545454545454,
       "recall_HIGH": 0.6,
-      "macro_f1": 0.6945280506675303,
-      "missed_risk": 9,
+      "macro_f1": 0.6682862523540489,
+      "missed_risk": 16,
       "malformed": 0,
       "high_lowered": 0,
-      "personal_info_lowered": 16,
+      "personal_info_lowered": 19,
       "by_source": {
         "openphish": {
-          "n": 42,
+          "n": 44,
           "answered_low": 3,
-          "opened": 40,
+          "opened": 42,
           "opened_answered_low": 3
         },
         "tranco": {
-          "n": 9,
-          "warned": 2,
-          "opened": 7,
-          "opened_warned": 0
+          "n": 13,
+          "warned": 5,
+          "opened": 11,
+          "opened_warned": 3
         }
       }
     }
@@ -92,5 +78,5 @@
   },
   "model": "guadian-qwen3-1.7b-run4-Q4_K_M.gguf",
   "examples": "data/llm/final/sft_test.jsonl",
-  "examples_sha256": "94e171915b6d6ad7ddfbdbb4b63753a97c0cabca247fe01dffbddba9ef45b592"
+  "examples_sha256": "fc39ca08814a0f94a69b2134aada106ad9798769221a18fb6d8e1dcfbfc171ac"
 }
