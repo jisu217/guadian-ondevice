@@ -166,33 +166,35 @@ guide, changing 11 human and 12 assistant-reviewed labels. The app's
 `personal_info` check changed with it: it now needs a personal field or a form
 worded to collect contact details, and no longer keeps answers on a brand
 mention. Earlier runs' saved answers are rescored here on the
-414 relabeled test cases; the sections above keep their original split.
+414 relabeled test cases, including the 23 labels a blind review changed on 2026-10-09
+(run 6 below); the sections above keep their original split.
 
 | Model | Reading | Cases | Accuracy | Macro F1 | LOW recall | Missed risk |
 | :-- | :-- | --: | --: | --: | --: | --: |
-| run 3 GGUF Q4_K_M | model | 414 | 79.7% | 0.73 | 94.0% | 56 |
-| run 3 GGUF Q4_K_M | app | 414 | 80.7% | 0.74 | 95.0% | 59 |
-| run 3 GGUF Q4_K_M | model, human-reviewed | 133 | 71.4% | 0.61 | 89.7% | 18 |
-| run 3 GGUF Q4_K_M | app, human-reviewed | 133 | 72.2% | 0.62 | 91.0% | 21 |
-| run 4 GGUF Q4_K_M | model | 414 | 83.1% | 0.79 | 83.0% | 16 |
-| run 4 GGUF Q4_K_M | app | 414 | 88.2% | 0.82 | 94.5% | 22 |
-| run 4 GGUF Q4_K_M | model, human-reviewed | 133 | 68.4% | 0.64 | 73.1% | 6 |
-| run 4 GGUF Q4_K_M | app, human-reviewed | 133 | 77.4% | 0.69 | 89.7% | 9 |
-| run 5 GGUF Q4_K_M | model | 414 | 83.6% | 0.79 | 85.8% | 23 |
-| run 5 GGUF Q4_K_M | app | 414 | 86.5% | 0.81 | 92.2% | 26 |
-| run 5 GGUF Q4_K_M | model, human-reviewed | 133 | 69.2% | 0.62 | 79.5% | 11 |
-| run 5 GGUF Q4_K_M | app, human-reviewed | 133 | 71.4% | 0.63 | 84.6% | 13 |
+| run 3 GGUF Q4_K_M | model | 414 | 81.2% | 0.74 | 93.8% | 49 |
+| run 3 GGUF Q4_K_M | app | 414 | 82.1% | 0.75 | 94.7% | 52 |
+| run 3 GGUF Q4_K_M | model, human-reviewed | 156 | 71.8% | 0.65 | 88.6% | 21 |
+| run 3 GGUF Q4_K_M | app, human-reviewed | 156 | 72.4% | 0.65 | 89.8% | 24 |
+| run 4 GGUF Q4_K_M | model | 414 | 81.9% | 0.78 | 80.5% | 15 |
+| run 4 GGUF Q4_K_M | app | 414 | 87.4% | 0.82 | 92.0% | 20 |
+| run 4 GGUF Q4_K_M | model, human-reviewed | 156 | 64.7% | 0.63 | 67.0% | 11 |
+| run 4 GGUF Q4_K_M | app, human-reviewed | 156 | 71.8% | 0.67 | 83.0% | 16 |
+| run 5 GGUF Q4_K_M | model | 414 | 82.6% | 0.78 | 83.6% | 21 |
+| run 5 GGUF Q4_K_M | app | 414 | 85.5% | 0.80 | 89.8% | 24 |
+| run 5 GGUF Q4_K_M | model, human-reviewed | 156 | 65.4% | 0.62 | 73.9% | 17 |
+| run 5 GGUF Q4_K_M | app, human-reviewed | 156 | 66.7% | 0.62 | 78.4% | 20 |
 
 | Judge | Accuracy | Macro F1 | `LOW` recall | Missed risk | Human-reviewed accuracy | Human-reviewed missed |
 | :-- | --: | --: | --: | --: | --: | --: |
-| teacher by the guide (Claude haiku) | 91.5% | 0.90 | 93.1% | 12 | 83.5% | 3 |
+| teacher by the guide (Claude haiku) | 89.6% | 0.89 | 89.8% | 12 | 75.6% | 11 |
 
 The guide's teacher agrees with people on far more of the human-reviewed cases
 than the original server did (51.1%), so the training labels and the test labels now
 follow the same criteria. Its overall figure is inflated the same way as before:
 the reviewed labels were reconciled with its answers. On this split the bar for
-run 6 is run 3's 72.2% app-read accuracy on the human-reviewed cases, and at most 25
-missed risky pages. Run 4 as the app reads it clears both, but the check it
+run 6 is run 3's 72.4% app-read accuracy on the human-reviewed cases, and at most 25
+missed risky pages. Run 4 as the app reads it misses few risky pages but, with the
+reviewed labels, falls just below run 3 on the human-reviewed cases, and the check it
 relies on was designed after reading this split's errors.
 
 ## Scores that do not depend on our labels
@@ -247,32 +249,39 @@ The risk the app would show, against the reviewed test labels:
 
 | Judge | Human-reviewed accuracy | Accuracy | Missed risk | Opened phishing answered `LOW` | Opened top sites warned on |
 | :-- | --: | --: | --: | --: | --: |
-| run 4 GGUF Q4_K_M (risk model, relabeled split) | 77.4% | 88.2% | 22 | 4 / 43 | 4 / 62 |
-| run 6 GGUF Q4_K_M | 85.0% | 89.6% | 34 | 13 / 43 | 1 / 62 |
-| run 6 GGUF Q8_0 | 85.7% | 90.1% | 32 | 11 / 43 | 2 / 62 |
-| teacher's answers (Claude Sonnet 5.5) | 88.7% | 92.0% | 27 | 10 / 43 | 2 / 62 |
+| run 4 GGUF Q4_K_M (risk model, relabeled split) | 71.8% | 87.4% | 20 | 4 / 43 | 4 / 62 |
+| run 6 GGUF Q4_K_M | 78.8% | 92.0% | 25 | 13 / 43 | 1 / 62 |
+| run 6 GGUF Q8_0 | 78.8% | 92.0% | 24 | 11 / 43 | 2 / 62 |
+| teacher's answers (Claude Sonnet 5.5) | 82.1% | 93.0% | 21 | 10 / 43 | 2 / 62 |
 
-Run 6 clears the accuracy part of the bar (72.2% for run 3) by a wide margin and warns on almost no
-top site, but it misses more risky pages than the 25 allowed, so it is not adopted
-yet. Q4_K_M loses part of the claims: the teacher's claims it recalls fall from
-80.0% (Q8_0, as in fp16) to 68.9%, and two of the three impersonation pages of listed
-brands it misses (TokenPocket, imToken) are found again by Q8_0.
+A person reviewed the labels behind run 6's misses before this table was final. Of
+Q4_K_M's 34 misses at first, 21 had labels a Claude model had written; the project
+owner relabeled those 21, and the 2 false alarms with such labels, from the model
+input alone with the earlier label hidden (`reviews/review_blind_run6_20261009.csv`).
+The review agreed with the earlier label on 12 of the 23; 9 pages the earlier labels
+called risky (news articles, information posts, ordinary shops) are `LOW`, which run 6
+had answered. The scores above use the reviewed labels: 156 test cases are now
+human-reviewed.
 
-Most of the misses are not the model's own. The teacher's answers already miss
-27 risky pages through the table, and 25 of run 6's misses (fp16) are pages the teacher
-also misses. By cause, Q4_K_M's 34 misses are: content farms the model does not
-recognize (9, six of which the teacher does not call content farms either); nearly
-empty pages and error screens (8); payment, urgency, or investment calls (7, mostly
-not made by the teacher either); impersonation of listed brands lost to Q4 (3);
-claims of brands outside the table without a sign-in screen (3); and others (4). Of
-the 34, 21 have labels a Claude model reviewed rather than a person, so they are being
-reviewed by a person without seeing the earlier label (`reviews/blind_misses_run6_20261008.csv`).
+Run 6 clears the bar: above run 3's 72.4% on the human-reviewed cases, and at most 25 missed
+risky pages (25 for Q4_K_M, 24 for Q8_0), with almost no warning on top sites.
+Run 4 misses fewer risky pages (20) but raises 18 false alarms to Q4_K_M's 4 and
+falls below run 3 on the human-reviewed cases, and its figures rest on an app check
+designed after reading this split. Q4_K_M loses part of the claims: the teacher's
+claims it recalls fall from 80.0% (Q8_0, as in fp16) to 68.9%, and two impersonation
+pages of listed brands it misses (TokenPocket, imToken) are found by Q8_0.
 
-Simulated on Q4_K_M's answers, the table changes that would catch the known gaps
-trade misses for false alarms: treating a page under 100 characters as unverifiable
-gives 30 misses and 8 false alarms (from 34 and 5), adding brand claims outside the
-table as `MEDIUM` gives 28 and 9, and a 200-character threshold gives 26 and 12 while
-human-reviewed accuracy falls to 81.2%. None reaches 25 without new false alarms.
+What run 6 still misses mostly comes from the table and the labels rather than the
+model: the teacher's own answers miss 21 risky pages through the same table. Its
+weakest point is phishing that opened: 13 of 43 such pages are answered `LOW`, against
+4 for run 4. Before the review, by cause, Q4_K_M's misses were content farms the model
+does not recognize, nearly empty pages and error screens, payment, urgency, or
+investment calls, impersonation of listed brands lost to Q4, claims of brands outside
+the table without a sign-in screen, and a few others. The review judged every nearly
+empty page and error screen as unverifiable, which the table cannot give a page that
+opened. Simulated on Q4_K_M's answers against the earlier labels, treating a page under
+100 characters as unverifiable cut misses from 34 to 30 for 3 more false alarms, and
+adding brand claims outside the table as `MEDIUM` cut them to 32 for 1 more.
 
 ## Stability across quantization
 

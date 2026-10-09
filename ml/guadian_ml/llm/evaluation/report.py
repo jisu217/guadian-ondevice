@@ -292,7 +292,8 @@ guide, changing 11 human and 12 assistant-reviewed labels. The app's
 `personal_info` check changed with it: it now needs a personal field or a form
 worded to collect contact details, and no longer keeps answers on a brand
 mention. Earlier runs' saved answers are rescored here on the
-{load("run3-q4_k_m-guide", None)['n']} relabeled test cases; the sections above keep their original split.
+{load("run3-q4_k_m-guide", None)['n']} relabeled test cases, including the 23 labels a blind review changed on 2026-10-09
+(run 6 below); the sections above keep their original split.
 
 {subset_table(GUIDE_Q4)}
 
@@ -305,7 +306,8 @@ than the original server did ({pct(load("teacher-haiku", None)['human_review']['
 follow the same criteria. Its overall figure is inflated the same way as before:
 the reviewed labels were reconciled with its answers. On this split the bar for
 run 6 is run 3's {pct(load("run3-q4_k_m-guide", None)["app"]["human_review"]["accuracy"])} app-read accuracy on the human-reviewed cases, and at most 25
-missed risky pages. Run 4 as the app reads it clears both, but the check it
+missed risky pages. Run 4 as the app reads it misses few risky pages but, with the
+reviewed labels, falls just below run 3 on the human-reviewed cases, and the check it
 relies on was designed after reading this split's errors.
 
 ## Scores that do not depend on our labels
@@ -348,27 +350,34 @@ The risk the app would show, against the reviewed test labels:
 
 {question_app_table(RUN6_APP)}
 
-Run 6 clears the accuracy part of the bar ({pct(load("run3-q4_k_m-guide", None)["app"]["human_review"]["accuracy"])} for run 3) by a wide margin and warns on almost no
-top site, but it misses more risky pages than the 25 allowed, so it is not adopted
-yet. Q4_K_M loses part of the claims: the teacher's claims it recalls fall from
-{pct(load("run6-q8_0", None)['claims_recall'])} (Q8_0, as in fp16) to {pct(load("run6-q4_k_m", None)['claims_recall'])}, and two of the three impersonation pages of listed
-brands it misses (TokenPocket, imToken) are found again by Q8_0.
+A person reviewed the labels behind run 6's misses before this table was final. Of
+Q4_K_M's 34 misses at first, 21 had labels a Claude model had written; the project
+owner relabeled those 21, and the 2 false alarms with such labels, from the model
+input alone with the earlier label hidden (`reviews/review_blind_run6_20261009.csv`).
+The review agreed with the earlier label on 12 of the 23; 9 pages the earlier labels
+called risky (news articles, information posts, ordinary shops) are `LOW`, which run 6
+had answered. The scores above use the reviewed labels: {load("run6-q4_k_m", "app")['human_review']['n']} test cases are now
+human-reviewed.
 
-Most of the misses are not the model's own. The teacher's answers already miss
-{load("teacher-questions", "app")['missed_risk']} risky pages through the table, and 25 of run 6's misses (fp16) are pages the teacher
-also misses. By cause, Q4_K_M's 34 misses are: content farms the model does not
-recognize (9, six of which the teacher does not call content farms either); nearly
-empty pages and error screens (8); payment, urgency, or investment calls (7, mostly
-not made by the teacher either); impersonation of listed brands lost to Q4 (3);
-claims of brands outside the table without a sign-in screen (3); and others (4). Of
-the 34, 21 have labels a Claude model reviewed rather than a person, so they are being
-reviewed by a person without seeing the earlier label (`reviews/blind_misses_run6_20261008.csv`).
+Run 6 clears the bar: above run 3's {pct(load("run3-q4_k_m-guide", None)["app"]["human_review"]["accuracy"])} on the human-reviewed cases, and at most 25 missed
+risky pages ({load("run6-q4_k_m", "app")['missed_risk']} for Q4_K_M, {load("run6-q8_0", "app")['missed_risk']} for Q8_0), with almost no warning on top sites.
+Run 4 misses fewer risky pages ({load("run4-q4_k_m-guide", "app")['missed_risk']}) but raises 18 false alarms to Q4_K_M's 4 and
+falls below run 3 on the human-reviewed cases, and its figures rest on an app check
+designed after reading this split. Q4_K_M loses part of the claims: the teacher's
+claims it recalls fall from {pct(load("run6-q8_0", None)['claims_recall'])} (Q8_0, as in fp16) to {pct(load("run6-q4_k_m", None)['claims_recall'])}, and two impersonation
+pages of listed brands it misses (TokenPocket, imToken) are found by Q8_0.
 
-Simulated on Q4_K_M's answers, the table changes that would catch the known gaps
-trade misses for false alarms: treating a page under 100 characters as unverifiable
-gives 30 misses and 8 false alarms (from 34 and 5), adding brand claims outside the
-table as `MEDIUM` gives 28 and 9, and a 200-character threshold gives 26 and 12 while
-human-reviewed accuracy falls to 81.2%. None reaches 25 without new false alarms.
+What run 6 still misses mostly comes from the table and the labels rather than the
+model: the teacher's own answers miss {load("teacher-questions", "app")['missed_risk']} risky pages through the same table. Its
+weakest point is phishing that opened: {load("run6-q4_k_m", "app")['by_source']['openphish']['opened_answered_low']} of {load("run6-q4_k_m", "app")['by_source']['openphish']['opened']} such pages are answered `LOW`, against
+{load("run4-q4_k_m-guide", "app")['by_source']['openphish']['opened_answered_low']} for run 4. Before the review, by cause, Q4_K_M's misses were content farms the model
+does not recognize, nearly empty pages and error screens, payment, urgency, or
+investment calls, impersonation of listed brands lost to Q4, claims of brands outside
+the table without a sign-in screen, and a few others. The review judged every nearly
+empty page and error screen as unverifiable, which the table cannot give a page that
+opened. Simulated on Q4_K_M's answers against the earlier labels, treating a page under
+100 characters as unverifiable cut misses from 34 to 30 for 3 more false alarms, and
+adding brand claims outside the table as `MEDIUM` cut them to 32 for 1 more.
 
 ## Stability across quantization
 
