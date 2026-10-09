@@ -182,8 +182,12 @@ against the same criteria from the model's input alone: 30 by a person, the
 other 343 by a Claude model (Claude Opus 5.5). Model-reviewed rows live in
 `data/llm/reviews/assistant_review_*.csv` and carry `label_source: assistant_review`,
 so scores on `human_review` cases still measure agreement with people only.
-After the bot-check exclusion the test split holds 414 cases: 133 reviewed by a
-person and 281 by the model.
+After the bot-check exclusion the test split holds 414 cases: 156 reviewed by a
+person and 258 by the model. On 2026-10-09 the project owner relabeled the 23 test
+cases where run 6 disagreed with a model-reviewed label, from the model's input with
+the earlier label hidden (`data/llm/reviews/review_blind_run6_20261009.csv`); 12 of the
+23 kept their risk. Reviewing only where a model disagrees with a label favors that
+model, so both directions were reviewed: its misses and its false alarms.
 `data/llm/reviews/label_overrides.jsonl`, if present, holds one-off corrections.
 
 ## Vendored files

@@ -228,8 +228,8 @@ Evaluation reports three layers:
    Tranco top sites warned on, counting pages that opened apart.
 
 The bar for shipping stays the one set before run 5, on the relabeled split:
-human-reviewed accuracy as the app reads it above run 3's 72.2%, and at most 25
-missed risky pages. The guide labels of 2026-10-05 (risk labels by the labeling
+human-reviewed accuracy as the app reads it above run 3's (72.4% on the 156
+human-reviewed cases after the 2026-10-09 review), and at most 25 missed risky pages. The guide labels of 2026-10-05 (risk labels by the labeling
 guide) are kept as the fallback if this design is not adopted.
 
 ## 9. Migration
@@ -251,10 +251,11 @@ guide) are kept as the fallback if this design is not adopted.
    evaluation scripts to the answer format; train and score once (code done: the app
    reads both reply formats, so run 3 keeps working; the prompt and its system line
    are unchanged, so either kind of model takes the same input). Run 6 is trained
-   and scored: 85.0% on the human-reviewed cases as the app reads Q4_K_M, but 34
-   missed risky pages against the bar of 25, most of which the teacher's answers miss
-   too. Before the known gaps below are closed, the 21 missed pages whose labels a
-   Claude model wrote are reviewed by hand.
+   and scored. A blind review by the project owner relabeled the 23 test cases where
+   run 6 disagreed with a label a Claude model had written; on the reviewed labels
+   run 6 clears the bar: 78.8% on the 156 human-reviewed cases as the app reads
+   Q4_K_M (run 3: 72.4%) and 25 missed risky pages (24 with Q8_0). Shipping waits on
+   timing Q4_K_M and Q8_0 on a phone.
 6. Update the documents that describe the pipeline and the labels.
 
 Page inspection, the brand and blocklist data, URL parsing, the llama.cpp
@@ -331,4 +332,10 @@ Known gaps, left for after the first model is trained:
   installs.
 - **Near-empty pages.** A page that opens but shows almost nothing (a user-agent
   echo, a PHP error) is not unverifiable, since only a page that did not open is.
+  In the 2026-10-09 blind review the project owner judged such pages `MEDIUM`
+  unverifiable each time, which supports adding a rule for them.
+- **Login forms beside a contact line.** Rule A reads a form as collecting
+  personal details when contact or consent wording appears anywhere on the page,
+  so a sign-in form above a footer that lists the company's 연락처 counts as a
+  personal field (`nv20261002_0954`); the blind review judged that page `LOW`.
 

@@ -91,7 +91,8 @@ with OpenPhish, Tranco, and Naver search URLs; runs 4 and 5 trained on it.
 Its labels now follow one labeling guide: the teacher relabeled every case from
 the on-device model's own prompt, and 38 pages that a bot defense served
 instead of the site are left out, leaving 2,056 cases. All 414 test cases are
-reviewed, 133 by a person and the rest by a Claude model. The data process is in
+reviewed, 156 by a person (23 of them relabeled blind on 2026-10-09, after run 6)
+and the rest by a Claude model. The data process is in
 [LLM Dataset](../ml/docs/llm/dataset.md), and intended use and limits in the
 [LLM Model Card](../ml/docs/llm/model-card.md).
 
@@ -153,11 +154,14 @@ opened, both warn on 4 or 5. These agree with the labeled scores.
 
 Run 6 is the first model of the verdict design: it answers six questions about the
 page, labeled by Claude Sonnet 5.5, and the verdict table sets the risk. As the app
-reads it, its Q4_K_M file scores 85.0% on the human-reviewed cases (run 4: 77.4%) and
-warns on 1 of 62 opened top sites, but misses 34 risky pages, over the bar of 25. The
-teacher's answers miss 27 through the same table, so most misses come from the labels
-and the table; Q4_K_M also loses some impersonation claims that Q8_0 keeps (claims
-recall 68.9% against 80.0%). The causes and the simulated table changes are in the
+reads it, its Q4_K_M file first missed 34 risky pages, over the bar of 25. Of those,
+21 had labels a Claude model wrote; the project owner relabeled them, and the 2 false
+alarms with such labels, from the model input with the old label hidden, and
+disagreed with 11 of the 23. On the reviewed labels, run 6 Q4_K_M scores 78.8% on the
+156 human-reviewed cases (run 3: 72.4%, run 4: 71.8%), misses 25 risky pages (Q8_0:
+24), and raises 4 false alarms (run 4: 18), so it clears the bar. Q4_K_M loses some
+impersonation claims that Q8_0 keeps (claims recall 68.9% against 80.0%), and 13 of 43
+phishing pages that opened are still answered `LOW`. The causes and the simulated table changes are in the
 [LLM Evaluation Report](../ml/reports/llm/evaluation-report.md).
 
 The cache and URL stage is measured on the 668-row URL dataset
@@ -277,13 +281,10 @@ that output has not yet been verified by hand.
 
 ## 10. Next Steps
 
-1. Settle run 6's missed risk: review by hand the 21 missed pages whose labels a
-   Claude model wrote, then decide the table changes for nearly empty pages and
-   brand claims outside the table, and ship run 6 or run 4 if one clears the bar
-   set before run 5:
-   human-reviewed accuracy above run 3's as the app reads it (72.2% on the
-   relabeled split), and at most 25 missed risky pages. The guide labels of
-   2026-10-05 are kept as the fallback.
+1. Ship run 6, which clears the bar (human-reviewed accuracy above run 3's 72.4%
+   as the app reads it, at most 25 missed risky pages), after timing Q4_K_M and
+   Q8_0 on a phone; then decide the table changes for nearly empty pages, brand
+   claims outside the table, and login forms beside a company's contact line.
 2. Time the shipped model on the emulator and on a physical device.
 3. Update the bundled blocklist periodically.
 4. Improve accessibility permission onboarding and the result UI.

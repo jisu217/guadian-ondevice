@@ -43,7 +43,7 @@ both the risk criteria and the response format the app can read.
 | 3 | 5 epochs, an effective batch size of 8, and repeating `HIGH` training cases twice | Q4_K_M agreement with f16 rose to 91.5%, and accuracy reached 74.6%. Risky pages classified as `LOW` remained a problem. |
 | 4 | The 2026-10 dataset, 3 epochs, and repeating `HIGH` training cases three times | Missed risk fell sharply, but the model warned on many ordinary pages; on the human-reviewed cases it scored below run 3. |
 | 5 | Run 4's settings with training labels aligned to the reviewed test labels | False alarms fell, but missed risk rose again and the model tied brand mentions to `personal_info`, a link the label rule's exceptions created. |
-| 6 | Run 4's settings, but the model answers six questions about the page and a verdict table sets the risk; labels from Claude Sonnet 5.5 | Human-reviewed accuracy rose to 85.0% (Q4_K_M) and warnings on top sites nearly vanished, but 34 risky pages were missed, over the bar of 25; most of them the teacher's answers miss too. |
+| 6 | Run 4's settings, but the model answers six questions about the page and a verdict table sets the risk; labels from Claude Sonnet 5.5 | After a blind review fixed the labels behind its misses, it scored 78.8% on the human-reviewed cases (run 3: 72.4%), missed 25 risky pages (Q4_K_M; 24 with Q8_0), and raised 4 false alarms to run 4's 18. It is the first run to clear the bar, but it still passes 13 of 43 phishing pages that opened. |
 
 Run 1 used an earlier dataset version. Eight test prompts also changed between
 runs 2 and 3, so these experiments do not isolate the effect of training
@@ -99,12 +99,15 @@ The real cost was that the criteria lived in the model, so each change of rules
 meant relabeling and training again, and five parts of the app each decided by
 their own rules. So I redesigned the verdict: the model answers six questions
 about the page and one table decides the risk ([Verdict Design](docs/design.md)).
-Run 6, the first model trained this way, scores 85.0% on the human-reviewed cases
-as the app reads it, against 77.4% for run 4, and warns on 1 of 62 top sites that
-opened. It still misses 34 risky pages, above the 25 I allowed, but the teacher's own
-answers miss 27 through the same table, so most of the gap is in the labels and the
-table rather than the model. I am checking the 21 missed pages whose labels a Claude
-model wrote, by hand, before changing the table.
+Run 6, the first model trained this way, first seemed to miss 34 risky pages, over the
+25 I allowed. But 21 of those labels had been written by a Claude model, so I relabeled
+them myself without seeing the old label, along with the 2 false alarms that had such
+labels. I disagreed with 11 of the 23, mostly pages the old labels called risky that
+were ordinary articles and shops, which run 6 had answered `LOW`. On the reviewed
+labels run 6 scores 78.8% on the 156 human-reviewed cases as the app reads it (run 3:
+72.4%, run 4: 71.8%), misses 25 risky pages, and warns on 1 of 62 top sites that
+opened. It is the first run to clear the bar; its weak spot is phishing that opened,
+13 of 43 answered `LOW`, mostly gaps in the verdict table.
 
 Details: [Dataset](ml/docs/llm/dataset.md),
 [Model Card](ml/docs/llm/model-card.md), and
@@ -141,8 +144,8 @@ prompt's lines. The shipped run 3 model still grades the risk itself, so its rep
 is read as before: the app checks the evidence returned with a `HIGH` answer and
 lowers the risk to `MEDIUM` when the required grounding is missing, and lowers a
 `personal_info` answer to `LOW` unless the page shows a personal field or a form
-worded to collect contact details. The first question model, run 6, is trained
-and scored but not shipped yet.
+worded to collect contact details. The first question model, run 6, clears the bar
+but is not shipped yet: Q4_K_M or Q8_0 depends on its speed on a phone.
 
 | Area | Verified so far | Still to do |
 | :-- | :-- | :-- |
