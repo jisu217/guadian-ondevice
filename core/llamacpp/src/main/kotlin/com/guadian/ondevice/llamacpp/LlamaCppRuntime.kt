@@ -57,9 +57,10 @@ class LlamaCppRuntime(
     companion object {
         private const val TAG = "GuadianLlama"
 
-        // The longest training prompt is about 700 tokens; the answer is at most 96 (notebook MAX_NEW_TOKENS).
+        // The longest training prompt is about 700 tokens. A question model's answer quotes a
+        // prompt line as evidence: run 6's longest test answer is 155 tokens, so 96 cut 2 of 414.
         const val CONTEXT_TOKENS = 1024
-        const val MAX_NEW_TOKENS = 96
+        const val MAX_NEW_TOKENS = 192
 
         // Big cores on most phones; more threads than big cores slows llama.cpp down.
         val DEFAULT_THREADS = minOf(4, Runtime.getRuntime().availableProcessors())
