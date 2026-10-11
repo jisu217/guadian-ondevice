@@ -77,6 +77,12 @@ classification:
 Each row records the teacher model and the guide SHA256 used to produce it.
 This keeps label provenance explicit when the guide changes.
 
+On the 133 human-reviewed test cases, the risk the table computes from Claude
+Sonnet 5.5's answers matches the human label on 118 (88.7%), with 11 risky pages
+answered `LOW`. From Claude Haiku 4.5's answers it matched on 73.7% in a pilot,
+and Claude Haiku 4.5 labeling the risk directly by the Labeling Guide matched on
+83.5%.
+
 ## Review Policy
 
 Review is based only on the model input: address, landing host, status, title,
@@ -92,6 +98,12 @@ Important review rules:
 - human-reviewed labels override teacher and assistant labels;
 - one-off corrections live in `data/llm/reviews/label_overrides.jsonl` when
   present.
+
+On 2026-10-09 the project owner relabeled the 23 test cases where run 6
+disagreed with a model-reviewed label, from the model's input with the earlier
+label hidden (`data/llm/reviews/review_blind_run6_20261009.csv`); 12 of the 23
+kept their risk. Reviewing only where a model disagrees with a label favors that
+model, so both directions were reviewed: its misses and its false alarms.
 
 ## Legacy Label Sets
 

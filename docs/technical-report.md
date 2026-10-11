@@ -158,6 +158,14 @@ runtime model is run 6 Q8_0.
 | Teacher-answer exact match | 92.3% |
 | `claims` recall | 80.0% |
 
+Run 6 cleared the adoption bar only after a label review. As the app reads it,
+its Q4_K_M file first missed 34 risky pages, over the bar of 25. Of those, 21 had
+labels a Claude model wrote; the project owner relabeled them, and the 2 false
+alarms with such labels, from the model input with the old label hidden, and
+disagreed with 11 of the 23. The figures above use the reviewed labels. The
+review covered only run 6's disagreements, which favors run 6 in comparisons
+with earlier runs.
+
 Q4_K_M reached the same overall accuracy but lost more brand-claim answers
 (`claims` recall 68.9% versus 80.0%). Q8_0 was selected as the current runtime
 baseline because the larger file preserved more impersonation evidence.
