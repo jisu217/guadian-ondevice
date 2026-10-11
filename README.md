@@ -2,95 +2,83 @@
 
 ![Status](https://img.shields.io/badge/status-in_progress-111111)
 
-GUADIAN On-device is an Android research prototype for judging the risk of ad
-landing pages locally on the phone. It rebuilds the judgment stage of the
-original GUADIAN service from a server-side LLM call into an on-device pipeline
-using rendered-page inspection, deterministic policy rules, and a fine-tuned
-Qwen3-1.7B model running through llama.cpp.
+「GUADIAN」 is a service my team built in the SKT FLY AI bootcamp to protect people
+from malicious ads; its judgment stage called `claude-haiku-4-5` on a server. In
+this repository I moved that judgment onto the phone, and most of the work went
+into one question: how far can a 1.7B model, fine-tuned and quantized to run on
+a phone's CPU, be pushed toward a reliable judge? This is the record of that
+work: the data, six training runs, and what each one taught me.
 
-The repository contains both the Android runtime (`app/`, `core/`) and the ML
-workspace (`ml/`) used to build datasets, fine-tune the model, export GGUF
-files, and evaluate runtime behavior.
+## The task
 
-## Current Model
+The model reads a short Korean description of an ad landing page, built from
+what the phone can observe (address, title, visible text, form fields, APK
+links, host-imitation findings), and answers in one JSON line that the app reads.
+I fine-tune Qwen3-1.7B with LoRA, export it to GGUF, and run it with llama.cpp
+inside an Android app.
 
-The current app-integrated model is run 6 Q8_0:
+I started from the team's 251 ad landing URLs and 300 OpenPhish URLs, rendered
+in a mobile browser and labeled by the original judge's criteria, then grew the
+data to 2,094 cases with OpenPhish, Tranco Korean sites, and Naver search
+results. Splits are grouped by site, so no test site appears in training.
 
-| Item | Value |
-| :-- | :-- |
-| Base model | Qwen3-1.7B |
-| Fine-tuning | LoRA on fp16 base weights |
-| Runtime format | GGUF, llama.cpp |
-| Selected quantization | Q8_0 |
-| File size | 1.83 GB |
-| Model role | Answers six page-understanding questions |
-| Final decision | Deterministic verdict table |
+## Training runs
 
-Earlier runs asked the model to output the final risk directly. Run 6 separates
-page understanding from policy: the model reports structured observations, and
-`ml/runtime/verdict_table.json` assigns the risk. This keeps judgment criteria
-auditable and reduces the need to retrain the model for policy changes.
+| Run | What I changed | Result |
+| :-- | :-- | :-- |
+| 1 | QLoRA on a 4-bit base, merged into fp16 for export | Accuracy fell about six points in the merge |
+| 2 | LoRA on the fp16 base | Format followed, but Q4_K_M agreed with f16 on only 65.3% of cases |
+| 3 | 5 epochs, effective batch 8, `HIGH` cases repeated | Agreement 91.5%, accuracy 74.6%; one risky page in three answered `LOW` |
+| 4 | 2,094-case dataset, `HIGH` repeated three times | Far fewer misses, but many false alarms |
+| 5 | Run 4 with training labels aligned to the reviewed test labels | Fewer false alarms, more misses again |
+| 6 | Six questions answered by the model, risk set by a verdict table | 78.8% on human-reviewed cases (run 3: 72.4%), 24 of 188 risky pages missed |
 
-## Judgment Pipeline
+Run 1 taught me that an adapter trained against 4-bit weights no longer fits
+once merged into the full-precision weights the GGUF is made from, so every
+later run trains on the fp16 base. Run 2 showed the opposite problem at the
+other end: the fine-tuned model was fragile under quantization, and more
+optimizer steps in run 3 made its 4-bit file agree with f16 on 91.5% of cases
+instead of 65.3%.
 
-```text
-URL
-  -> Cache & URL      stored verdict, blocklist, host imitation, APK URL
-  -> Page             hidden WebView inspection and page facts
-  -> On-device LLM    six factual answers for unresolved cases
-  -> Verdict          answer validation and verdict table
-```
+Runs 4 and 5 were the turning point. Run 4 cut missed risk from 65 to 20 on the
+new test split but warned on many ordinary pages, because its training labels
+called consultation pages `personal_info` even without a personal field. When I
+aligned those labels in run 5, missed risk rose again, and the model learned to
+tie brand mentions to `personal_info` through an exception in the label rule.
+Between runs 4 and 5 overall accuracy barely moved (84.0% and 84.5%) while
+missed risk and false alarms moved in opposite directions, and I only saw it
+because I measured them separately.
 
-The pipeline exits early when the verdict table can make a final decision from
-URL or page facts. The LLM runs only when earlier stages cannot settle the case.
-No judgment request is sent to a remote model server.
+The deeper problem was that the risk criteria lived inside the model. Every
+change to the rules meant relabeling and retraining, and the app's own checks
+drifted from the labels. So for run 6 I changed what the model is asked: it
+answers six factual questions about the page (does it claim to be a brand, is it
+a sign-in screen, does it ask for payment, and so on), and one verdict table,
+shared by the app and the training code, turns those answers and facts code
+computes into the risk. Changing a rule now means editing the table, not
+training again.
 
-## Evaluation Snapshot
+## Where it stands
 
-Run 6 Q8_0 is the current prototype baseline.
+Run 6 ships as Q8_0 (1.83 GB). As the app reads it, it scores 92.0% on the
+414-case test split and 78.8% on the 156 human-reviewed cases, misses 24 of 188
+risky pages, and warns on 2 of 62 top sites that opened. I picked Q8_0 over
+Q4_K_M because the 4-bit file loses impersonation claims (claims recall 68.9%
+against 80.0%); on an arm64 emulator a Q8_0 verdict took 1.03–1.18 times as long.
+A Mac benchmark had first shown Q8_0 twice as fast, most likely because the
+Homebrew build runs long prompts through BLAS, which the phone build does not
+use.
 
-| Metric | Result |
-| :-- | --: |
-| Test accuracy | 92.0% on 414 cases |
-| Human-reviewed accuracy | 78.8% on 156 cases |
-| Missed risk | 24 of 188 `MEDIUM`/`HIGH` cases |
-| OpenPhish pages answered `LOW` | 11 of 43 opened pages |
-| Top-site false alarms | 2 of 62 opened Tranco sites |
-| Unparseable base-model replies | 414 of 414 |
+Two things qualify these numbers. Run 6 first missed 34 risky pages, over my
+bar of 25; I relabeled the 23 cases where it disagreed with a Claude-written
+label, blind to the old label, and changed 11. That review covered only run 6's
+disagreements, so it favors run 6 against earlier runs, and every human label
+is mine. And 11 of 43 phishing pages that opened are still answered `LOW`; no
+timing or memory has been measured on a physical phone yet.
 
-The model is not claimed to be a production phishing detector. It is a research
-prototype with known coverage gaps, especially opened phishing pages whose risk
-depends on signals not yet represented in the verdict table.
+## More
 
-## Repository Guide
-
-| Path | Purpose |
-| :-- | :-- |
-| `app/` | Android application and user-facing entry points |
-| `core/` | Kotlin judgment pipeline, page inspection, LLM contract, llama.cpp bridge |
-| `ml/` | Python package for data preparation, labeling, training, runtime files, and evaluation |
-| `docs/technical-report.md` | Full development report, including failed runs and design changes |
-| `docs/architecture.md` | Android runtime architecture and component contracts |
-| `docs/design.md` | Verdict-table design and policy rationale |
-| `ml/docs/llm/model-card.md` | Model card for the current on-device LLM |
-| `ml/docs/llm/dataset.md` | Dataset construction, labeling, splits, and review process |
-| `ml/reports/llm/evaluation-report.md` | Generated evaluation report from committed records |
-
-## Verification
-
-The runtime and ML contract are covered by Kotlin and Python tests:
-
-```bash
-./gradlew test
-./gradlew lint
-python -m unittest discover -s ml/tests -t ml
-```
-
-Instrumented Android tests run separately through `instrumented.yml` or
-`./gradlew connectedDebugAndroidTest`.
-
-## Status
-
-The app runs on an arm64 emulator and can load the run 6 Q8_0 model for manual
-URL judgment. Physical-device latency, memory behavior, broader Shield
-validation, and distribution packaging remain open work.
+- [Technical Report](docs/technical-report.md): the full development record
+- [LLM Evaluation Report](ml/reports/llm/evaluation-report.md): every score, generated from committed records
+- [Model Card](ml/docs/llm/model-card.md) and [LLM Dataset](ml/docs/llm/dataset.md)
+- [Verdict Design](docs/design.md) and [Architecture](docs/architecture.md): the verdict table and the Android runtime
