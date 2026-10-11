@@ -4,8 +4,8 @@ This document describes the runtime structure of the Android app. For project
 motivation, evaluation, and limitations, see
 [Technical Report](technical-report.md); the reasons for this structure and the
 verdict table are in [Verdict Design](design.md). The LLM stage reads both a
-question model's answers and the reply of the shipped run 3 model, which grades the
-risk itself.
+question model's answers (run 6, the current app-integrated model) and the
+legacy direct-risk reply format used by run 3.
 
 ## Table of Contents
 
@@ -192,7 +192,7 @@ lack those instructions. The model file is not bundled yet; for development it
 is copied into the app's private storage:
 
 ```bash
-adb push guadian-qwen3-1.7b-run3-Q4_K_M.gguf /data/local/tmp/guadian.gguf
+adb push guadian-qwen3-1.7b-run6-Q8_0.gguf /data/local/tmp/guadian.gguf
 adb shell run-as com.guadian.ondevice sh -c 'mkdir -p files/models && cp /data/local/tmp/guadian.gguf files/models/guadian.gguf'
 adb shell rm /data/local/tmp/guadian.gguf
 ```
@@ -206,7 +206,7 @@ stages with the verdict table, and the on-device LLM stage run with llama.cpp. L
 the Python-Kotlin parity fixtures.
 
 Physical-device validation and production readiness are not complete (see
-[Technical Report](technical-report.md#10-next-steps)), and arbitrary in-app
+[Technical Report](technical-report.md#11-next-steps)), and arbitrary in-app
 WebViews and native ad surfaces are not covered.
 
 ## 6. Trade-offs

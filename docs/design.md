@@ -227,7 +227,7 @@ Evaluation reports three layers:
 3. scores that need no label: confirmed OpenPhish phishing answered `LOW`, and
    Tranco top sites warned on, counting pages that opened apart.
 
-The bar for shipping stays the one set before run 5, on the relabeled split:
+The adoption bar stays the one set before run 5, on the relabeled split:
 human-reviewed accuracy as the app reads it above run 3's (72.4% on the 156
 human-reviewed cases after the 2026-10-09 review), and at most 25 missed risky pages. The guide labels of 2026-10-05 (risk labels by the labeling
 guide) are kept as the fallback if this design is not adopted.
@@ -254,8 +254,9 @@ guide) are kept as the fallback if this design is not adopted.
    and scored. A blind review by the project owner relabeled the 23 test cases where
    run 6 disagreed with a label a Claude model had written; on the reviewed labels
    run 6 clears the bar: 78.8% on the 156 human-reviewed cases as the app reads
-   Q4_K_M (run 3: 72.4%) and 25 missed risky pages (24 with Q8_0). Shipping waits on
-   timing Q4_K_M and Q8_0 on a phone.
+   Q4_K_M (run 3: 72.4%) and 25 missed risky pages (24 with Q8_0). Q8_0 is the
+   selected runtime baseline: on an arm64 emulator a verdict took 1.03–1.18
+   times as long as with Q4_K_M.
 6. Update the documents that describe the pipeline and the labels.
 
 Page inspection, the brand and blocklist data, URL parsing, the llama.cpp
