@@ -20,7 +20,8 @@ Lines, in order, each only when it applies:
     공식 도메인   whether the landing host is a known brand's official domain;
                   only when the page has almost no text or returned an error
     브랜드 언급   brands named on the page whose domains do not cover the landing host
-    입력 칸       what the page's forms ask for, and whether they submit elsewhere
+    입력 칸       what the page's forms ask for (credentials, phone, email, name) or are
+                  (search), and whether they submit elsewhere
     APK 링크      the first link to an .apk file
     주소 흉내     host_rules verdict for the clicked URL or landing page
     본문          the start of the visible text
@@ -49,11 +50,27 @@ SPARSE_TEXT_CHARS = 200
 DEFAULT_PAGE_CHARS = 500
 # Korean aliases shorter than this match unrelated words too often.
 MIN_ALIAS_CHARS = 3
+# PageSignals limits for reading a page_inspection.js result (the collector's limits).
+MAX_FORMS = 6
+MAX_OBSERVED_TITLE_CHARS = 200
+MAX_OBSERVED_TEXT_CHARS = 2_500
+MAX_APK_LINKS = 5
+MAX_APK_LINK_CHARS = 120
+# Asks added after the original collector: what a field is for beyond credentials.
+# The collector stored only the first 12 fields of a form, each label cut to 30
+# characters, so these are read from that much on both sides. ASCII-only case
+# folding keeps them identical on the JVM.
+FIELD_KINDS_FIELDS = 12
+FIELD_KINDS_LABEL_CHARS = 30
+_EMAIL = re.compile(r"e-?mail|이메일", re.I | re.A)
+_NAME = re.compile(r"(?<![a-z])name(?![a-z])|firstname|lastname|fullname|이름|성명", re.I | re.A)
+_MOBILE = re.compile(r"mobile|핸드폰", re.I | re.A)    # phone wordings the original rule misses
+_SEARCH = re.compile(r"search|keyword|query|검색|(?<![a-z])q(?![a-z])", re.I | re.A)
 
 
 @dataclass(frozen=True)
 class FormObservation:
-    asks: tuple[str, ...]          # sorted subset of credentials the fields request
+    asks: tuple[str, ...]          # sorted: what the fields request, or search
     external_action: bool          # the form submits to another site
 
 
@@ -79,22 +96,64 @@ class PageObservation:
 
 
 def observation_from_case(case: dict) -> PageObservation:
-    """Rebuild what page inspection saw from a collected case (llm.dataset.collect output)."""
+    """Rebuild what page inspection saw from a collected case (llm.dataset.collect output).
+
+    Cases collected with page_inspection.js carry its result under "inspection" and
+    are read exactly as the app reads it. Older cases are read from the original
+    collector's page_signals, which does not know whether a field is shown.
+    """
     tools: dict[str, list[dict]] = {}
     for item in case["input"]["tool_outputs"]:
         tools.setdefault(item["tool"], []).append(json.loads(item["output"]))
     fetch = tools["fetch_page"][0]
     if "error" in fetch:
         return PageObservation(url=case["url"], loaded=False)
+    if case.get("inspection") is not None:
+        return observation_from_inspection(case["url"], fetch.get("final_url") or case["url"], fetch.get("status"),
+                                           max(0, len(fetch.get("chain") or []) - 1), case["inspection"])
     signals = (tools.get("page_signals") or [{}])[0]
     return PageObservation(
         url=case["url"], loaded=True, final_url=fetch.get("final_url") or case["url"],
         status=fetch.get("status"), redirects=max(0, len(fetch.get("chain") or []) - 1),
         title=signals.get("title") or "", text=fetch.get("text") or "", text_chars=fetch.get("text_chars") or 0,
-        forms=tuple(FormObservation(tuple(sorted(f.get("asks") or [])), bool(f.get("external_action")))
+        forms=tuple(FormObservation(tuple(sorted(set(f.get("asks") or []) | stored_field_kinds(f.get("fields") or []))),
+                                    bool(f.get("external_action")))
                     for f in signals.get("forms") or []),
         apk_links=tuple(signals.get("apk_links") or ()),
     )
+
+
+def observation_from_inspection(url: str, final_url: str, status: int | None, redirects: int,
+                                data: dict) -> PageObservation:
+    """PageContentJudge.observe: a page_inspection.js result as the app reads it."""
+    text = collapse_text(data.get("text") or "")
+    forms = [form_observation([dict(f) for f in _array(form.get("fields"))], final_url, form.get("action"))
+             for form in _array(data.get("forms"))[:MAX_FORMS]]
+    apk_links: list[str] = []
+    for link in _array(data.get("apkAnchors")) + _array(data.get("apkInHtml")):
+        link = link[:MAX_APK_LINK_CHARS]
+        if link not in apk_links:
+            apk_links.append(link)
+    return PageObservation(
+        url=url, loaded=True, final_url=final_url, status=status, redirects=redirects,
+        title=(data.get("title") or "").strip()[:MAX_OBSERVED_TITLE_CHARS],
+        text=text[:MAX_OBSERVED_TEXT_CHARS], text_chars=len(text),
+        forms=tuple(f for f in forms if f is not None),
+        apk_links=tuple(apk_links[:MAX_APK_LINKS]),
+    )
+
+
+def _array(value) -> list:
+    """org.json's optJSONArray: anything but an array reads as empty."""
+    return value if isinstance(value, list) else []
+
+
+def form_observation(fields: list[dict], final_url: str, resolved_action: str | None) -> FormObservation | None:
+    """PageSignals.formObservation: a form with only the fields the user can see now, or None if none."""
+    shown = [f for f in fields if f.get("shown", True)]
+    if not shown:
+        return None
+    return FormObservation(tuple(form_asks(shown)), external_action(final_url, resolved_action))
 
 
 def ascii_host(url: str) -> str:
@@ -122,6 +181,7 @@ class Brands:
         self.korean = data["korean"]
         self.text_mentions = [tuple(pair) for pair in data["text_mentions"]]
         self.global_brands = dict((token, domains) for token, domains in data["global_brands"])
+        self.user_content_hosts = tuple(data["user_content_hosts"])
 
     @classmethod
     def load(cls, path: str = BRANDS_PATH) -> "Brands":
@@ -134,6 +194,12 @@ class Brands:
         korean = next((b["name"] for b in self.korean if any(_covers(host, d) for d in b["domains"])), None)
         return korean or next((token for token, domains in self.global_brands.items()
                                if any(_covers(host, d) for d in domains)), None)
+
+    def official_site_of(self, host: str) -> str | None:
+        """The brand whose own site `host` is: owned by the table and not a platform where anyone
+        publishes, where a page is not the brand speaking (docs/design.md, section 4)."""
+        brand = self.official_brand_of(host)
+        return None if brand is None or any(_covers(host, d) for d in self.user_content_hosts) else brand
 
     def mismatches(self, words: str, host: str) -> list[tuple[str, str]]:
         """(brand, first official domain) for brands named in `words` that do not own `host`."""
@@ -211,7 +277,33 @@ def form_asks(fields: list[dict]) -> list[str]:
             flags.add("phone")
         if host_rules.ja._ACCOUNT.search(label):
             flags.add("account")
+    for field_ in fields[:FIELD_KINDS_FIELDS]:
+        label = " ".join(filter(None, [field_.get(k) for k in ("name", "id", "placeholder", "autocomplete")]))
+        flags |= field_kinds((field_.get("type") or "").lower(), label[:FIELD_KINDS_LABEL_CHARS])
     return sorted(flags)
+
+
+def field_kinds(type_: str, label: str) -> set[str]:
+    """email, name, phone, or search for one field, from its type and its label cut to 30 characters."""
+    kinds = set()
+    if type_ == "email" or _EMAIL.search(label):
+        kinds.add("email")
+    if _NAME.search(label):
+        kinds.add("name")
+    if _MOBILE.search(label):
+        kinds.add("phone")
+    if type_ == "search" or _SEARCH.search(label):
+        kinds.add("search")
+    return kinds
+
+
+def stored_field_kinds(fields: list[str]) -> set[str]:
+    """field_kinds over a collected form's fields, stored as "type:label" (label already cut)."""
+    kinds: set[str] = set()
+    for stored in fields[:FIELD_KINDS_FIELDS]:
+        type_, _, label = stored.partition(":")
+        kinds |= field_kinds(type_, label)
+    return kinds
 
 
 def external_action(final_url: str, resolved_action: str | None) -> bool:

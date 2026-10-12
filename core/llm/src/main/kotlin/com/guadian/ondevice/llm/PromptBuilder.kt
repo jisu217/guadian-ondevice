@@ -28,7 +28,7 @@ class PromptBuilder(
             lines += "페이지: 상태 ${obs.status}, 본문 ${obs.textChars}자"
             if (obs.title.isNotEmpty()) lines += "제목: ${PyText.take(obs.title, MAX_TITLE_CHARS)}"
             if (obs.textChars < SPARSE_TEXT_CHARS || (obs.status ?: 0) >= 400) {
-                val brand = officialBrandOf(finalHost)
+                val brand = brands.officialBrandOf(finalHost)
                 lines += if (brand != null) "공식 도메인: $finalHost = $brand" else "공식 도메인: $finalHost 표에 없음"
             }
             val named = mismatches(obs.title + " " + obs.text, finalHost)
@@ -46,13 +46,6 @@ class PromptBuilder(
         hostRules.gradeCase(obs.url, if (obs.loaded) finalUrl else null)?.let { lines += "주소 흉내: ${it.reason}" }
         if (obs.loaded && obs.text.isNotEmpty()) lines += "본문: ${PyText.take(obs.text, pageChars)}"
         return lines.joinToString("\n")
-    }
-
-    /** The brand that owns [host]: the Korean table first, then the global brands. */
-    private fun officialBrandOf(host: String): String? {
-        val bare = host.removePrefix("www.")
-        return brands.korean.firstOrNull { brand -> brand.domains.any { covers(bare, it) } }?.name
-            ?: brands.globalBrands.entries.firstOrNull { (_, domains) -> domains.any { covers(bare, it) } }?.key
     }
 
     /** Brands named in [words] whose domains do not cover [host], Korean table first. */

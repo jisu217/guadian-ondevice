@@ -18,21 +18,21 @@ class PromptBuilderParityTest {
         val rows = File("../../ml/fixtures/llm/prompt_cases.jsonl").readLines().filter { it.isNotBlank() }
         assertTrue(rows.size >= 10)
         for (row in rows.map(::JSONObject)) {
-            val obs = observation(row.getJSONObject("observation"))
+            val obs = observationFromJson(row.getJSONObject("observation"))
             assertEquals(row.getString("prompt"), builder.build(obs), obs.url)
         }
     }
 
     /**
      * The same check over every collected page. The file holds page text, so it
-     * exists only where ml/data/llm was built; elsewhere this test is a no-op.
+     * exists only where ml/data/llm/final was built; elsewhere this test is a no-op.
      */
     @Test
     fun `matches every collected page when the local data is present`() {
-        val file = File("../../ml/data/llm/llm_prompt_cases_full.jsonl")
+        val file = File("../../ml/data/llm/final/llm_prompt_cases_full.jsonl")
         if (!file.exists()) return
         for (row in file.readLines().filter { it.isNotBlank() }.map(::JSONObject)) {
-            val obs = observation(row.getJSONObject("observation"))
+            val obs = observationFromJson(row.getJSONObject("observation"))
             assertEquals(row.getString("prompt"), builder.build(obs), obs.url)
         }
     }
@@ -42,23 +42,4 @@ class PromptBuilderParityTest {
         assertEquals("😀😀", PyText.take("😀😀😀", 2))
         assertEquals(3, PyText.length("😀😀😀"))
     }
-
-    private fun observation(o: JSONObject) = PageObservation(
-        url = o.getString("url"),
-        loaded = o.getBoolean("loaded"),
-        finalUrl = o.optString("final_url").takeUnless { o.isNull("final_url") },
-        status = if (o.isNull("status")) null else o.getInt("status"),
-        redirects = o.getInt("redirects"),
-        title = o.getString("title"),
-        text = o.getString("text"),
-        textChars = o.getInt("text_chars"),
-        forms = o.getJSONArray("forms").let { forms ->
-            List(forms.length()) { i ->
-                val f = forms.getJSONObject(i)
-                val asks = f.getJSONArray("asks")
-                FormObservation(List(asks.length()) { asks.getString(it) }, f.getBoolean("external_action"))
-            }
-        },
-        apkLinks = o.getJSONArray("apk_links").let { links -> List(links.length()) { links.getString(it) } },
-    )
 }

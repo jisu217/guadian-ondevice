@@ -1,0 +1,17 @@
+{
+  "description": "The verdict table of docs/design.md, section 6: the one place that maps signals and the model's answers to a risk. Read by core/judge VerdictTable.kt and ml/guadian_ml/llm/contract/verdict_table.py. Each cell is [risk, type].",
+  "blocklisted": ["HIGH", "blocklisted"],
+  "unverifiable": ["MEDIUM", "unverifiable"],
+  "suspicious": ["MEDIUM", "impersonation"],
+  "actions": [
+    {"action": "browse",          "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["LOW", "none"]},
+    {"action": "sign_in",         "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["MEDIUM", "credentials"]},
+    {"action": "personal_field",  "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["MEDIUM", "personal_info"]},
+    {"action": "sensitive_field", "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["HIGH", "credentials"]},
+    {"action": "apk_link",        "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["HIGH", "apk"]},
+    {"action": "payment",         "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["MEDIUM", "payment"]},
+    {"action": "investment",      "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["MEDIUM", "investment"]},
+    {"action": "reward_pressure", "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["MEDIUM", "urgency"]},
+    {"action": "content_farm",    "official": ["LOW", "none"], "impersonation": ["HIGH", "impersonation"], "unknown": ["MEDIUM", "contentfarm"]}
+  ]
+}

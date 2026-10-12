@@ -12,11 +12,10 @@ enum class Confidence {
     UNCERTAIN,
 }
 
-/** Pipeline stage that produced a verdict. */
+/** Pipeline stage that produced a verdict (docs/design.md, section 3). */
 enum class Layer(val wireName: String) {
     STORE("local-store"),
-    RULE("rule"),
-    KNOWLEDGE("local-knowledge"),
+    URL("url"),
     PAGE_CONTENT("page-content"),
     LLM("llm"),
 }
@@ -30,11 +29,8 @@ enum class RiskCategory(val wireName: String) {
     BLOCKLISTED("blocklisted"),
     APK("apk"),
     BRAND_IMPERSONATION("brand_impersonation"),
-    SUSPICIOUS_URL("suspicious_url"),
     PERSONAL_INFO("personal_info"),
     URGENCY("urgency"),
-    PAGE_BRAND_IMPERSONATION("page_brand_impersonation"),
-    UNVERIFIED_LOGIN_FORM("unverified_login_form"),
     CREDENTIALS("credentials"),
     PAYMENT("payment"),
     INVESTMENT("investment"),
@@ -55,29 +51,34 @@ enum class RiskCategory(val wireName: String) {
  * judges carry no display strings; [Verdict.detail] holds the variable part.
  */
 enum class ReasonCode {
-    CACHE_MISS,
+    // Verdict table decisions (VerdictPipeline): which row decided.
     BLOCKLISTED,
+    OFFICIAL_SITE,
+    IMPERSONATION,
+    SUSPICIOUS_HOST,
+    PAGE_UNVERIFIABLE,
+    SIGN_IN_SCREEN,
+    PERSONAL_FIELD,
+    SENSITIVE_FIELD,
     APK_DOWNLOAD,
-    OFFICIAL_DOMAIN,
-    BRAND_TOKEN_IN_HOST,
-    BRAND_SUBSTRING_IN_HOST,
-    SUSPICIOUS_KEYWORD,
-    NO_RULE_MATCH,
-    KNOWLEDGE_MATCH,
-    KNOWLEDGE_NO_MATCH,
-    PAGE_BRAND_LOGIN_FORM,
-    PAGE_UNVERIFIED_LOGIN_FORM,
-    PAGE_BRAND_MENTION_ONLY,
-    PAGE_NO_SIGNAL,
+    PAYMENT_PUSH,
+    INVESTMENT_OFFER,
+    REWARD_PRESSURE,
+    CONTENT_FARM,
+    NO_RISK_SIGNAL,
+
+    /** The stages that ran could not settle the risk, and no later stage runs. */
+    NOT_FINAL,
     PAGE_UNSUPPORTED_SCHEME,
-    PAGE_LOAD_FAILED,
-    PAGE_TIMEOUT,
     PAGE_SCRIPT_FAILED,
+
+    // The risk-grading model, read by AnswerReader, until the question model replaces it.
     LLM_NOT_LOADED,
     LLM_NO_OBSERVATION,
     LLM_VERDICT,
     LLM_MALFORMED_OUTPUT,
     LLM_UNSUPPORTED_HIGH,
+    LLM_UNSUPPORTED_PERSONAL_INFO,
 }
 
 data class Verdict(

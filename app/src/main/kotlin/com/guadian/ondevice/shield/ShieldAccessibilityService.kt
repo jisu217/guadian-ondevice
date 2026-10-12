@@ -38,8 +38,10 @@ class ShieldAccessibilityService : AccessibilityService() {
         val targetUrl = WebAccessibilityNode.targetUrl(node) ?: return
         val targetHost = WebAccessibilityNode.hostOf(targetUrl) ?: return
 
-        // Iframe clicks are candidates by themselves; other clicks must leave
-        // the site inferred from the page's own top-level links.
+        /*
+         * Iframe clicks are candidates by themselves; other clicks must leave
+         * the site inferred from the page's own top-level links.
+         */
         if (!WebAccessibilityNode.isInsideNestedDoc(node)) {
             val root = rootInActiveWindow ?: return
             val pageHost = WebAccessibilityNode.inferCurrentSiteHost(root) ?: return

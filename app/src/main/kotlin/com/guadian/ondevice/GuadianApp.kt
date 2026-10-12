@@ -1,10 +1,10 @@
 package com.guadian.ondevice
 
 import android.app.Application
-import com.guadian.ondevice.rules.BrandDomains
 import com.guadian.ondevice.rules.BlocklistFilter
 import com.guadian.ondevice.url.DomainAllowlist
 import com.guadian.ondevice.url.PublicSuffixList
+import com.guadian.ondevice.verdict.VerdictTable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,13 +18,15 @@ class GuadianApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Load the large runtime resources off the main thread before the
-        // first judgment needs them.
+        /*
+         * Load the large runtime resources off the main thread before the
+         * first judgment needs them.
+         */
         appScope.launch {
             DomainAllowlist.default
             BlocklistFilter.default
             PublicSuffixList.default
-            BrandDomains.defaultBrandDomains
+            VerdictTable.default
         }
     }
 }

@@ -64,6 +64,12 @@ GLOBAL_BRANDS: dict[str, tuple[str, ...]] = {
 ACCOUNT_WORDS = ("login", "logon", "signin", "verify", "verification", "account",
                  "secure", "auth", "wallet", "recover", "unlock")
 
+# Hosts a brand owns but anyone can publish on: a blog post or a cafe page there is not
+# the brand speaking, so such a host is not the brand's own site (docs/design.md, section 4).
+USER_CONTENT_HOSTS = ("blog.naver.com", "cafe.naver.com", "post.naver.com", "pf.kakao.com", "open.kakao.com",
+                      "story.kakao.com", "sites.google.com", "docs.google.com", "drive.google.com",
+                      "facebook.com", "instagram.com", "youtube.com")
+
 
 RISK_ORDER_HOST = {"MEDIUM": 1, "HIGH": 2}
 

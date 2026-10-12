@@ -3,56 +3,44 @@ package com.guadian.ondevice
 import android.content.Context
 import android.util.Log
 import java.io.File
-import com.guadian.ondevice.judge.HybridJudge
-import com.guadian.ondevice.knowledge.LocalKnowledgeJudge
 import com.guadian.ondevice.llamacpp.LlamaCppRuntime
-import com.guadian.ondevice.llm.ObservationBoard
 import com.guadian.ondevice.llm.LlmJudge
-import com.guadian.ondevice.pagecontent.PageContentJudge
-import com.guadian.ondevice.rules.ApkRule
-import com.guadian.ondevice.rules.BlocklistRule
-import com.guadian.ondevice.rules.BrandImpersonationRule
-import com.guadian.ondevice.rules.RuleBasedJudge
-import com.guadian.ondevice.rules.SuspiciousUrlRule
+import com.guadian.ondevice.llm.ObservationBoard
+import com.guadian.ondevice.llm.UrlSignals
+import com.guadian.ondevice.pagecontent.PageInspector
 import com.guadian.ondevice.store.InMemoryVerdictStore
-import com.guadian.ondevice.store.StoreJudge
+import com.guadian.ondevice.verdict.VerdictPipeline
 
 /**
- * The app's judgment pipelines. Both share one store and one instance of
- * every stage; they differ only in whether the rendered page is inspected
- * (and so whether the LLM stage, which reads it, runs).
+ * The app's judgment pipelines (docs/design.md, section 3). Both share one store,
+ * one verdict table, and one instance of every stage; they differ only in whether
+ * the on-device LLM runs.
  */
 class DefaultJudgeGraph(context: Context) {
     private val store = InMemoryVerdictStore()
-    private val rules = RuleBasedJudge(listOf(BlocklistRule(), ApkRule(), BrandImpersonationRule(), SuspiciousUrlRule()))
-    private val cached = StoreJudge(store)
-    private val knowledge = LocalKnowledgeJudge()
+    private val urlSignals = UrlSignals()
     private val observations = ObservationBoard()
-    private val pageContent = PageContentJudge(context.applicationContext, onObservation = observations::post)
+    private val page = PageInspector(context.applicationContext, onObservation = observations::post)
 
-    // The prompt is logged so the on-device input can be checked against the
-    // training format.
+    /*
+     * The prompt is logged so the on-device input can be checked against the
+     * training format.
+     */
     private val llm = LlmJudge(
         observations,
         runtime = LlamaCppRuntime(File(context.filesDir, MODEL_PATH)),
         onPrompt = { url, prompt -> Log.d(LLM_LOG_TAG, "$url\n$prompt") },
     )
 
-    /** Manual URL entry: every layer, in README order. */
-    val full: HybridJudge = HybridJudge(
-        stages = listOf(rules, cached, knowledge, pageContent, llm),
-        store = store,
-    )
+    /** Manual URL entry: cache and URL, page, on-device LLM, verdict. */
+    val full = VerdictPipeline(url = urlSignals, page = page, answers = llm, store = store)
 
     /**
-     * Browser clicks: the browser is already loading the page, so loading it
-     * a second time in a hidden WebView would only add latency. The LLM stage
-     * reads what page inspection collects, so it is not part of this graph.
+     * Browser clicks: cache and URL, then page; a result still not final is
+     * `UNKNOWN`. Whether Shield also runs the model is decided once the model is
+     * timed on a phone (docs/design.md, section 10).
      */
-    val shield: HybridJudge = HybridJudge(
-        stages = listOf(rules, cached, knowledge),
-        store = store,
-    )
+    val shield = VerdictPipeline(url = urlSignals, page = page, answers = null, store = store)
 
     private companion object {
         const val LLM_LOG_TAG = "GuadianLlm"

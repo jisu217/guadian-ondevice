@@ -20,10 +20,13 @@ kotlin {
 
 sourceSets {
     main {
-        // Brand data for the prompt, written by `python -m guadian_ml.resources.llm_brands`.
+        /*
+         * Brand data for the prompt, written by `python -m guadian_ml.resources.llm_brands`,
+         * and the page inspection script the collector runs too.
+         */
         resources {
             srcDir("../../ml/runtime")
-            include("llm_brands.json")
+            include("llm_brands.json", "page_inspection.js")
         }
     }
 }
@@ -42,4 +45,19 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+/*
+ * Regenerates ml/reports/pipeline/local-resolution-report.md; `./gradlew test`
+ * only checks the measurement's invariants and never writes the file.
+ */
+tasks.register<Test>("writeLocalResolutionReport") {
+    description = "Writes ml/reports/pipeline/local-resolution-report.md."
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform()
+    filter { includeTestsMatching("com.guadian.ondevice.llm.LocalResolutionReportWriter") }
+    environment("GUADIAN_WRITE_LOCAL_RESOLUTION_REPORT", "1")
+    outputs.upToDateWhen { false }
 }

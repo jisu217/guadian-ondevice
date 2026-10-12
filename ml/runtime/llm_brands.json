@@ -1884,5 +1884,19 @@
   "recover",
   "unlock"
  ],
+ "user_content_hosts": [
+  "blog.naver.com",
+  "cafe.naver.com",
+  "post.naver.com",
+  "pf.kakao.com",
+  "open.kakao.com",
+  "story.kakao.com",
+  "sites.google.com",
+  "docs.google.com",
+  "drive.google.com",
+  "facebook.com",
+  "instagram.com",
+  "youtube.com"
+ ],
  "min_token_length": 5
 }

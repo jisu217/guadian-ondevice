@@ -1,6 +1,6 @@
 import unittest
 
-from guadian_ml.llm.evaluation.agreement import agreement, risk_reader
+from guadian_ml.llm.evaluation.agreement import agreement, answer_reader
 
 
 class AgreementTest(unittest.TestCase):
@@ -14,10 +14,17 @@ class AgreementTest(unittest.TestCase):
         self.assertEqual(record["all_agree"], 1 / 2)
         self.assertEqual(record["pairwise"]["f16|q4_k_m"], 1.0)
 
-    def test_unparseable_reply_reads_as_medium(self):
-        read = risk_reader()
+    def test_reads_risk_and_question_replies(self):
+        read = answer_reader()
         self.assertEqual(read("no json here"), "MEDIUM")
         self.assertEqual(read('{"risk": "HIGH", "type": "apk", "evidence": ""}'), "HIGH")
+        quiet = ('"sign_in": false, "payment": false, "investment": false, "reward_pressure": false, '
+                 '"content_farm": false')
+        a = read('{"claims": "KB", "evidence": "제목: KB", ' + quiet + '}')
+        b = read('{"claims": "KB국민은행", "evidence": "제목: KB", ' + quiet + '}')
+        c = read('{"claims": null, "evidence": "", ' + quiet + '}')
+        self.assertEqual(a, b)     # the claimed name may differ; whether a claim was made is compared
+        self.assertNotEqual(a, c)
 
 
 if __name__ == "__main__":

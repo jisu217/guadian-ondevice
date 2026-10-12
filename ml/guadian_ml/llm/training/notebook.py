@@ -15,20 +15,28 @@ import nbformat
 from guadian_ml import paths
 
 OUT = paths.NOTEBOOKS / "train_llm.ipynb"
-RUN = "run3"   # the training run this notebook produces; written into its cells
+RUN = "run6"   # the training run this notebook produces; written into its cells
 
 INTRO = """\
 # LoRA fine-tuning of the on-device judge
 
-Fine-tunes `Qwen/Qwen3-1.7B` on the compact examples from `guadian_ml.llm.dataset.sft`
-and exports the merged model as an f16 GGUF. Quantize it to Q5_K_M on the Mac afterwards.
+Fine-tunes `Qwen/Qwen3-1.7B` on the compact examples from `guadian_ml.llm.dataset.sft`:
+it learns to answer the six questions of `ml/docs/llm/question-guide.md` as one JSON line,
+and the app's verdict table turns the answers into a risk (`docs/design.md`). It exports the merged model as an f16 GGUF. Quantize it on the Mac afterwards (Q4_K_M, Q5_K_M, Q8_0).
 
 **Runtime:** GPU (T4 is enough). **Inputs:** `sft_train.jsonl`, `sft_validation.jsonl`,
-`sft_test.jsonl` from `ml/data/llm/`. They contain collected page text, so upload them
+`sft_test.jsonl` from `ml/data/llm/final/`. They contain collected page text, so upload them
 to this session only; do not commit or share them.
 
-Steps: install → configure → upload data → build examples → load model → train →
-evaluate (zero-shot vs fine-tuned on the test set) → merge → export GGUF."""
+Steps: install → configure → mount Drive → upload data → build examples → load model → train →
+evaluate (zero-shot vs fine-tuned answers on the test set) → merge → export GGUF. The risk
+the app would show is scored on the Mac (`guadian_ml.llm.evaluation.gguf`), where the
+verdict table and the page facts are.
+
+Everything a run produces (checkpoints, adapter, scores, GGUF) is written to
+`MyDrive/guadian-ondevice/<run>` as it is made, because a free session can end at any
+time and takes its disk with it. If it does, reconnect, run the cells again from the
+top, and training resumes from the last saved epoch."""
 
 INSTALL = """\
 %pip install -q -U transformers peft bitsandbytes accelerate
@@ -46,18 +54,20 @@ QUANTIZE_BASE = False
 MAX_LENGTH = 1024          # longest compact prompt is ~700 tokens
 LORA = dict(r=16, lora_alpha=32, lora_dropout=0.05,
             target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
-# Run 2 took 72 optimizer steps (3 epochs at an effective batch of 16), and its misses
-# were systematic: the f16 file answered LOW on 17 of the 20 risky test cases the Q5
-# file missed. Run 3 takes about four times as many steps; the best epoch by
-# validation loss is kept.
-TRAIN = dict(num_train_epochs=5, learning_rate=2e-4, per_device_train_batch_size=4,
+# Run 3 took 275 optimizer steps (5 epochs of 381 cases at an effective batch of 8).
+# Runs 4 and 5 train on 1,465 cases, so 3 epochs already give about twice as many
+# steps; the best epoch by validation loss is kept (epoch 2 in run 4). Run 5 keeps
+# run 4's settings and changes only the labels, so the two runs compare cleanly.
+TRAIN = dict(num_train_epochs=3, learning_rate=2e-4, per_device_train_batch_size=4,
              gradient_accumulation_steps=2, lr_scheduler_type="cosine")
-# Training copies per risk level. HIGH is the rarest label (59 of 381) and had
-# the lowest recall in run 2; validation and test are never resampled.
-OVERSAMPLE = {"HIGH": 2}
+# Training copies per risk level. HIGH is the rarest label (78 of 1,465 in run 4,
+# down from 59 of 381); three copies bring it back to about the share run 3
+# trained on. Validation and test are never resampled.
+OVERSAMPLE = {"HIGH": 3}
 WARMUP_FRACTION = 0.05     # of all optimizer steps
-MAX_NEW_TOKENS = 96        # the answer is one short JSON line
-RISKS = ["LOW", "MEDIUM", "HIGH"]"""
+MAX_NEW_TOKENS = 384       # one JSON line; a claim quotes a prompt line, rarely the long text line
+RISKS = ["LOW", "MEDIUM", "HIGH"]
+QUESTION_KEYS = ["sign_in", "payment", "investment", "reward_pressure", "content_farm"]"""
 
 UPLOAD = """\
 import json, os
@@ -75,6 +85,14 @@ def read_jsonl(path):
 
 data = {name.split("_")[1].split(".")[0]: read_jsonl(name) for name in NAMES}
 print({split: len(rows) for split, rows in data.items()})"""
+
+DRIVE = """\
+import os
+from google.colab import drive
+drive.mount("/content/drive")
+OUT = f"/content/drive/MyDrive/guadian-ondevice/{RUN}"
+os.makedirs(OUT, exist_ok=True)
+print("results go to", OUT)"""
 
 EXAMPLES = """\
 import json
@@ -97,8 +115,8 @@ def to_features(example):
     return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids), "labels": labels}
 
 def copies(example, split):
-    risk = json.loads(example["messages"][2]["content"])["risk"]
-    return OVERSAMPLE.get(risk, 1) if split == "train" else 1
+    \"\"\"Training examples whose final risk is rare are repeated; the risk is not the target, the answers are.\"\"\"
+    return OVERSAMPLE.get(example["risk"], 1) if split == "train" else 1
 
 features = {split: [to_features(e) for e in rows for _ in range(copies(e, split))]
             for split, rows in data.items() if split != "test"}
@@ -130,6 +148,7 @@ model.print_trainable_parameters()"""
 
 TRAINING = """\
 from transformers import Trainer, TrainingArguments
+from transformers.trainer_utils import get_last_checkpoint
 
 def collate(batch):
     width = max(len(f["input_ids"]) for f in batch)
@@ -145,41 +164,71 @@ import math
 total_steps = math.ceil(len(features["train"]) / (TRAIN["per_device_train_batch_size"]
                                                    * TRAIN["gradient_accumulation_steps"])) * TRAIN["num_train_epochs"]
 args = TrainingArguments(
-    output_dir="checkpoints", seed=SEED, **TRAIN, warmup_steps=max(1, round(WARMUP_FRACTION * total_steps)),
+    output_dir=f"{OUT}/checkpoints", seed=SEED, **TRAIN, warmup_steps=max(1, round(WARMUP_FRACTION * total_steps)),
     per_device_eval_batch_size=4, eval_strategy="epoch", save_strategy="epoch",
     load_best_model_at_end=True, metric_for_best_model="eval_loss", save_total_limit=2,
     logging_steps=10, gradient_checkpointing=True, report_to="none",
     bf16=COMPUTE_DTYPE == torch.bfloat16, fp16=COMPUTE_DTYPE == torch.float16)
 trainer = Trainer(model=model, args=args, data_collator=collate,
                   train_dataset=features["train"], eval_dataset=features["validation"])
-trainer.train()
-model.save_pretrained("adapter")
-tokenizer.save_pretrained("adapter")"""
+# Resumes from the last epoch saved to Drive when an earlier session ended mid-training.
+last = get_last_checkpoint(args.output_dir) if os.path.isdir(args.output_dir) else None
+if last:
+    print("resuming from", last)
+trainer.train(resume_from_checkpoint=last)
+model.save_pretrained(f"{OUT}/adapter")
+tokenizer.save_pretrained(f"{OUT}/adapter")"""
 
 SCORING = """\
-import json, re
+import json
+
+def first_json_object(text):
+    \"\"\"The first JSON object in the text, parsed properly so braces inside strings are handled.\"\"\"
+    decoder = json.JSONDecoder()
+    start = text.find("{")
+    while start >= 0:
+        try:
+            value, _ = decoder.raw_decode(text, start)
+            if isinstance(value, dict):
+                return value
+        except ValueError:
+            pass
+        start = text.find("{", start + 1)
+    return None
 
 def parse_answer(text):
-    \"\"\"The first JSON object in the reply, or None if there is none or it lacks a valid risk.\"\"\"
-    match = re.search(r"\\{.*?\\}", text, re.S)
-    if not match:
+    \"\"\"The answers in the reply, or None when a yes/no key is not a boolean or claims is not a string or null.\"\"\"
+    answer = first_json_object(text)
+    if answer is None or any(not isinstance(answer.get(k), bool) for k in QUESTION_KEYS):
         return None
-    try:
-        answer = json.loads(match.group(0))
-    except json.JSONDecodeError:
-        return None
-    return answer if answer.get("risk") in RISKS else None
+    claims = answer.get("claims")
+    return answer if claims is None or isinstance(claims, str) else None
 
 def score(examples, replies):
-    \"\"\"Accuracy, macro F1, per-risk recall, missed risk, and unparseable replies.
+    \"\"\"Per-question agreement with the teacher's answers, and unparseable replies (wrong on every question).
 
-    A reply that cannot be parsed counts as MEDIUM, the app's fallback for malformed output.
+    For each question: accuracy, and recall and precision of yes. `claims` counts whether a claim
+    was made, not the name.
     \"\"\"
-    gold = [json.loads(e["messages"][2]["content"])["risk"] for e in examples]
+    gold = [json.loads(e["messages"][2]["content"]) for e in examples]
     parsed = [parse_answer(r) for r in replies]
-    pred = [p["risk"] if p else "MEDIUM" for p in parsed]
-    report = {"n": len(gold), "accuracy": sum(g == p for g, p in zip(gold, pred)) / len(gold),
-              "unparseable": sum(p is None for p in parsed)}
+    report = {"n": len(gold), "unparseable": sum(p is None for p in parsed)}
+    for key in ["claims"] + QUESTION_KEYS:
+        g = [bool(a[key]) for a in gold]
+        p = [bool(a[key]) if a is not None else None for a in parsed]
+        hits = [x is not None and x == y for x, y in zip(p, g)]
+        report[f"{key}_accuracy"] = sum(hits) / len(g)
+        yes = sum(g)
+        said = sum(1 for x in p if x)
+        report[f"{key}_recall"] = sum(1 for x, y in zip(p, g) if x and y) / yes if yes else 0.0
+        report[f"{key}_precision"] = sum(1 for x, y in zip(p, g) if x and y) / said if said else 0.0
+    report["all_correct"] = sum(p is not None and all(bool(p[k]) == bool(g[k]) for k in ["claims"] + QUESTION_KEYS)
+                                for p, g in zip(parsed, gold)) / len(gold)
+    return report
+
+def risk_report(gold, pred):
+    \"\"\"Accuracy, macro F1, per-risk recall, and missed risk for two lists of risks.\"\"\"
+    report = {"n": len(gold), "accuracy": sum(g == p for g, p in zip(gold, pred)) / len(gold)}
     f1s = []
     for risk in RISKS:
         tp = sum(g == p == risk for g, p in zip(gold, pred))
@@ -217,27 +266,30 @@ results = {"zero_shot": score(test, zero_shot), "fine_tuned": score(test, fine_t
 for name, report in results.items():
     print(name, {k: round(v, 3) if isinstance(v, float) else v for k, v in report.items()})
 
-with open("test_predictions.jsonl", "w", encoding="utf-8") as f:
+with open(f"{OUT}/test_predictions.jsonl", "w", encoding="utf-8") as f:
     for example, zs, ft in zip(test, zero_shot, fine_tuned):
         f.write(json.dumps({"case_id": example["case_id"], "label_source": example["label_source"],
                             "gold": example["messages"][2]["content"], "zero_shot": zs, "fine_tuned": ft},
                            ensure_ascii=False) + "\\n")
-with open("test_metrics.json", "w") as f:
+with open(f"{OUT}/test_metrics.json", "w") as f:
     json.dump(results, f, indent=2)"""
 
 MERGE = """\
 # Merge the adapter into full-precision weights; GGUF conversion needs a plain model.
-# Runs on its own after a session restart too: it only needs the saved "adapter" folder.
-import torch
+# Runs on its own after a session restart too: it only needs the adapter saved to Drive.
+import os, torch
 from transformers import AutoModelForCausalLM
 for name in ("model", "base", "trainer"):
     globals().pop(name, None)
 torch.cuda.empty_cache()
 MODEL_ID = "Qwen/Qwen3-1.7B"
 RUN = "__RUN__"
+from google.colab import drive
+drive.mount("/content/drive")
+OUT = f"/content/drive/MyDrive/guadian-ondevice/{RUN}"
 from peft import PeftModel
 full = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.float16, device_map="auto")
-merged = PeftModel.from_pretrained(full, "adapter").merge_and_unload()
+merged = PeftModel.from_pretrained(full, f"{OUT}/adapter").merge_and_unload()
 merged.save_pretrained("merged", safe_serialization=True)
 
 # Training does not change the tokenizer. Copy the base model's files rather than
@@ -253,19 +305,9 @@ import os
 if not os.path.exists("llama.cpp"):
     !git clone --depth 1 https://github.com/ggml-org/llama.cpp
 %pip install -q -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
-!python llama.cpp/convert_hf_to_gguf.py merged --outtype f16 --outfile guadian-qwen3-1.7b-{RUN}-f16.gguf"""
-
-SAVE = """\
-# Copy results to Google Drive (the f16 GGUF is ~3.4 GB, too large for a browser download).
-from google.colab import drive
-import os, shutil
-drive.mount("/content/drive")
-target = f"/content/drive/MyDrive/guadian-ondevice/{RUN}"
-os.makedirs(target, exist_ok=True)
-for path in [f"guadian-qwen3-1.7b-{RUN}-f16.gguf", "test_metrics.json", "test_predictions.jsonl"]:
-    shutil.copy(path, target)
-shutil.copytree("adapter", f"{target}/adapter", dirs_exist_ok=True)
-print("saved to", target)"""
+# Written straight to Drive: the f16 GGUF is ~3.4 GB, too large for a browser download.
+!python llama.cpp/convert_hf_to_gguf.py merged --outtype f16 --outfile "{OUT}/guadian-qwen3-1.7b-{RUN}-f16.gguf"
+print("saved to", OUT)"""
 
 OUTRO = """\
 ## After training, on the Mac
@@ -283,16 +325,16 @@ python -m guadian_ml.llm.evaluation.agreement __RUN__
 
 The evaluation confirms quantization kept the scores (Q4_K_M did not for run 2; see
 `ml/reports/llm/evaluation-report.md`).
-`test_predictions.jsonl` holds page text; keep it in `ml/data/llm/`."""
+`test_predictions.jsonl` holds page text; keep it in `ml/data/llm/eval/`."""
 
 
 def main() -> None:
     nb = nbformat.v4.new_notebook()
     nb.metadata = {"accelerator": "GPU", "colab": {"gpuType": "T4"},
                    "kernelspec": {"name": "python3", "display_name": "Python 3"}}
-    cells = [("md", INTRO), ("code", INSTALL), ("code", CONFIG), ("code", UPLOAD), ("code", EXAMPLES),
-             ("code", MODEL), ("code", TRAINING), ("code", SCORING), ("code", EVALUATE),
-             ("code", MERGE), ("code", EXPORT), ("code", SAVE), ("md", OUTRO)]
+    cells = [("md", INTRO), ("code", INSTALL), ("code", CONFIG), ("code", DRIVE), ("code", UPLOAD),
+             ("code", EXAMPLES), ("code", MODEL), ("code", TRAINING), ("code", SCORING), ("code", EVALUATE),
+             ("code", MERGE), ("code", EXPORT), ("md", OUTRO)]
     nb.cells = [nbformat.v4.new_markdown_cell(src) if kind == "md" else nbformat.v4.new_code_cell(src)
                 for kind, src in ((kind, src.replace("__RUN__", RUN)) for kind, src in cells)]
     for i, cell in enumerate(nb.cells):   # fixed ids keep the generated file reproducible

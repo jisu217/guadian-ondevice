@@ -1,0 +1,36 @@
+{
+  "note": "the teacher (claude-haiku-4-5) labeling by the labeling guide from the student's prompt, after final_labels' guide checks; the reviewed labels were reconciled with these answers, which favors it on assistant-reviewed cases",
+  "n": 414,
+  "accuracy": 0.8961352657004831,
+  "unparseable": 0,
+  "recall_LOW": 0.8982300884955752,
+  "recall_MEDIUM": 0.8954248366013072,
+  "recall_HIGH": 0.8857142857142857,
+  "macro_f1": 0.8869876549498587,
+  "missed_risk": 12,
+  "human_review": {
+    "n": 156,
+    "accuracy": 0.7564102564102564,
+    "recall_LOW": 0.7727272727272727,
+    "recall_MEDIUM": 0.5757575757575758,
+    "recall_HIGH": 0.8857142857142857,
+    "macro_f1": 0.7355840699553274,
+    "missed_risk": 11
+  },
+  "examples": "data/llm/final/sft_test.jsonl",
+  "examples_sha256": "fc39ca08814a0f94a69b2134aada106ad9798769221a18fb6d8e1dcfbfc171ac",
+  "by_source": {
+    "openphish": {
+      "n": 96,
+      "answered_low": 5,
+      "opened": 43,
+      "opened_answered_low": 5
+    },
+    "tranco": {
+      "n": 81,
+      "warned": 25,
+      "opened": 62,
+      "opened_warned": 7
+    }
+  }
+}

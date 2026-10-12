@@ -14,8 +14,10 @@ class BlocklistFilterTest {
 
     @Test
     fun `matches the python blocklist fixture`() {
-        // Written by ml/guadian_ml/resources/blocklist.py alongside the filter:
-        // listed domains must hit, official domains that were never inserted must miss.
+        /*
+         * Written by ml/guadian_ml/resources/blocklist.py alongside the filter:
+         * listed domains must hit, official domains that were never inserted must miss.
+         */
         val rows = File("../../ml/fixtures/rules/blocklist_filter_cases.csv").readLines()
             .drop(1).filter { it.isNotBlank() }.map { it.substringBefore(',') to it.substringAfter(',').toBoolean() }
 

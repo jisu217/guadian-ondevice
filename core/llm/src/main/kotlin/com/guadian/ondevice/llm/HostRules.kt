@@ -45,8 +45,10 @@ class HostRules(
             }
         }
 
-        // Only a brand's own token counts as its name: imToken's domain is token.im,
-        // and "token" alone would flag every token.xyz.
+        /*
+         * Only a brand's own token counts as its name: imToken's domain is token.im,
+         * and "token" alone would flag every token.xyz.
+         */
         val name = registrable.substringBefore('.')
         val taken = brands.hostTokens.firstOrNull { it.first == name }?.second?.firstOrNull { nameOf(it) == name }
         if (taken != null && !allowlist.coversHost(registrable)) {

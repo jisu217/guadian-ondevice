@@ -1,0 +1,108 @@
+{
+  "n": 414,
+  "unparseable": 0,
+  "claims_accuracy": 0.9541062801932367,
+  "claims_recall": 0.6888888888888889,
+  "claims_precision": 0.8611111111111112,
+  "sign_in_accuracy": 0.9951690821256038,
+  "sign_in_recall": 0.9090909090909091,
+  "sign_in_precision": 1.0,
+  "payment_accuracy": 1.0,
+  "payment_recall": 0.0,
+  "payment_precision": 0.0,
+  "investment_accuracy": 0.9879227053140096,
+  "investment_recall": 0.8571428571428571,
+  "investment_precision": 0.6,
+  "reward_pressure_accuracy": 1.0,
+  "reward_pressure_recall": 0.0,
+  "reward_pressure_precision": 0.0,
+  "content_farm_accuracy": 0.9830917874396136,
+  "content_farm_recall": 0.0,
+  "content_farm_precision": 0.0,
+  "all_correct": 0.9227053140096618,
+  "human_review": {
+    "n": 156,
+    "unparseable": 0,
+    "claims_accuracy": 0.9294871794871795,
+    "claims_recall": 0.7948717948717948,
+    "claims_precision": 0.9117647058823529,
+    "sign_in_accuracy": 0.9871794871794872,
+    "sign_in_recall": 0.9090909090909091,
+    "sign_in_precision": 1.0,
+    "payment_accuracy": 1.0,
+    "payment_recall": 0.0,
+    "payment_precision": 0.0,
+    "investment_accuracy": 0.9807692307692307,
+    "investment_recall": 0.5,
+    "investment_precision": 0.3333333333333333,
+    "reward_pressure_accuracy": 1.0,
+    "reward_pressure_recall": 0.0,
+    "reward_pressure_precision": 0.0,
+    "content_farm_accuracy": 0.9615384615384616,
+    "content_farm_recall": 0.0,
+    "content_farm_precision": 0.0,
+    "all_correct": 0.8653846153846154
+  },
+  "app": {
+    "n": 414,
+    "accuracy": 0.9202898550724637,
+    "recall_LOW": 0.9823008849557522,
+    "recall_MEDIUM": 0.8627450980392157,
+    "recall_HIGH": 0.7714285714285715,
+    "macro_f1": 0.8901219485431282,
+    "missed_risk": 25,
+    "malformed": 0,
+    "high_lowered": 0,
+    "personal_info_lowered": 0,
+    "by_source": {
+      "openphish": {
+        "n": 96,
+        "answered_low": 13,
+        "opened": 43,
+        "opened_answered_low": 13
+      },
+      "tranco": {
+        "n": 81,
+        "warned": 20,
+        "opened": 62,
+        "opened_warned": 1
+      }
+    },
+    "human_review": {
+      "n": 156,
+      "accuracy": 0.7884615384615384,
+      "recall_LOW": 0.9545454545454546,
+      "recall_MEDIUM": 0.36363636363636365,
+      "recall_HIGH": 0.7714285714285715,
+      "macro_f1": 0.7202565382405847,
+      "missed_risk": 25,
+      "malformed": 0,
+      "high_lowered": 0,
+      "personal_info_lowered": 0,
+      "by_source": {
+        "openphish": {
+          "n": 44,
+          "answered_low": 12,
+          "opened": 42,
+          "opened_answered_low": 12
+        },
+        "tranco": {
+          "n": 13,
+          "warned": 3,
+          "opened": 11,
+          "opened_warned": 1
+        }
+      }
+    }
+  },
+  "latency_s": {
+    "median": 3.77,
+    "p90": 5.05,
+    "max": 10.89,
+    "threads": 4,
+    "gpu_layers": 0
+  },
+  "model": "guadian-qwen3-1.7b-run6-Q4_K_M.gguf",
+  "examples": "data/llm/final/sft_test.jsonl",
+  "examples_sha256": "fc39ca08814a0f94a69b2134aada106ad9798769221a18fb6d8e1dcfbfc171ac"
+}

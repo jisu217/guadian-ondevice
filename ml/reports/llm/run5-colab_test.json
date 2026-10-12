@@ -1,0 +1,23 @@
+{
+  "note": "run 5 (run 4's settings; training labels changed only: personal_info without first-screen ground and brand sites set to LOW, 56 train and 5 validation cases), scored in Colab on the fp16 base with the adapter",
+  "zero_shot": {
+    "n": 420,
+    "accuracy": 0.44285714285714284,
+    "unparseable": 401,
+    "recall_LOW": 0.0660377358490566,
+    "recall_MEDIUM": 0.9885057471264368,
+    "recall_HIGH": 0.0,
+    "macro_f1": 0.23982433025911287,
+    "missed_risk": 5
+  },
+  "fine_tuned": {
+    "n": 420,
+    "accuracy": 0.830952380952381,
+    "unparseable": 0,
+    "recall_LOW": 0.8490566037735849,
+    "recall_MEDIUM": 0.8793103448275862,
+    "recall_HIGH": 0.47058823529411764,
+    "macro_f1": 0.7615462099641377,
+    "missed_risk": 21
+  }
+}

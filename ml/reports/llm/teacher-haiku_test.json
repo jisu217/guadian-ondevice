@@ -1,0 +1,23 @@
+{
+  "note": "the original GUADIAN server judge (claude-haiku-4-5, original criteria) as the teacher answered each test case, grounded; its input had more than the phone sees (domain age, blocklist) and the reviewed labels started from these answers, which favors it on assistant-reviewed cases",
+  "n": 420,
+  "accuracy": 0.819047619047619,
+  "unparseable": 0,
+  "recall_LOW": 0.7877358490566038,
+  "recall_MEDIUM": 0.8850574712643678,
+  "recall_HIGH": 0.6764705882352942,
+  "macro_f1": 0.7796964957385443,
+  "missed_risk": 12,
+  "human_review": {
+    "n": 133,
+    "accuracy": 0.5112781954887218,
+    "unparseable": 0,
+    "recall_LOW": 0.40789473684210525,
+    "recall_MEDIUM": 0.6086956521739131,
+    "recall_HIGH": 0.6764705882352942,
+    "macro_f1": 0.5299808025471743,
+    "missed_risk": 6
+  },
+  "examples": "data/llm/final/sft_test.jsonl",
+  "examples_sha256": "154d86e012bfb8fbed308254dac3550c65352a196d9fe910f783d580e25abd1e"
+}
