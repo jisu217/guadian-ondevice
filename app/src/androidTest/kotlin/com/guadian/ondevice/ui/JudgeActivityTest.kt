@@ -13,8 +13,9 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Automates the layer check that was done by hand on an emulator with adb
- * (rule engine, local knowledge, page content, LLM).
+ * Checks on an emulator which pipeline stage settles a URL (cache and URL, page,
+ * LLM) and the risk the verdict table gives it. No model file is installed, so
+ * these cases are settled before the LLM stage.
  * Judging runs on a background dispatcher, so each test polls the result
  * text instead of relying on Espresso's main-looper idling.
  * Run with: ./gradlew connectedDebugAndroidTest
@@ -24,35 +25,24 @@ class JudgeActivityTest {
     val activityRule = ActivityScenarioRule(JudgeActivity::class.java)
 
     @Test
-    fun ruleEngineResolvesApkDownloadAsHigh() {
+    fun apkDownloadIsHighAtUrlStage() {
         val result = judge("https://unknown-site.test/download/app.apk")
 
         assertTrue(result, "(HIGH)" in result)
-        assertTrue(result, "(rule)" in result)
+        assertTrue(result, "(url)" in result)
     }
 
     @Test
-    fun localKnowledgeResolvesPersonalInfoUrlAsMedium() {
-        val result = judge(
-            "https://survey-form.unlisted-check.test/personal-info-phone-card" +
-                "?ref=abcdefghijklmnopqrstuvwxyz1234567890"
-        )
-
-        assertTrue(result, "(MEDIUM)" in result)
-        assertTrue(result, "(local-knowledge)" in result)
-    }
-
-    @Test
-    fun unresolvableUrlEndsUnknownAtLlmStage() {
+    fun pageThatDoesNotOpenIsMediumAtPageStage() {
         /*
          * .test is IANA-reserved (RFC 2606): guaranteed never to resolve, so
-         * PageContentJudge's WebView load fails deterministically instead of
-         * rendering whatever a real .org registrant happens to host there.
+         * the page stage's WebView load fails deterministically and the table
+         * settles the page as unverifiable.
          */
         val result = judge("https://plain-article.test/read")
 
-        assertTrue(result, "(UNKNOWN)" in result)
-        assertTrue(result, "(llm)" in result)
+        assertTrue(result, "(MEDIUM)" in result)
+        assertTrue(result, "(page-content)" in result)
     }
 
     private fun judge(url: String): String {
