@@ -1,7 +1,17 @@
 name: Instrumented tests
 
-# Emulator runs are slow, so they run nightly and on demand instead of per PR.
+# Emulator runs take about five minutes, so a pull request runs them only when
+# it changes what the app does: its code, its build, or the runtime files it reads.
 on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "core/**"
+      - "ml/runtime/**"
+      - "gradle/**"
+      - "*.gradle.kts"
+      - "gradle.properties"
+      - ".github/workflows/instrumented.yml"
   schedule:
     - cron: "0 18 * * *"
   workflow_dispatch:
