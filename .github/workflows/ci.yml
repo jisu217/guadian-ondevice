@@ -1,0 +1,49 @@
+name: CI
+
+# Pushes to feature branches are covered by their pull request; running on
+# both would test every PR commit twice.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check model requirements
+        run: bash scripts/check-model-requirements.sh
+
+      - name: Install model package
+        run: pip install -e "ml[test]"
+
+      - name: Test model code
+        run: python -m unittest discover -s ml/tests -t ml
+
+      - name: Test Kotlin on-device runtime
+        run: ./gradlew test
+
+      - name: Android lint
+        run: ./gradlew lint

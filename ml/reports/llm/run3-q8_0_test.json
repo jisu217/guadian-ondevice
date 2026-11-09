@@ -1,0 +1,52 @@
+{
+  "n": 118,
+  "accuracy": 0.7033898305084746,
+  "unparseable": 0,
+  "recall_LOW": 0.9166666666666666,
+  "recall_MEDIUM": 0.6170212765957447,
+  "recall_HIGH": 0.43478260869565216,
+  "macro_f1": 0.6733731173628872,
+  "missed_risk": 23,
+  "human_review": {
+    "n": 47,
+    "accuracy": 0.6382978723404256,
+    "unparseable": 0,
+    "recall_LOW": 0.875,
+    "recall_MEDIUM": 0.14285714285714285,
+    "recall_HIGH": 0.0,
+    "macro_f1": 0.3223744292237443,
+    "missed_risk": 13
+  },
+  "app": {
+    "n": 118,
+    "accuracy": 0.7033898305084746,
+    "recall_LOW": 0.9166666666666666,
+    "recall_MEDIUM": 0.6170212765957447,
+    "recall_HIGH": 0.43478260869565216,
+    "macro_f1": 0.6733731173628872,
+    "missed_risk": 23,
+    "malformed": 0,
+    "high_lowered": 0,
+    "human_review": {
+      "n": 47,
+      "accuracy": 0.6382978723404256,
+      "recall_LOW": 0.875,
+      "recall_MEDIUM": 0.14285714285714285,
+      "recall_HIGH": 0.0,
+      "macro_f1": 0.3223744292237443,
+      "missed_risk": 13,
+      "malformed": 0,
+      "high_lowered": 0
+    }
+  },
+  "latency_s": {
+    "median": 2.839106208004523,
+    "p90": 4.003830375004327,
+    "max": 9.121109041996533,
+    "threads": 4,
+    "gpu_layers": 99
+  },
+  "model": "guadian-qwen3-1.7b-run3-Q8_0.gguf",
+  "examples": "data/llm/sft_test.jsonl",
+  "examples_sha256": "4744eab916fc096e7eff804b3886901f8bdcfeba5c7f2d8edcb2bec498492463"
+}

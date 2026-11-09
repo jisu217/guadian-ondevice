@@ -1,0 +1,82 @@
+{
+  "n": 414,
+  "accuracy": 0.8260869565217391,
+  "recall_LOW": 0.8362831858407079,
+  "recall_MEDIUM": 0.869281045751634,
+  "recall_HIGH": 0.5714285714285714,
+  "macro_f1": 0.7812457925193114,
+  "missed_risk": 21,
+  "unparseable": 0,
+  "human_review": {
+    "n": 156,
+    "accuracy": 0.6538461538461539,
+    "recall_LOW": 0.7386363636363636,
+    "recall_MEDIUM": 0.5151515151515151,
+    "recall_HIGH": 0.5714285714285714,
+    "macro_f1": 0.6174368460882413,
+    "missed_risk": 17,
+    "unparseable": 0
+  },
+  "app": {
+    "n": 414,
+    "accuracy": 0.855072463768116,
+    "recall_LOW": 0.8982300884955752,
+    "recall_MEDIUM": 0.8562091503267973,
+    "recall_HIGH": 0.5714285714285714,
+    "macro_f1": 0.8011090887878831,
+    "missed_risk": 24,
+    "malformed": 0,
+    "high_lowered": 0,
+    "personal_info_lowered": 17,
+    "by_source": {
+      "openphish": {
+        "n": 96,
+        "answered_low": 5,
+        "opened": 43,
+        "opened_answered_low": 5
+      },
+      "tranco": {
+        "n": 81,
+        "warned": 21,
+        "opened": 62,
+        "opened_warned": 5
+      }
+    },
+    "human_review": {
+      "n": 156,
+      "accuracy": 0.6666666666666666,
+      "recall_LOW": 0.7840909090909091,
+      "recall_MEDIUM": 0.45454545454545453,
+      "recall_HIGH": 0.5714285714285714,
+      "macro_f1": 0.6174546535831104,
+      "missed_risk": 20,
+      "malformed": 0,
+      "high_lowered": 0,
+      "personal_info_lowered": 7,
+      "by_source": {
+        "openphish": {
+          "n": 44,
+          "answered_low": 4,
+          "opened": 42,
+          "opened_answered_low": 4
+        },
+        "tranco": {
+          "n": 13,
+          "warned": 5,
+          "opened": 11,
+          "opened_warned": 4
+        }
+      }
+    }
+  },
+  "latency_s": {
+    "median": 2.84,
+    "p90": 3.34,
+    "max": 6.8,
+    "threads": 4,
+    "gpu_layers": 0
+  },
+  "model": "guadian-qwen3-1.7b-run5-Q4_K_M.gguf",
+  "examples": "data/llm/final/sft_test.jsonl",
+  "examples_sha256": "fc39ca08814a0f94a69b2134aada106ad9798769221a18fb6d8e1dcfbfc171ac"
+}

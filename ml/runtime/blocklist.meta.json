@@ -1,0 +1,17 @@
+{
+  "sources": {
+    "ut1-phishing": "https://raw.githubusercontent.com/smed79/ut1/master/phishing/domains",
+    "ut1-malware": "https://raw.githubusercontent.com/smed79/ut1/master/malware/domains"
+  },
+  "license": "CC BY-NC-SA 3.0 (ut1), non-commercial",
+  "built_at": "2026-09-27T08:10:12+00:00",
+  "entries": 267831,
+  "bits": 7701528,
+  "hashes": 20,
+  "false_positive_rate": 1e-06,
+  "dropped_public_suffixes": [
+    "3utilities.com",
+    "kirk.replit.dev"
+  ],
+  "dropped_official_domains": 35
+}

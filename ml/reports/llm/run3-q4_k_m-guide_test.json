@@ -1,0 +1,82 @@
+{
+  "n": 414,
+  "accuracy": 0.8115942028985508,
+  "recall_LOW": 0.9380530973451328,
+  "recall_MEDIUM": 0.7058823529411765,
+  "recall_HIGH": 0.45714285714285713,
+  "macro_f1": 0.7358998291236484,
+  "missed_risk": 49,
+  "unparseable": 0,
+  "human_review": {
+    "n": 156,
+    "accuracy": 0.717948717948718,
+    "recall_LOW": 0.8863636363636364,
+    "recall_MEDIUM": 0.5454545454545454,
+    "recall_HIGH": 0.45714285714285713,
+    "macro_f1": 0.6459993946120471,
+    "missed_risk": 21,
+    "unparseable": 0
+  },
+  "app": {
+    "n": 414,
+    "accuracy": 0.821256038647343,
+    "recall_LOW": 0.9469026548672567,
+    "recall_MEDIUM": 0.7189542483660131,
+    "recall_HIGH": 0.45714285714285713,
+    "macro_f1": 0.7503591477010844,
+    "missed_risk": 52,
+    "malformed": 0,
+    "high_lowered": 2,
+    "personal_info_lowered": 5,
+    "by_source": {
+      "openphish": {
+        "n": 96,
+        "answered_low": 12,
+        "opened": 43,
+        "opened_answered_low": 12
+      },
+      "tranco": {
+        "n": 81,
+        "warned": 24,
+        "opened": 62,
+        "opened_warned": 5
+      }
+    },
+    "human_review": {
+      "n": 156,
+      "accuracy": 0.7243589743589743,
+      "recall_LOW": 0.8977272727272727,
+      "recall_MEDIUM": 0.5454545454545454,
+      "recall_HIGH": 0.45714285714285713,
+      "macro_f1": 0.6534701601671983,
+      "missed_risk": 24,
+      "malformed": 0,
+      "high_lowered": 0,
+      "personal_info_lowered": 4,
+      "by_source": {
+        "openphish": {
+          "n": 44,
+          "answered_low": 11,
+          "opened": 42,
+          "opened_answered_low": 11
+        },
+        "tranco": {
+          "n": 13,
+          "warned": 6,
+          "opened": 11,
+          "opened_warned": 4
+        }
+      }
+    }
+  },
+  "latency_s": {
+    "median": 1.55,
+    "p90": 1.87,
+    "max": 2.55,
+    "threads": 4,
+    "gpu_layers": 0
+  },
+  "model": "guadian-qwen3-1.7b-run3-Q4_K_M.gguf",
+  "examples": "data/llm/final/sft_test.jsonl",
+  "examples_sha256": "fc39ca08814a0f94a69b2134aada106ad9798769221a18fb6d8e1dcfbfc171ac"
+}

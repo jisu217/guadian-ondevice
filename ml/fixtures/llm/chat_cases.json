@@ -1,0 +1,17 @@
+{
+ "system": "광고 도착 페이지의 위험도를 판정한다. JSON 한 줄로만 답한다.",
+ "rendered": [
+  {
+   "user": "주소: https://unreachable.example/path\n페이지: 열리지 않음",
+   "text": "<|im_start|>system\n광고 도착 페이지의 위험도를 판정한다. JSON 한 줄로만 답한다.<|im_end|>\n<|im_start|>user\n주소: https://unreachable.example/path\n페이지: 열리지 않음<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+  },
+  {
+   "user": "주소: https://roblox.com.mu/games/1\n페이지: 열리지 않음\n주소 흉내: host roblox.com.mu embeds roblox.com but belongs to roblox.com.mu",
+   "text": "<|im_start|>system\n광고 도착 페이지의 위험도를 판정한다. JSON 한 줄로만 답한다.<|im_end|>\n<|im_start|>user\n주소: https://roblox.com.mu/games/1\n페이지: 열리지 않음\n주소 흉내: host roblox.com.mu embeds roblox.com but belongs to roblox.com.mu<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+  },
+  {
+   "user": "주소: https://shop.example.com/sale\n페이지: 상태 200, 본문 4000자\n제목: 여름 세일\n본문: 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내",
+   "text": "<|im_start|>system\n광고 도착 페이지의 위험도를 판정한다. JSON 한 줄로만 답한다.<|im_end|>\n<|im_start|>user\n주소: https://shop.example.com/sale\n페이지: 상태 200, 본문 4000자\n제목: 여름 세일\n본문: 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내 안내<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+  }
+ ]
+}

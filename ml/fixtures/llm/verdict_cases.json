@@ -1,0 +1,5016 @@
+[
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "unknown:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "impersonation",
+   "reason": "suspicious",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "personal_info",
+   "reason": "unknown:personal_field",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "unknown:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "unknown:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "credentials",
+   "reason": "unknown:sign_in",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "payment",
+   "reason": "unknown:payment",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "impersonation",
+   "reason": "suspicious",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "credentials",
+   "reason": "unknown:sign_in",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "personal_info",
+   "reason": "unknown:personal_field",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "impersonation",
+   "reason": "suspicious",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "personal_info",
+   "reason": "unknown:personal_field",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": null,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "credentials",
+   "reason": "unknown:sign_in",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "urgency",
+   "reason": "unknown:reward_pressure",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": null,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": null,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": true,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": true,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "credentials",
+   "reason": "unknown:sign_in",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": null,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "personal_info",
+   "reason": "unknown:personal_field",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "investment",
+   "reason": "unknown:investment",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": true,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "personal_info",
+   "reason": "unknown:personal_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "credentials",
+   "reason": "unknown:sign_in",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": true,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": true,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "impersonation",
+   "reason": "suspicious",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "personal_info",
+   "reason": "unknown:personal_field",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "payment",
+   "reason": "unknown:payment",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": true,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": false,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "payment",
+   "reason": "unknown:payment",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": true,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "credentials",
+   "reason": "unknown:sign_in",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": true,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": null,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": null,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "investment",
+   "reason": "unknown:investment",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": null,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": null,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": true,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": true,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "contentfarm",
+   "reason": "unknown:content_farm",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": false,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": true,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": true,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": null,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "payment",
+   "reason": "unknown:payment",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": null,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "payment",
+   "reason": "unknown:payment",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": null,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "apk",
+   "reason": "unknown:apk_link",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": false,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": null,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": true,
+   "official": false,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "unknown:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": true,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": true,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": false,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "official:browse",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": null,
+   "sign_in": true,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "credentials",
+   "reason": "unknown:sign_in",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "none",
+   "sign_in": null,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": true,
+   "official": true,
+   "apk_link": true,
+   "sensitive_field": null,
+   "personal_field": null,
+   "claim": "none",
+   "sign_in": false,
+   "payment": true,
+   "investment": true,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": true,
+   "host_imitation": "suspicious",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "blocklisted",
+   "reason": "blocklisted",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": "listed_other",
+   "sign_in": true,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": null,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": null,
+   "personal_field": true,
+   "claim": "unlisted",
+   "sign_in": null,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": true,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "personal_info",
+   "reason": "unknown:personal_field",
+   "final": false
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "certain",
+   "opened": null,
+   "official": false,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": null,
+   "claim": "listed_other",
+   "sign_in": false,
+   "payment": false,
+   "investment": null,
+   "reward_pressure": null,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "impersonation",
+   "reason": "impersonation:browse",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": true,
+   "apk_link": false,
+   "sensitive_field": true,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": true,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": true
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "suspicious",
+   "opened": null,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": true,
+   "personal_field": true,
+   "claim": "none",
+   "sign_in": true,
+   "payment": true,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "HIGH",
+   "type": "credentials",
+   "reason": "unknown:sensitive_field",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": false,
+   "official": null,
+   "apk_link": null,
+   "sensitive_field": null,
+   "personal_field": false,
+   "claim": null,
+   "sign_in": false,
+   "payment": false,
+   "investment": false,
+   "reward_pressure": false,
+   "content_farm": null
+  },
+  "decision": {
+   "risk": "MEDIUM",
+   "type": "unverifiable",
+   "reason": "unverifiable",
+   "final": true
+  }
+ },
+ {
+  "facts": {
+   "blocklisted": false,
+   "host_imitation": "none",
+   "opened": null,
+   "official": null,
+   "apk_link": false,
+   "sensitive_field": false,
+   "personal_field": false,
+   "claim": "unlisted",
+   "sign_in": false,
+   "payment": null,
+   "investment": null,
+   "reward_pressure": false,
+   "content_farm": false
+  },
+  "decision": {
+   "risk": "LOW",
+   "type": "none",
+   "reason": "unknown:browse",
+   "final": false
+  }
+ }
+]

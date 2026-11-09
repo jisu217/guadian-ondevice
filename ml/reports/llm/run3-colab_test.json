@@ -1,0 +1,23 @@
+{
+  "note": "run 3 (LoRA on the fp16 base, 5 epochs, effective batch 8, HIGH oversampled x2, prompts after the 2026-09-28 changes), scored in Colab on the fp16 base with the adapter",
+  "zero_shot": {
+    "n": 118,
+    "accuracy": 0.4322033898305085,
+    "unparseable": 112,
+    "recall_LOW": 0.08333333333333333,
+    "recall_MEDIUM": 1.0,
+    "recall_HIGH": 0.0,
+    "macro_f1": 0.2464477055672024,
+    "missed_risk": 2
+  },
+  "fine_tuned": {
+    "n": 118,
+    "accuracy": 0.6610169491525424,
+    "unparseable": 0,
+    "recall_LOW": 0.8541666666666666,
+    "recall_MEDIUM": 0.6170212765957447,
+    "recall_HIGH": 0.34782608695652173,
+    "macro_f1": 0.620798217572411,
+    "missed_risk": 22
+  }
+}

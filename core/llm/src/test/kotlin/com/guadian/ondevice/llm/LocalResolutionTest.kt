@@ -1,0 +1,16 @@
+package com.guadian.ondevice.llm
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class LocalResolutionTest {
+    @Test
+    fun `local resolution counts are consistent`() {
+        for ((_, result) in LocalResolution.measureAll()) {
+            val resolved = result.reasons.sumOf { it.resolved }
+            assertEquals(result.total, resolved + result.unresolved)
+            assertTrue(result.reasons.all { it.correct <= it.resolved })
+        }
+    }
+}

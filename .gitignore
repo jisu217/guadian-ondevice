@@ -1,0 +1,52 @@
+# Build outputs and incremental compilation caches (Gradle, Kotlin)
+.gradle/
+.kotlin/
+build/
+out/
+
+# JVM bytecode and packaged archives (JAR/WAR/EAR)
+# Exception: gradle-wrapper.jar is version-controlled to bootstrap ./gradlew without a local Gradle install
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.war
+*.ear
+
+# IDE workspace metadata
+.idea/
+*.iml
+.vscode/
+
+# Java upgrade tooling artifacts
+.github/modernize/
+
+# JVM heap dumps (HPROF), emitted on Gradle daemon OutOfMemoryError
+*.hprof
+
+# Instrumented test artifacts (Espresso screenshots, screen recordings)
+captures/
+
+# macOS Finder metadata
+.DS_Store
+
+# Python bytecode cache and virtual environment (ml/)
+__pycache__/
+*.egg-info/
+*.py[cod]
+.venv/
+
+# dotenv credentials (e.g. ANTHROPIC_API_KEY)
+.env
+
+# Machine-specific Android SDK location (sdk.dir)
+local.properties
+
+# Personal study notes
+docs/prefetch-parallelism.md
+
+# Collected LLM cases and labels (contain third-party page text and personal data)
+ml/data/llm/
+
+# CMake working directories for native modules (NDK builds)
+.cxx/
+.DS_Store

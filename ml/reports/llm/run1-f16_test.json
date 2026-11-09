@@ -1,0 +1,28 @@
+{
+  "n": 118,
+  "accuracy": 0.5677966101694916,
+  "unparseable": 0,
+  "recall_LOW": 0.4583333333333333,
+  "recall_MEDIUM": 0.8723404255319149,
+  "recall_HIGH": 0.17391304347826086,
+  "macro_f1": 0.49268662372110655,
+  "missed_risk": 7,
+  "human_review": {
+    "n": 47,
+    "accuracy": 0.44680851063829785,
+    "unparseable": 0,
+    "recall_LOW": 0.3125,
+    "recall_MEDIUM": 0.7857142857142857,
+    "recall_HIGH": 0.0,
+    "macro_f1": 0.30434782608695654,
+    "missed_risk": 4
+  },
+  "latency_s": {
+    "median": 3.7193960000004154,
+    "p90": 4.879060166014824,
+    "max": 7.364788917009719,
+    "threads": 4,
+    "gpu_layers": 99
+  },
+  "model": "guadian-qwen3-1.7b-f16.gguf"
+}
